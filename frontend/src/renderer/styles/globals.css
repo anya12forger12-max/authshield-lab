@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '../themes/variables.css';
+
+@layer base {
+  html {
+    font-family: var(--font-family-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-[var(--color-background)] text-[var(--color-text-primary)] leading-normal;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-[var(--color-focus-ring)] ring-offset-2;
+  }
+
+  ::selection {
+    @apply bg-[var(--color-primary)] text-white;
+  }
+}
+
+.skip-link {
+  @apply absolute top-0 left-0 z-[9999] px-4 py-2 -translate-y-full bg-[var(--color-primary)] text-white font-medium transition-transform duration-200;
+}
+
+.skip-link:focus {
+  @apply translate-y-0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-theme="high-contrast-dark"] *,
+[data-theme="high-contrast-light"] *:focus-visible {
+  @apply ring-2 ring-offset-4;
+}
+
+.sr-only {
+  @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.sr-only-focusable:focus {
+  @apply relative w-auto h-auto p-normal m-0 overflow-visible;
+  clip: auto;
+  white-space: normal;
+}
+
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-[var(--color-surface-sunken)];
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-[var(--color-border-strong)] rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-[var(--color-text-muted)];
+}
+
+@media print {
+  body {
+    @apply bg-white text-black;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  nav,
+  aside,
+  header,
+  footer {
+    display: none !important;
+  }
+
+  main {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer utilities {
+  .transition-theme {
+    transition: background-color var(--transition-normal) var(--easing-default),
+                color var(--transition-normal) var(--easing-default),
+                border-color var(--transition-normal) var(--easing-default),
+                box-shadow var(--transition-normal) var(--easing-default);
+  }
+}
