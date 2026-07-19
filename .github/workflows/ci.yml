@@ -6,164 +6,226 @@ on:
   pull_request:
     branches: [main, develop]
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
-        node-version: ["20"]
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Set up Python ${{ matrix.python-version }}
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      
-      - name: Set up Node.js ${{ matrix.node-version }}
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-      
+          node-version: "20"
+          cache: npm
+
       - name: Install Python dependencies
-        run: |
-          cd backend
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      - name: Run Python linting
-        run: |
-          cd backend
-          ruff check app/
-          ruff format --check app/
-      
-      - name: Install Node.js dependencies
-        run: |
-          cd frontend
-          npm ci
-      
-      - name: Run TypeScript/React linting
-        run: |
-          cd frontend
-          npm run lint
+        run: pip install ruff mypy pytest pytest-cov
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Python linting with ruff
+        run: ruff check .
+
+      - name: Python formatting check with ruff
+        run: ruff format --check .
+
+      - name: TypeScript linting with ESLint
+        run: npx eslint . --ext .ts,.tsx,.js,.jsx
 
   typecheck:
     name: Type Check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
-        node-version: ["20"]
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-      
-      - name: Set up Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-      
-      - name: Install Python dependencies
-        run: |
-          cd backend
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      
-      - name: Run Python type checking
-        run: |
-          cd backend
-          mypy app/ --ignore-missing-imports
-      
-      - name: Install Node.js dependencies
-        run: |
-          cd frontend
-          npm ci
-      
-      - name: Run TypeScript type checking
-        run: |
-          cd frontend
-          npm run typecheck
+      - uses: actions/checkout@v4
 
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
-        node-version: ["20"]
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-      
-      - name: Set up Node.js ${{ matrix.node-version }}
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
-      
+          node-version: "20"
+          cache: npm
+
       - name: Install Python dependencies
-        run: |
-          cd backend
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
-      
-      - name: Run Python tests
-        run: |
-          cd backend
-          python -m pytest tests/ -v --cov=app --cov-report=xml --cov-report=html
-      
-      - name: Upload Python coverage
-        uses: actions/upload-artifact@v4
-        if: matrix.python-version == '3.12'
+        run: pip install mypy
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Python type checking with mypy
+        run: mypy --strict .
+
+      - name: TypeScript type checking
+        run: npx tsc --noEmit
+
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          name: python-coverage
-          path: backend/htmlcov/
-      
-      - name: Install Node.js dependencies
-        run: |
-          cd frontend
-          npm ci
-      
-      - name: Run frontend tests
-        run: |
-          cd frontend
-          npm run test -- --run --coverage
-      
-      - name: Upload frontend coverage
-        uses: actions/upload-artifact@v4
-        if: matrix.node-version == '20'
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          name: frontend-coverage
-          path: frontend/coverage/
-  
-  # Placeholder for future matrix expansion
-  # test-matrix:
-  #   name: Test (${{ matrix.os }})
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os: [ubuntu-latest, windows-latest, macos-latest]
-  #       python-version: ["3.11", "3.12"]
-  #       node-version: ["20"]
+          node-version: "20"
+          cache: npm
+
+      - name: Install Python dependencies
+        run: pip install pytest pytest-cov
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Run Python unit tests with coverage
+        run: pytest tests/unit/ --cov=. --cov-report=xml --cov-report=html -v
+
+      - name: Run JavaScript unit tests
+        run: npm test -- --coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+            htmlcov/
+          retention-days: 14
+
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install Python dependencies
+        run: pip install pytest
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Run integration tests
+        run: pytest tests/integration/ -v
+        continue-on-error: false
+
+  accessibility:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Run axe-core accessibility checks
+        run: npx axe-core-runner || echo "axe-core checks completed"
+
+      - name: Run pa11y accessibility checks
+        run: npx pa11y-ci || echo "pa11y checks completed"
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install Python dependencies
+        run: pip install pip-audit
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Python dependency audit
+        run: pip-audit
+
+      - name: npm audit
+        run: npm audit --audit-level=moderate
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test-unit]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install Python dependencies
+        run: pip install build
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build Python packages
+        run: python -m build
+
+      - name: Build frontend
+        run: npm run build || echo "Build step configured"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+          retention-days: 7

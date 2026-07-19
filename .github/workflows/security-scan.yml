@@ -1,0 +1,141 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install audit tools
+        run: |
+          pip install pip-audit safety
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Python dependency audit with pip-audit
+        run: pip-audit --desc --output pip-audit-results.json --format json --output-file pip-audit-results.json || true
+
+      - name: Python dependency audit with safety
+        run: safety check --json --output safety-results.json || true
+
+      - name: npm audit
+        run: npm audit --json > npm-audit-results.json || true
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-audit-results
+          path: |
+            pip-audit-results.json
+            safety-results.json
+            npm-audit-results.json
+          retention-days: 30
+
+  secret-scanning:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Scanning for potential secrets in codebase..."
+          # Check for common secret patterns
+          if grep -rn --include="*.py" --include="*.ts" --include="*.js" --include="*.yml" --include="*.yaml" --include="*.json" --include="*.env" --include="*.toml" -E "(api_key|secret_key|password|token|credential)\s*[:=]\s*['\"][^'"]{8,}" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=__pycache__; then
+            echo "::warning::Potential hardcoded secrets found in codebase"
+          else
+            echo "No potential hardcoded secrets detected."
+          fi
+
+      - name: Check for .env files
+        run: |
+          if find . -name ".env" -not -path "./node_modules/*" -not -path "./.git/*" | grep -q .; then
+            echo "::warning::Found .env files in the repository"
+            find . -name ".env" -not -path "./node_modules/*" -not -path "./.git/*"
+          fi
+
+      - name: Check gitignore for sensitive patterns
+        run: |
+          if [ -f .gitignore ]; then
+            echo "Checking .gitignore covers sensitive files..."
+            for pattern in ".env" "*.pem" "*.key" "*.p12" "*.pfx" "credentials.json" "service-account*.json"; do
+              if grep -q "$pattern" .gitignore 2>/dev/null; then
+                echo "  OK: $pattern is in .gitignore"
+              else
+                echo "  WARNING: $pattern is NOT in .gitignore"
+              fi
+            done
+          fi
+
+  sbom-generation:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install SBOM tools
+        run: |
+          pip install cyclonedx-bom
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Python SBOM
+        run: |
+          cyclonedx-py environment --format json --output-file sbom-python.json || \
+          cyclonedx-py requirements --input-file requirements.txt --format json --output-file sbom-python.json || \
+          echo '{"error": "Could not generate Python SBOM - no requirements found"}' > sbom-python.json
+
+      - name: Generate npm SBOM
+        run: |
+          npx @cyclonedx/cyclonedx-npm --output-file sbom-npm.json || \
+          echo '{"error": "Could not generate npm SBOM"}' > sbom-npm.json
+
+      - name: Upload SBOMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-reports
+          path: |
+            sbom-python.json
+            sbom-npm.json
+          retention-days: 90

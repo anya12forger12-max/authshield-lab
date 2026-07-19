@@ -1,0 +1,42 @@
+name: Documentation Issue
+description: Report an issue with AuthShield Lab documentation
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Affected Page/File
+      description: Which documentation page or file is affected?
+      placeholder: e.g. docs/getting-started.md, README.md
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Issue Type
+      description: What type of documentation issue is this?
+      options:
+        - Outdated
+        - Missing
+        - Incorrect
+        - Inaccessible
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the documentation issue.
+      placeholder: Describe what is wrong or missing...
+    validations:
+      required: true
+
+  - type: textarea
+    id: improvement
+    attributes:
+      label: Suggested Improvement
+      description: How should the documentation be improved?
+      placeholder: Describe the suggested improvement...

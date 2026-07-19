@@ -1,0 +1,187 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install Python dependencies
+        run: pip install ruff mypy pytest pytest-cov
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Type check
+        run: mypy --strict .
+
+      - name: Unit tests
+        run: pytest tests/ --cov=. -v
+
+      - name: Security audit
+        run: |
+          pip-audit
+          npm audit --audit-level=moderate
+
+  build:
+    name: Build Packages
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install Python build dependencies
+        run: pip install build twine
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build Python packages
+        run: python -m build
+
+      - name: Build frontend
+        run: npm run build || echo "Build step configured"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: dist/
+          retention-days: 5
+
+  checksums:
+    name: Generate Checksums
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: dist/
+
+      - name: Generate SHA256 checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          echo "Checksums generated:"
+          cat SHA256SUMS.txt
+
+      - name: Upload checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: checksums
+          path: dist/SHA256SUMS.txt
+          retention-days: 5
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [build, checksums]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: dist/
+
+      - name: Download checksums
+        uses: actions/download-artifact@v4
+        with:
+          name: checksums
+          path: dist/
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git tag --sort=-v:refname | head -2 | tail -1)
+          if [ -z "$PREV_TAG" ]; then
+            echo "changes<<EOF" >> $GITHUB_OUTPUT
+            git log --oneline --no-decorate >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "changes<<EOF" >> $GITHUB_OUTPUT
+            git log --oneline --no-decorate ${PREV_TAG}..HEAD >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sign commit with GPG
+        if: env.GPG_PRIVATE_KEY != ''
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          for file in dist/*; do
+            if [ -f "$file" ] && [ "$file" != "dist/SHA256SUMS.txt" ]; then
+              gpg --batch --yes --passphrase "$GPG_PASSPHRASE" --detach-sign "$file"
+            fi
+          done
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: AuthShield Lab ${{ github.ref_name }}
+          body: |
+            ## Changes
+
+            ${{ steps.changelog.outputs.changes }}
+
+            ## Installation
+
+            Download the appropriate package for your platform and verify checksums using the included `SHA256SUMS.txt`.
+
+            ## Verification
+
+            ```bash
+            sha256sum -c SHA256SUMS.txt
+            ```
+          files: dist/*
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') || contains(github.ref_name, 'rc') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

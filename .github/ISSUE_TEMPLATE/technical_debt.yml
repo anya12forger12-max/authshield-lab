@@ -1,0 +1,53 @@
+name: Technical Debt
+description: Report technical debt or maintenance tasks
+title: "[Debt]: "
+labels: ["tech-debt", "maintenance"]
+body:
+  - type: input
+    id: area
+    attributes:
+      label: Affected Area
+      description: Which area of the codebase is affected?
+      placeholder: e.g. Backend auth module, Frontend state management
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the technical debt.
+      placeholder: Describe the technical debt or maintenance issue...
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What is the impact of not addressing this debt?
+      placeholder: Describe the current and potential future impact...
+    validations:
+      required: true
+
+  - type: textarea
+    id: resolution
+    attributes:
+      label: Proposed Resolution
+      description: How should this technical debt be resolved?
+      placeholder: Describe the proposed resolution...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: What priority should this be addressed at?
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true

@@ -1,0 +1,70 @@
+version: 2
+
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: UTC
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "deps"
+      include: scope
+    open-pull-requests-limit: 10
+    reviewers:
+      - anya12forger12-max
+
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: UTC
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "deps"
+      include: scope
+    open-pull-requests-limit: 10
+    reviewers:
+      - anya12forger12-max
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: UTC
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: "ci"
+      include: scope
+    open-pull-requests-limit: 5
+    reviewers:
+      - anya12forger12-max
+
+  # Auto-merge patch updates for all ecosystems
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - auto-merge
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+      - auto-merge
+    open-pull-requests-limit: 5

@@ -1,54 +1,27 @@
-# Code Owners
-# Defines code ownership for automatic review assignment
+# AuthShield Lab - Code Owners
+# These owners will be automatically requested for review
+# when a pull request modifies matching files.
 
-# Default owners for everything
-* @authshieldlab/core
+# Global default owner
+* @anya12forger12-max
 
 # Backend
-/backend/app/ @authshieldlab/backend
-/backend/app/authentication/ @authshieldlab/backend
-/backend/app/users/ @authshieldlab/backend
-/backend/app/sessions/ @authshieldlab/backend
-/backend/app/attacks/ @authshieldlab/backend
-/backend/app/defenses/ @authshieldlab/backend
-/backend/app/analytics/ @authshieldlab/backend
-/backend/app/reports/ @authshieldlab/backend
-/backend/app/learning/ @authshieldlab/backend
-/backend/app/audit/ @authshieldlab/backend
-/backend/app/config/ @authshieldlab/backend
-/backend/app/main.py @authshieldlab/backend
+/backend/ @anya12forger12-max
 
-# Frontend
-/frontend/src/ @authshieldlab/frontend
-/frontend/src/components/ @authshieldlab/frontend
-/frontend/src/hooks/ @authshieldlab/frontend
-/frontend/src/stores/ @authshieldlab/frontend
-/frontend/src/pages/ @authshieldlab/frontend
-/frontend/src/themes/ @authshieldlab/frontend
-/frontend/src/i18n/ @authshieldlab/frontend
-/frontend/src/main/ @authshieldlab/frontend
-/frontend/src/renderer/ @authshieldlab/frontend
-
-# Documentation
-/docs/ @authshieldlab/docs
-*.md @authshieldlab/docs
-
-# CI/CD
-/.github/ @authshieldlab/devops
-/scripts/ @authshieldlab/devops
-
-# Configuration
-/.editorconfig @authshieldlab/core
-/.gitignore @authshieldlab/core
-/backend/.env.example @authshieldlab/backend
-/frontend/.env.example @authshieldlab/frontend
-
-# Security
-/SECURITY.md @authshieldlab/security
-/backend/app/authentication/ @authshieldlab/security @authshieldlab/backend
-/backend/app/sessions/ @authshieldlab/security @authshieldlab/backend
+# Applications
+/apps/ @anya12forger12-max
 
 # Accessibility
-/frontend/src/components/ @authshieldlab/accessibility @authshieldlab/frontend
-/frontend/src/themes/ @authshieldlab/accessibility @authshieldlab/frontend
-/docs/accessibility/ @authshieldlab/accessibility @authshieldlab/docs
+/accessibility/ @anya12forger12-max
+
+# Security
+/security/ @anya12forger12-max
+
+# Documentation
+/docs/ @anya12forger12-max
+
+# GitHub configuration
+/.github/ @anya12forger12-max
+
+# CI/CD
+/ci/ @anya12forger12-max

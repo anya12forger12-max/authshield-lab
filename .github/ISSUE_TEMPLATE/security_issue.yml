@@ -1,0 +1,60 @@
+name: Security Issue
+description: Report a security vulnerability in AuthShield Lab
+title: "[Security]: "
+labels: ["security"]
+body:
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severe is this security issue?
+      options:
+        - Critical
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+
+  - type: input
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which component is affected by this security issue?
+      placeholder: e.g. Authentication module, API endpoint, Database
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide a detailed description of the security issue.
+      placeholder: Describe the vulnerability...
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: What is the potential impact if this vulnerability is exploited?
+      placeholder: Describe the potential impact...
+    validations:
+      required: true
+
+  - type: textarea
+    id: mitigation
+    attributes:
+      label: Mitigation Steps
+      description: Are there any immediate mitigation steps or workarounds?
+      placeholder: Describe mitigation steps...
+    validations:
+      required: true
+
+  - type: input
+    id: cvss
+    attributes:
+      label: CVSS Score
+      description: If known, provide the CVSS score for this vulnerability.
+      placeholder: e.g. 7.5

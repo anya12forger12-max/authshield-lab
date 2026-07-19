@@ -1,137 +1,269 @@
-# Security Policy
+# Security Policy — AuthShield Lab
+
+The AuthShield Lab team takes security seriously. This document outlines our security practices, how to report vulnerabilities, and our commitment to maintaining a secure platform.
+
+---
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| 1.0.x-alpha | Yes |
-| < 1.0.0 | No |
+| Version | Supported | End of Support |
+|---------|-----------|---------------|
+| 5.0.x | Yes | TBD (LTS) |
+| 4.x | No | 2025-12-31 |
+| < 4.0 | No | End of life |
+
+We provide security updates for the current major version and the previous major version. Older versions receive no security patches.
+
+---
 
 ## Reporting Vulnerabilities
 
-If you discover a security vulnerability within AuthShield Lab, please report it responsibly.
+### How to Report
 
-**Do not** open a public GitHub issue for security vulnerabilities.
+If you discover a security vulnerability in AuthShield Lab, please report it responsibly through the following process:
 
-Instead, please email security@authshieldlab.dev with:
+1. **Do NOT** create a public GitHub Issue for security vulnerabilities
+2. **Do NOT** discuss the vulnerability on public forums, social media, or in pull requests
+3. **DO** send an email to **security@authshieldlab.dev**
 
-- Description of the vulnerability
-- Steps to reproduce
-- Potential impact assessment
-- Suggested fix (if applicable)
+### What to Include
 
-You should receive an acknowledgment within 48 hours and a detailed response within 7 business days.
+Your report should include:
 
-## Security Design Principles
+- **Description** — Clear description of the vulnerability
+- **Impact** — Potential impact if exploited
+- **Reproduction Steps** — Step-by-step instructions to reproduce the issue
+- **Affected Component** — Which part of the platform is affected
+- **Severity Assessment** — Your assessment using CVSS if possible
+- **Environment** — OS, browser, Node.js version where you observed the issue
+- **Proof of Concept** — Code, screenshots, or logs demonstrating the vulnerability (redact sensitive data)
 
-AuthShield Lab is built on the following security principles:
+### PGP Encryption
 
-### 1. Localhost-Only Restriction
+We strongly recommend encrypting your report. Our PGP public key is available at:
 
-All network communication is restricted to `127.0.0.1` / `localhost`. The application:
+```
+Key ID: [TBD]
+Fingerprint: [TBD]
+```
 
-- Binds exclusively to loopback interfaces
-- Rejects any configuration attempting external binding
-- Monitors and logs all connection attempts
-- Validates host headers on every request
+You can also request our PGP key by emailing security@authshieldlab.dev.
 
-This ensures no training data or simulated attack traffic ever leaves the local machine.
+---
 
-### 2. No External Connections
+## Security Response Timeline
 
-AuthShield Lab makes **zero** outbound network requests by design:
+We are committed to the following response timeline:
 
-- No telemetry or analytics collection
-- No external API calls
-- No phone-home mechanisms
-- No CDN dependencies at runtime
-- All assets are bundled locally
+| Phase | Timeline | Description |
+|-------|----------|-------------|
+| Acknowledgment | 24 hours | We confirm receipt of your report |
+| Triage | 48 hours | We assess severity and validity |
+| Initial Assessment | 5 business days | We determine impact and develop fix plan |
+| Fix Development | 14 business days | We develop and test a fix |
+| Disclosure | After fix release | We publish a security advisory |
+| Credit | With disclosure | We credit the reporter (unless anonymity requested) |
 
-The application functions entirely offline after installation.
+### Severity Levels
 
-### 3. Data Handling
+| Level | Description | Response Time |
+|-------|-------------|--------------|
+| Critical | Remote code execution, authentication bypass, data exposure | Immediate (24h) |
+| High | Privilege escalation, significant data exposure | 48 hours |
+| Medium | Limited data exposure, denial of service | 5 business days |
+| Low | Minor information disclosure, limited impact | 10 business days |
 
-All data generated within AuthShield Lab remains on the local filesystem:
+---
 
-- SQLite databases stored in the application data directory
-- Logs written to local log files
-- User uploads processed locally
-- Configuration stored in local files
-- No cloud synchronization
-- No remote backups
+## Security Update Policy
 
-### 4. Password Security
+### Patch Releases
 
-- Passwords are hashed using bcrypt with a minimum work factor of 12
-- Salt is generated per-password using cryptographically secure random values
-- Password complexity requirements enforced at account creation
-- Password history prevents reuse of the last 12 passwords
-- Account lockout after 5 consecutive failed attempts
+- Security fixes are released as patch versions (e.g., 5.0.1 → 5.0.2)
+- Security patches are backported to all supported versions
+- Users are notified through GitHub Security Advisories
+- Automated dependency updates are enabled where possible
 
-### 5. Session Management
+### Emergency Patches
 
-- JWT tokens expire after 15 minutes
-- Refresh tokens expire after 7 days
-- Tokens are bound to the device fingerprint
-- Session invalidation on password change
-- Single-session enforcement (optional)
+- Critical vulnerabilities may trigger an emergency release
+- Emergency releases bypass the normal release process
+- All emergency releases include a security changelog entry
 
-### 6. Input Validation
+### Notification Channels
 
-- All inputs validated using Pydantic models on the backend
-- SQL injection prevented through parameterized queries
-- XSS prevention through React's automatic escaping and Content Security Policy
-- CSRF protection via SameSite cookies and token validation
-- File upload scanning and type restrictions
+- **GitHub Security Advisories** — Primary notification channel
+- **GitHub Releases** — Patch notes for each security update
+- **README Badge** — Version status badge is updated
 
-### 7. Data Encryption
+---
 
-- Sensitive configuration encrypted with AES-256 at rest
-- Database encryption for credential storage
-- Environment variables loaded from encrypted vaults in production
-- Key rotation schedule for encryption keys
+## Dependency Security
 
-## Response Timeline
+### Dependency Management
 
-| Stage | Timeline |
-|-------|----------|
-| Acknowledgment | 48 hours |
-| Initial assessment | 5 business days |
-| Fix development | 14 business days |
-| Disclosure coordination | 30 days |
+- Dependencies are managed through `npm` with lockfiles committed
+- **npm audit** is run as part of CI/CD pipeline
+- **Dependabot** is configured to monitor dependencies
+- All dependency updates are reviewed before merging
 
-## Security Updates
+### Dependency Policies
 
-Security patches are released as soon as possible after a fix is ready. Updates will be published to the GitHub repository and documented in the CHANGELOG.
+| Policy | Requirement |
+|--------|------------|
+| New dependencies | Must be approved by a maintainer |
+| Major version updates | Require review and testing |
+| Security patches | Applied within 48 hours for critical/high |
+| License audit | All dependencies must be MIT, Apache 2.0, or equivalent |
+| Bundle size | No dependency should add >50KB gzipped without justification |
 
-## Scope
+### Software Bill of Materials
 
-This security policy applies to:
+A Software Bill of Materials (SBOM) is generated for each release and includes:
+- All direct and transitive dependencies
+- Version numbers and license information
+- Known vulnerabilities at time of release
 
-- The AuthShield Lab desktop application
-- The backend API server
-- The Electron renderer process
-- Database storage
-- Configuration files
+---
 
-This policy does not cover:
+## Secret Management
 
-- Third-party dependencies (report upstream)
-- The training content itself (simulated vulnerabilities)
-- Social engineering attacks against maintainers
+### Hardcoded Secrets
 
-## Authentication & Authorization
+Hardcoded secrets are strictly prohibited. The codebase is scanned using:
+- **git-secrets** — Prevents committing secrets
+- **gitleaks** — Detects secrets in git history
+- **ESLint rules** — Custom rules to catch patterns like API keys in code
 
-- Role-based access control (RBAC) with four roles: Student, Instructor, Admin, Developer
-- Principle of least privilege applied throughout
-- API endpoints protected by JWT middleware
-- Administrative functions require elevated permissions
-- Audit logging for all privileged operations
+### Environment Variables
 
-## Network Security
+All sensitive configuration is managed through environment variables:
 
-- CORS configured to allow only localhost origins
-- Rate limiting on authentication endpoints (5 requests/minute)
-- Request size limits enforced (10MB default)
-- Timeout on all HTTP connections (30 seconds)
-- TLS not required for localhost communication but supported for testing
+| Variable | Description | Required |
+|----------|------------|---------|
+| `AUTHSHIELD_SECRET_KEY` | Main application secret | Yes |
+| `AUTHSHIELD_DB_ENCRYPTION_KEY` | Database encryption key | Yes |
+| `AUTHSHIELD_JWT_SECRET` | JWT signing secret | Yes |
+| `AUTHSHIELD_SESSION_SECRET` | Session encryption secret | Yes |
+
+### Default Values
+
+- No secret has a default value in production
+- `.env.example` contains placeholder values only
+- Development defaults are clearly marked as insecure
+
+---
+
+## Access Control
+
+### Principle of Least Privilege
+
+- All components operate with the minimum permissions required
+- Database access uses read-only connections where writes are unnecessary
+- File system access is restricted to designated directories
+- Network access is restricted to required ports
+
+### Authentication & Authorization
+
+- Session tokens use secure, HttpOnly cookies
+- Tokens have configurable expiration (default: 1 hour)
+- Refresh tokens are rotated on use
+- Failed login attempts are rate-limited
+- Account lockout is configurable (default: 5 attempts)
+
+### Role-Based Access Control (RBAC)
+
+| Role | Description |
+|------|------------|
+| `admin` | Full platform access including configuration |
+| `instructor` | Course management and student progress viewing |
+| `learner` | Lab execution and progress tracking |
+| `viewer` | Read-only access to public content |
+
+---
+
+## Audit Logging
+
+### What Is Logged
+
+| Event | Details |
+|-------|---------|
+| Authentication events | Login, logout, failed attempts, MFA events |
+| Authorization events | Access denials, permission changes |
+| Data access | Read/write operations on sensitive data |
+| Configuration changes | All changes to system configuration |
+| Lab execution | Lab start, completion, scores |
+| API access | API calls with timestamps and response codes |
+
+### Log Properties
+
+- Logs are immutable once written
+- Logs include timestamp, actor, action, resource, and result
+- Sensitive data (passwords, tokens) are never logged
+- Logs are stored in a separate, append-only database
+
+### Log Retention
+
+- Audit logs are retained for a minimum of 2 years
+- Logs older than 2 years are archived and compressed
+- Archived logs are available for compliance review
+
+---
+
+## Incident Response
+
+### Response Process
+
+1. **Detection** — Vulnerability or incident is identified
+2. **Triage** — Assess severity and scope
+3. **Containment** — Limit the impact of the incident
+4. **Eradication** — Remove the vulnerability or threat
+5. **Recovery** — Restore normal operations
+6. **Post-Mortem** — Document the incident and improve processes
+
+### Communication
+
+- Users are notified of security incidents within 48 hours
+- A detailed security advisory is published after the fix
+- The incident post-mortem is published within 30 days
+- Affected users receive specific guidance on any required actions
+
+### Incident Classification
+
+| Level | Description | Response |
+|-------|-------------|---------|
+| P1 | Active exploitation, data breach | Immediate, all hands |
+| P2 | Critical vulnerability, no exploitation known | 24 hours |
+| P3 | High vulnerability, limited impact | 48 hours |
+| P4 | Low vulnerability, defense in depth | Standard process |
+
+---
+
+## Security Contacts
+
+| Contact | Channel | Response Time |
+|---------|---------|--------------|
+| Security Team | security@authshieldlab.dev | 24 hours |
+| Project Owner | Via GitHub @anya12forger12-max | 48 hours |
+| General Issues | GitHub Issues | Standard timeline |
+
+### Security Advisories
+
+Published at: [https://github.com/anya12forger12-max/authshield-lab/security/advisories](https://github.com/anya12forger12-max/authshield-lab/security/advisories)
+
+### Bug Bounty
+
+We do not currently operate a bug bounty program. However, we deeply appreciate security researchers who report vulnerabilities responsibly and will acknowledge all valid reports in our security advisories.
+
+---
+
+## Security Resources
+
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+- [NIST SP 800-63B — Digital Identity Guidelines](https://pages.nist.gov/800-63-3/sp800-63b.html)
+- [CWE/SANS Top 25](https://cwe.mitre.org/top25/)
+
+---
+
+*This security policy is reviewed and updated quarterly. Last review: July 2026.*
