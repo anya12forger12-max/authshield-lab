@@ -65,7 +65,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title="AuthShieldLab",
-    description="Enterprise Authentication Security Training Platform API",
+    description="AuthShield Lab – Enterprise Offline Cybersecurity Education Ecosystem (V5.0 LTS)",
     version=get_settings().app.version,
     lifespan=lifespan,
     docs_url="/api/docs",
