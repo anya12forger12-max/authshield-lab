@@ -29,7 +29,7 @@ jobs:
           node-version: "20"
 
       - name: Install Python tools
-        run: pip install ruff mypy pytest pytest-cov
+        run: pip install ruff==0.15.22 mypy==1.8.0 pytest==7.4.4 pytest-cov==4.1.0
 
       - name: Install backend dependencies
         run: pip install -r backend/requirements.txt
@@ -71,7 +71,7 @@ jobs:
           node-version: "20"
 
       - name: Install Python tools
-        run: pip install mypy
+        run: pip install mypy==1.8.0
 
       - name: Install backend dependencies
         run: pip install -r backend/requirements.txt
@@ -111,7 +111,7 @@ jobs:
           node-version: "20"
 
       - name: Install Python tools
-        run: pip install pytest pytest-cov
+        run: pip install pytest==7.4.4 pytest-cov==4.1.0
 
       - name: Install backend dependencies
         run: pip install -r backend/requirements.txt
@@ -166,7 +166,7 @@ jobs:
           cache-dependency-path: backend/requirements.txt
 
       - name: Install Python tools
-        run: pip install pytest
+        run: pip install pytest==7.4.4
 
       - name: Install backend dependencies
         run: pip install -r backend/requirements.txt
