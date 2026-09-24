@@ -1,7 +1,5 @@
 """Integration test fixtures with real database (SQLite in-memory)."""
 
-import asyncio
-
 import pytest
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
@@ -10,13 +8,6 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.shared.base_model import Base
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture(scope="session")

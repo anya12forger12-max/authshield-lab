@@ -149,7 +149,7 @@ class TestFullFlowSequence:
 
         import asyncio
 
-        asyncio.get_event_loop().run_until_complete(self._simulate_flow(bus))
+        asyncio.run(self._simulate_flow(bus))
 
         assert len(published_events) >= 5
 
