@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.role import Role, Permission, role_permissions, user_roles
 from ..logging_config import get_logger
+from ..models.role import Permission, Role, role_permissions, user_roles
 from .base_repository import BaseRepository
 
 logger = get_logger(__name__)
@@ -56,17 +56,19 @@ class RoleRepository(BaseRepository[Role]):
         already existed.
         """
         # Check for existing association
-        stmt = select(func.count()).select_from(user_roles).where(
-            user_roles.c.user_id == user_id,
-            user_roles.c.role_id == role_id,
+        stmt = (
+            select(func.count())
+            .select_from(user_roles)
+            .where(
+                user_roles.c.user_id == user_id,
+                user_roles.c.role_id == role_id,
+            )
         )
         count_result = await self._session.execute(stmt)
         if count_result.scalar() > 0:  # type: ignore[union-attr]
             return False
 
-        await self._session.execute(
-            user_roles.insert().values(user_id=user_id, role_id=role_id)
-        )
+        await self._session.execute(user_roles.insert().values(user_id=user_id, role_id=role_id))
         await self._session.flush()
         logger.info("role_assigned", user_id=user_id, role_id=role_id)
         return True
@@ -102,26 +104,26 @@ class RoleRepository(BaseRepository[Role]):
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
-    async def add_permission_to_role(
-        self, role_id: str, permission_id: str
-    ) -> bool:
+    async def add_permission_to_role(self, role_id: str, permission_id: str) -> bool:
         """Attach a permission to a role.
 
         Returns ``True`` if the association was created, ``False`` if it
         already existed.
         """
-        stmt = select(func.count()).select_from(role_permissions).where(
-            role_permissions.c.role_id == role_id,
-            role_permissions.c.permission_id == permission_id,
+        stmt = (
+            select(func.count())
+            .select_from(role_permissions)
+            .where(
+                role_permissions.c.role_id == role_id,
+                role_permissions.c.permission_id == permission_id,
+            )
         )
         count_result = await self._session.execute(stmt)
         if count_result.scalar() > 0:  # type: ignore[union-attr]
             return False
 
         await self._session.execute(
-            role_permissions.insert().values(
-                role_id=role_id, permission_id=permission_id
-            )
+            role_permissions.insert().values(role_id=role_id, permission_id=permission_id)
         )
         await self._session.flush()
         logger.info(
@@ -131,9 +133,7 @@ class RoleRepository(BaseRepository[Role]):
         )
         return True
 
-    async def remove_permission_from_role(
-        self, role_id: str, permission_id: str
-    ) -> bool:
+    async def remove_permission_from_role(self, role_id: str, permission_id: str) -> bool:
         """Remove a permission from a role.
 
         Returns ``True`` if a row was deleted.

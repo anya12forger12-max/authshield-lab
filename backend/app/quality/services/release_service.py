@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.quality.domain.entities.release import Release, ReleaseNote, ReleaseReadiness
 from app.quality.domain.interfaces.repositories import (
@@ -42,7 +42,7 @@ class ReleaseService:
             raise ValueError(f"Release {release_id} not found")
         existing = self._readiness_repo.find_by_release_id(release_id)
         if existing:
-            existing.checked_at = datetime.now(timezone.utc)
+            existing.checked_at = datetime.now(UTC)
             existing.overall_ready = (
                 existing.functional_completeness
                 and existing.a11y_compliance
@@ -60,7 +60,7 @@ class ReleaseService:
         )
 
     def update_readiness(self, readiness: ReleaseReadiness) -> ReleaseReadiness:
-        readiness.checked_at = datetime.now(timezone.utc)
+        readiness.checked_at = datetime.now(UTC)
         readiness.overall_ready = (
             readiness.functional_completeness
             and readiness.a11y_compliance

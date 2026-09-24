@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.quality.domain.entities.observability import (
     ApplicationMetric,
@@ -27,7 +27,7 @@ class ObservabilityService:
         self._snapshot_repo = snapshot_repo
 
     def collect_metric(self, metric: ApplicationMetric) -> ApplicationMetric:
-        metric.timestamp = datetime.now(timezone.utc)
+        metric.timestamp = datetime.now(UTC)
         return self._metric_repo.save(metric)
 
     def get_metrics(self, name: str | None = None) -> list[ApplicationMetric]:
@@ -95,7 +95,7 @@ class ObservabilityService:
             plugins=plugins,
             startup_time_ms=startup_time_ms,
             active_sessions=active_sessions,
-            captured_at=datetime.now(timezone.utc),
+            captured_at=datetime.now(UTC),
         )
         return self._snapshot_repo.save(snapshot)
 

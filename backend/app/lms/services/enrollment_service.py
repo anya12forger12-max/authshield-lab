@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ..domain.entities.enrollment import CourseEnrollmentConfig, EnrollmentStatus
+from ..domain.entities.enrollment import CourseEnrollmentConfig
 from ..domain.events.lms_events import EnrollmentCompleted, EnrollmentCreated
 from ..domain.interfaces.lms_interfaces import IEnrollmentRepository
 from ..validators.lms_validator import validate_enrollment_data
@@ -31,7 +31,9 @@ class EnrollmentService:
         existing = self._repo.get_by_learner(learner_id)
         for e in existing:
             if e["course_id"] == course_id and e["status"] not in ("dropped", "waitlisted"):
-                raise ValueError(f"Learner '{learner_id}' is already enrolled in course '{course_id}'.")
+                raise ValueError(
+                    f"Learner '{learner_id}' is already enrolled in course '{course_id}'."
+                )
 
         enrollment = self._repo.create(data)
         event = EnrollmentCreated(
@@ -45,16 +47,16 @@ class EnrollmentService:
         )
         return enrollment
 
-    def get_enrollment(self, enrollment_id: str) -> Optional[dict[str, Any]]:
+    def get_enrollment(self, enrollment_id: str) -> dict[str, Any] | None:
         return self._repo.get_by_id(enrollment_id)
 
     def list_enrollments(
         self,
         page: int = 1,
         per_page: int = 20,
-        status: Optional[str] = None,
-        course_id: Optional[str] = None,
-        learner_id: Optional[str] = None,
+        status: str | None = None,
+        course_id: str | None = None,
+        learner_id: str | None = None,
     ) -> dict[str, Any]:
         return self._repo.get_all(
             page=page,
@@ -64,9 +66,7 @@ class EnrollmentService:
             learner_id=learner_id,
         )
 
-    def update_enrollment(
-        self, enrollment_id: str, data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def update_enrollment(self, enrollment_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         existing = self._repo.get_by_id(enrollment_id)
         if not existing:
             raise ValueError(f"Enrollment '{enrollment_id}' not found.")
@@ -85,21 +85,22 @@ class EnrollmentService:
             raise ValueError(f"Cannot activate enrollment in '{enrollment['status']}' status.")
         return self._repo.update(enrollment_id, {"status": "active"}) or enrollment
 
-    def complete_enrollment(
-        self, enrollment_id: str, grade: Optional[str] = None
-    ) -> dict[str, Any]:
+    def complete_enrollment(self, enrollment_id: str, grade: str | None = None) -> dict[str, Any]:
         enrollment = self._repo.get_by_id(enrollment_id)
         if not enrollment:
             raise ValueError(f"Enrollment '{enrollment_id}' not found.")
         if enrollment["status"] != "active":
             raise ValueError(f"Cannot complete enrollment in '{enrollment['status']}' status.")
 
-        now = datetime.now(timezone.utc).isoformat()
-        updated = self._repo.update(enrollment_id, {
-            "status": "completed",
-            "completed_at": now,
-            "grade": grade,
-        })
+        now = datetime.now(UTC).isoformat()
+        updated = self._repo.update(
+            enrollment_id,
+            {
+                "status": "completed",
+                "completed_at": now,
+                "grade": grade,
+            },
+        )
         if updated:
             event = EnrollmentCompleted(
                 enrollment_id=enrollment_id,
@@ -107,7 +108,10 @@ class EnrollmentService:
                 course_id=enrollment.get("course_id", ""),
                 grade=grade or "",
             )
-            logger.info("enrollment_completed", extra={"enrollment_id": enrollment_id, "event_id": event.event_id})
+            logger.info(
+                "enrollment_completed",
+                extra={"enrollment_id": enrollment_id, "event_id": event.event_id},
+            )
         return updated or enrollment
 
     def drop_enrollment(self, enrollment_id: str) -> dict[str, Any]:
@@ -130,8 +134,8 @@ class EnrollmentService:
     def can_enroll(
         self,
         course_id: str,
-        config: Optional[CourseEnrollmentConfig] = None,
-        completed_prerequisites: Optional[list[str]] = None,
+        config: CourseEnrollmentConfig | None = None,
+        completed_prerequisites: list[str] | None = None,
     ) -> bool:
         if config is None:
             config = CourseEnrollmentConfig()

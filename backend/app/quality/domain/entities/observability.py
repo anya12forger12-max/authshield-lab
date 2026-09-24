@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -11,7 +11,7 @@ class ApplicationMetric:
     name: str = ""
     value: float = 0.0
     unit: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     tags: dict[str, str] = field(default_factory=dict)
 
 
@@ -65,4 +65,4 @@ class ObservabilitySnapshot:
     plugins: list[PluginStatus] = field(default_factory=list)
     startup_time_ms: float = 0.0
     active_sessions: int = 0
-    captured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    captured_at: datetime = field(default_factory=lambda: datetime.now(UTC))

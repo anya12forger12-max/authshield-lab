@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class PackageManifest:
@@ -36,7 +36,7 @@ class PackageManifest:
         self.compatibility: str = compatibility
         self.checksum: str = checksum
         self.bundle_size: int = bundle_size
-        self.created_at: datetime = created_at or datetime.now(timezone.utc)
+        self.created_at: datetime = created_at or datetime.now(UTC)
 
     def compute_checksum(self, payload: bytes) -> str:
         """Compute SHA-256 checksum over the given payload."""
@@ -134,7 +134,7 @@ class BuildResult:
         self.output_path: str = output_path
         self.status: str = status
         self.checksum: str = checksum
-        self.built_at: datetime = built_at or datetime.now(timezone.utc)
+        self.built_at: datetime = built_at or datetime.now(UTC)
         self.duration_seconds: float = duration_seconds
 
     def mark_success(self, output_path: str, checksum: str, duration: float) -> None:
@@ -143,12 +143,12 @@ class BuildResult:
         self.output_path = output_path
         self.checksum = checksum
         self.duration_seconds = duration
-        self.built_at = datetime.now(timezone.utc)
+        self.built_at = datetime.now(UTC)
 
     def mark_failure(self) -> None:
         """Record a failed build."""
         self.status = "failed"
-        self.built_at = datetime.now(timezone.utc)
+        self.built_at = datetime.now(UTC)
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""

@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -45,19 +45,19 @@ class Exercise:
     favorite: bool = False
     version: int = 1
     status: ExerciseStatus = ExerciseStatus.DRAFT
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def toggle_favorite(self) -> bool:
         """Toggle the favorite flag and return the new value."""
         self.favorite = not self.favorite
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
         return self.favorite
 
     def update_difficulty(self, new_difficulty: int) -> None:
         """Update difficulty level (clamped to 1–10)."""
         self.difficulty = max(1, min(10, new_difficulty))
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def clone(self) -> Exercise:
         """Create a deep copy with a new ID, draft status, and version 1."""
@@ -66,8 +66,8 @@ class Exercise:
         cloned.status = ExerciseStatus.DRAFT
         cloned.version = 1
         cloned.favorite = False
-        cloned.created_at = datetime.now(timezone.utc)
-        cloned.updated_at = datetime.now(timezone.utc)
+        cloned.created_at = datetime.now(UTC)
+        cloned.updated_at = datetime.now(UTC)
         return cloned
 
     def validate(self) -> list[str]:
@@ -110,7 +110,7 @@ class Exercise:
                 f"Allowed transitions: {[s.value for s in allowed]}"
             )
         self.status = ExerciseStatus.PUBLISHED
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def archive(self) -> None:
         """Transition exercise to archived status."""
@@ -121,7 +121,7 @@ class Exercise:
                 f"Allowed transitions: {[s.value for s in allowed]}"
             )
         self.status = ExerciseStatus.ARCHIVED
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""

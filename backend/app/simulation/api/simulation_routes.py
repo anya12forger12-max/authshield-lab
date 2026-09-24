@@ -9,23 +9,23 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
 from ..repositories.simulation_repository_impl import (
-    InMemoryScenarioRepository,
     InMemoryDatasetRepository,
-    InMemoryTimelineRepository,
     InMemoryExerciseRepository,
     InMemoryInstructorSessionRepository,
     InMemoryLearnerSessionRepository,
     InMemoryResultsRepository,
+    InMemoryScenarioRepository,
+    InMemoryTimelineRepository,
 )
-from ..services.scenario_service import ScenarioService
 from ..services.dataset_generator import DeterministicGenerator
-from ..services.timeline_service import TimelineService
 from ..services.exercise_service import ExerciseService
+from ..services.export_service import ExportService
 from ..services.instructor_console import InstructorConsoleService
 from ..services.learner_console import LearnerConsoleService
 from ..services.replay_service import ReplayService
 from ..services.results_service import ResultsService
-from ..services.export_service import ExportService
+from ..services.scenario_service import ScenarioService
+from ..services.timeline_service import TimelineService
 
 router = APIRouter(prefix="/api/v1/simulation", tags=["simulation"])
 
@@ -46,9 +46,7 @@ _results_repo = InMemoryResultsRepository()
 _scenario_service = ScenarioService(_scenario_repo)
 _timeline_service = TimelineService(_timeline_repo)
 _exercise_service = ExerciseService(_exercise_repo)
-_instructor_console = InstructorConsoleService(
-    _instructor_session_repo, _results_repo
-)
+_instructor_console = InstructorConsoleService(_instructor_session_repo, _results_repo)
 _learner_console = LearnerConsoleService(_learner_session_repo)
 _replay_service = ReplayService(_timeline_repo)
 _results_service = ResultsService(_results_repo)
@@ -110,9 +108,7 @@ async def get_scenario(scenario_id: str) -> dict[str, Any]:
 
 
 @router.put("/scenarios/{scenario_id}")
-async def update_scenario(
-    scenario_id: str, body: dict[str, Any]
-) -> dict[str, Any]:
+async def update_scenario(scenario_id: str, body: dict[str, Any]) -> dict[str, Any]:
     """Update an existing scenario."""
     result = await _scenario_service.update_scenario(scenario_id, body)
     if result is None:
@@ -294,9 +290,7 @@ async def delete_timeline(timeline_id: str) -> dict[str, Any]:
 
 
 @router.post("/timelines/{timeline_id}/events")
-async def add_timeline_event(
-    timeline_id: str, body: dict[str, Any]
-) -> dict[str, Any]:
+async def add_timeline_event(timeline_id: str, body: dict[str, Any]) -> dict[str, Any]:
     """Add an event to a timeline."""
     try:
         event = await _timeline_service.add_event(
@@ -315,9 +309,7 @@ async def add_timeline_event(
 
 
 @router.delete("/timelines/{timeline_id}/events/{event_id}")
-async def remove_timeline_event(
-    timeline_id: str, event_id: str
-) -> dict[str, Any]:
+async def remove_timeline_event(timeline_id: str, event_id: str) -> dict[str, Any]:
     """Remove an event from a timeline."""
     try:
         removed = await _timeline_service.remove_event(timeline_id, event_id)
@@ -329,9 +321,7 @@ async def remove_timeline_event(
 
 
 @router.post("/timelines/{timeline_id}/branches")
-async def add_timeline_branch(
-    timeline_id: str, body: dict[str, Any]
-) -> dict[str, Any]:
+async def add_timeline_branch(timeline_id: str, body: dict[str, Any]) -> dict[str, Any]:
     """Add a branch to a timeline."""
     try:
         branch = await _timeline_service.add_branch(
@@ -375,9 +365,7 @@ async def create_exercise(body: dict[str, Any]) -> dict[str, Any]:
             tags=body.get("tags"),
             difficulty=body.get("difficulty", 1),
             learning_outcomes=body.get("learning_outcomes"),
-            estimated_completion_minutes=body.get(
-                "estimated_completion_minutes", 30
-            ),
+            estimated_completion_minutes=body.get("estimated_completion_minutes", 30),
         )
         return {"status": "success", "data": exercise.to_dict()}
     except ValueError as e:
@@ -411,9 +399,7 @@ async def get_exercise(exercise_id: str) -> dict[str, Any]:
 
 
 @router.put("/exercises/{exercise_id}")
-async def update_exercise(
-    exercise_id: str, body: dict[str, Any]
-) -> dict[str, Any]:
+async def update_exercise(exercise_id: str, body: dict[str, Any]) -> dict[str, Any]:
     """Update an existing exercise."""
     result = await _exercise_service.update_exercise(exercise_id, body)
     if result is None:
@@ -553,9 +539,7 @@ async def complete_instructor_session(session_id: str) -> dict[str, Any]:
 
 
 @router.post("/instructor/sessions/{session_id}/review")
-async def review_session(
-    session_id: str, body: dict[str, Any]
-) -> dict[str, Any]:
+async def review_session(session_id: str, body: dict[str, Any]) -> dict[str, Any]:
     """Review and grade a learner session."""
     try:
         result = await _instructor_console.review_and_grade(
@@ -627,42 +611,30 @@ async def start_learner_session(session_id: str) -> dict[str, Any]:
 
 
 @router.post("/learner/sessions/{session_id}/evidence")
-async def add_learner_evidence(
-    session_id: str, body: dict[str, Any]
-) -> dict[str, Any]:
+async def add_learner_evidence(session_id: str, body: dict[str, Any]) -> dict[str, Any]:
     """Add evidence to a learner session."""
     try:
-        session = await _learner_console.add_evidence(
-            session_id, body.get("evidence", "")
-        )
+        session = await _learner_console.add_evidence(session_id, body.get("evidence", ""))
         return {"status": "success", "data": session.to_dict()}
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
 
 @router.post("/learner/sessions/{session_id}/reflection")
-async def add_learner_reflection(
-    session_id: str, body: dict[str, Any]
-) -> dict[str, Any]:
+async def add_learner_reflection(session_id: str, body: dict[str, Any]) -> dict[str, Any]:
     """Add a reflection to a learner session."""
     try:
-        session = await _learner_console.add_reflection(
-            session_id, body.get("reflection", "")
-        )
+        session = await _learner_console.add_reflection(session_id, body.get("reflection", ""))
         return {"status": "success", "data": session.to_dict()}
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
 
 
 @router.post("/learner/sessions/{session_id}/submit")
-async def submit_learner_work(
-    session_id: str, body: dict[str, Any]
-) -> dict[str, Any]:
+async def submit_learner_work(session_id: str, body: dict[str, Any]) -> dict[str, Any]:
     """Submit work for a learner session."""
     try:
-        submission = await _learner_console.submit(
-            session_id, body.get("content", "")
-        )
+        submission = await _learner_console.submit(session_id, body.get("content", ""))
         return {"status": "success", "data": submission.to_dict()}
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
@@ -684,9 +656,7 @@ async def complete_learner_session(session_id: str) -> dict[str, Any]:
 
 
 @router.post("/replay/{timeline_id}/start")
-async def start_replay(
-    timeline_id: str, body: dict[str, Any]
-) -> dict[str, Any]:
+async def start_replay(timeline_id: str, body: dict[str, Any]) -> dict[str, Any]:
     """Start a timeline replay."""
     try:
         result = await _replay_service.start_replay(
@@ -707,9 +677,7 @@ async def get_replay_state(
 ) -> dict[str, Any]:
     """Get replay state at a specific offset."""
     try:
-        state = await _replay_service.get_playback_state(
-            timeline_id, offset_ms
-        )
+        state = await _replay_service.get_playback_state(timeline_id, offset_ms)
         return {"status": "success", "data": state}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))

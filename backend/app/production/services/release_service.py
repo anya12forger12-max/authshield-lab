@@ -6,25 +6,25 @@ import hashlib
 import platform
 import sys
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.release_center import (
     BuildInfo,
     Release,
     ReleasePackage,
     ReleaseStatus,
 )
-from ..domain.interfaces import (
-    IReleaseRepository,
-    IReleasePackageRepository,
-    IBuildInfoRepository,
-)
 from ..domain.events.production_events import (
     ReleaseCreatedEvent,
     ReleasePublishedEvent,
+)
+from ..domain.interfaces import (
+    IBuildInfoRepository,
+    IReleasePackageRepository,
+    IReleaseRepository,
 )
 
 logger = get_logger("production.release_service")
@@ -50,7 +50,7 @@ class ReleaseService:
         release_repo: IReleaseRepository,
         package_repo: IReleasePackageRepository,
         build_info_repo: IBuildInfoRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._release_repo = release_repo
         self._package_repo = package_repo
@@ -65,11 +65,11 @@ class ReleaseService:
         self,
         version: str,
         name: str,
-        release_notes: Optional[list[str]] = None,
-        features: Optional[list[str]] = None,
-        bug_fixes: Optional[list[str]] = None,
-        known_issues: Optional[list[str]] = None,
-        deprecations: Optional[list[str]] = None,
+        release_notes: list[str] | None = None,
+        features: list[str] | None = None,
+        bug_fixes: list[str] | None = None,
+        known_issues: list[str] | None = None,
+        deprecations: list[str] | None = None,
         minimum_platform_version: str = "",
     ) -> Release:
         """Create a new release in development status."""
@@ -84,7 +84,7 @@ class ReleaseService:
             known_issues=known_issues or [],
             deprecations=deprecations or [],
             minimum_platform_version=minimum_platform_version,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         await self._release_repo.create(release)
 
@@ -99,23 +99,21 @@ class ReleaseService:
         logger.info("release_created", release_id=release.id, version=version)
         return release
 
-    async def get_release(self, release_id: str) -> Optional[Release]:
+    async def get_release(self, release_id: str) -> Release | None:
         """Retrieve a release by ID."""
         return await self._release_repo.get_by_id(release_id)
 
-    async def get_release_by_version(self, version: str) -> Optional[Release]:
+    async def get_release_by_version(self, version: str) -> Release | None:
         """Retrieve a release by its version string."""
         return await self._release_repo.get_by_version(version)
 
-    async def list_releases(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_releases(self, page: int = 1, per_page: int = 20) -> dict:
         """List all releases with pagination."""
         return await self._release_repo.get_all(page=page, per_page=per_page)
 
     async def update_release_status(
         self, release_id: str, new_status: ReleaseStatus
-    ) -> Optional[Release]:
+    ) -> Release | None:
         """Transition a release to a new lifecycle status."""
         release = await self._release_repo.get_by_id(release_id)
         if release is None:
@@ -138,13 +136,11 @@ class ReleaseService:
                 from_status=release.status.value,
                 to_status=new_status.value,
             )
-            raise ValueError(
-                f"Cannot transition from {release.status.value} to {new_status.value}"
-            )
+            raise ValueError(f"Cannot transition from {release.status.value} to {new_status.value}")
 
         data: dict[str, Any] = {"status": new_status}
         if new_status == ReleaseStatus.STABLE:
-            data["release_date"] = datetime.now(timezone.utc)
+            data["release_date"] = datetime.now(UTC)
 
         updated = await self._release_repo.update(release_id, data)
         if updated is not None and new_status == ReleaseStatus.STABLE:
@@ -163,9 +159,7 @@ class ReleaseService:
         )
         return updated
 
-    async def update_release(
-        self, release_id: str, data: dict[str, Any]
-    ) -> Optional[Release]:
+    async def update_release(self, release_id: str, data: dict[str, Any]) -> Release | None:
         """Update arbitrary fields on a release."""
         release = await self._release_repo.get_by_id(release_id)
         if release is None:
@@ -188,14 +182,14 @@ class ReleaseService:
         platform_name: str | None = None,
     ) -> BuildInfo:
         """Record build metadata for a version."""
-        checksum_source = f"{version}:{build_number}:{datetime.now(timezone.utc).isoformat()}"
+        checksum_source = f"{version}:{build_number}:{datetime.now(UTC).isoformat()}"
         checksum = hashlib.sha256(checksum_source.encode()).hexdigest()
 
         build_info = BuildInfo(
             id=str(uuid.uuid4()),
             version=version,
             build_number=build_number,
-            built_at=datetime.now(timezone.utc),
+            built_at=datetime.now(UTC),
             build_environment=build_environment,
             python_version=python_version or sys.version.split()[0],
             platform=platform_name or platform.platform(),
@@ -205,17 +199,13 @@ class ReleaseService:
         logger.info("build_info_created", version=version, build_number=build_number)
         return build_info
 
-    async def get_build_info(self, version: str) -> Optional[BuildInfo]:
+    async def get_build_info(self, version: str) -> BuildInfo | None:
         """Retrieve build info for a specific version."""
         return await self._build_info_repo.get_by_version(version)
 
-    async def link_build_to_release(
-        self, release_id: str, build_info_id: str
-    ) -> Optional[Release]:
+    async def link_build_to_release(self, release_id: str, build_info_id: str) -> Release | None:
         """Associate a build info record with a release."""
-        return await self._release_repo.update(
-            release_id, {"build_info_id": build_info_id}
-        )
+        return await self._release_repo.update(release_id, {"build_info_id": build_info_id})
 
     async def create_package(
         self,
@@ -235,15 +225,13 @@ class ReleaseService:
             platform=platform,
             checksum=checksum,
             file_size=file_size,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         await self._package_repo.create(package)
         logger.info("package_created", package_id=package.id, release_id=release_id)
         return package
 
-    async def get_packages_for_release(
-        self, release_id: str
-    ) -> list[ReleasePackage]:
+    async def get_packages_for_release(self, release_id: str) -> list[ReleasePackage]:
         """List all packages associated with a release."""
         return await self._package_repo.get_by_release_id(release_id)
 

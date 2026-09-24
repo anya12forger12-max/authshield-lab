@@ -1,7 +1,8 @@
 """Tests for UserProfile entity."""
 
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
 
 from app.users.domain.entities.user_profile import UserProfile
 
@@ -64,7 +65,7 @@ class TestToDict:
         assert d["email"] == "alice@example.com"
 
     def test_serializes_dates(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         profile = UserProfile(user_id="u1", created_at=now, last_login=now)
         d = profile.to_dict()
         assert d["created_at"] == now.isoformat()

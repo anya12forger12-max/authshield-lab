@@ -4,24 +4,17 @@ from __future__ import annotations
 
 import re
 
-from ...shared.validation.validator import ValidationResult, Validator
 from ...config.constants import (
     PASSWORD_MAX_LENGTH,
     PASSWORD_MIN_LENGTH,
-    PASSWORD_REQUIRE_DIGIT,
-    PASSWORD_REQUIRE_LOWERCASE,
-    PASSWORD_REQUIRE_SPECIAL,
-    PASSWORD_REQUIRE_UPPERCASE,
-    PASSWORD_SPECIAL_CHARACTERS,
 )
+from ...shared.validation.validator import ValidationResult, Validator
 
 
 class AuthenticationValidator(Validator):
     """Domain-specific validation for authentication operations."""
 
-    def validate_login_request(
-        self, username: str, password: str
-    ) -> ValidationResult:
+    def validate_login_request(self, username: str, password: str) -> ValidationResult:
         """Validate login request fields.
 
         Parameters
@@ -78,9 +71,7 @@ class AuthenticationValidator(Validator):
         if not username_check.is_valid:
             result.merge(username_check)
         else:
-            length_check = self.validate_length(
-                username, "username", min_len=4, max_len=32
-            )
+            length_check = self.validate_length(username, "username", min_len=4, max_len=32)
             if not length_check.is_valid:
                 result.merge(length_check)
             elif not re.match(r"^[a-zA-Z0-9_-]+$", username):
@@ -103,18 +94,14 @@ class AuthenticationValidator(Validator):
 
         # Confirm password
         if password and confirm_password and password != confirm_password:
-            result.add_error(
-                "confirm_password", "Passwords do not match.", "mismatch"
-            )
+            result.add_error("confirm_password", "Passwords do not match.", "mismatch")
 
         # Display name
         name_check = self.validate_required(display_name, "display_name")
         if not name_check.is_valid:
             result.merge(name_check)
         else:
-            length_check = self.validate_length(
-                display_name, "display_name", min_len=1, max_len=64
-            )
+            length_check = self.validate_length(display_name, "display_name", min_len=1, max_len=64)
             if not length_check.is_valid:
                 result.merge(length_check)
 
@@ -144,17 +131,16 @@ class AuthenticationValidator(Validator):
         result = ValidationResult()
 
         if not current_password:
-            result.add_error(
-                "current_password", "Current password is required.", "required"
-            )
+            result.add_error("current_password", "Current password is required.", "required")
 
         if not new_password:
-            result.add_error(
-                "new_password", "New password is required.", "required"
-            )
+            result.add_error("new_password", "New password is required.", "required")
         else:
             length_check = self.validate_length(
-                new_password, "new_password", min_len=PASSWORD_MIN_LENGTH, max_len=PASSWORD_MAX_LENGTH
+                new_password,
+                "new_password",
+                min_len=PASSWORD_MIN_LENGTH,
+                max_len=PASSWORD_MAX_LENGTH,
             )
             if not length_check.is_valid:
                 result.merge(length_check)
@@ -168,9 +154,7 @@ class AuthenticationValidator(Validator):
                 )
 
         if new_password and confirm_password and new_password != confirm_password:
-            result.add_error(
-                "confirm_password", "Passwords do not match.", "mismatch"
-            )
+            result.add_error("confirm_password", "Passwords do not match.", "mismatch")
 
         return result
 
@@ -180,7 +164,7 @@ _validator_instance: AuthenticationValidator | None = None
 
 def get_authentication_validator() -> AuthenticationValidator:
     """Return a cached ``AuthenticationValidator`` singleton."""
-    global _validator_instance  # noqa: PLW0603
+    global _validator_instance
     if _validator_instance is None:
         _validator_instance = AuthenticationValidator()
     return _validator_instance

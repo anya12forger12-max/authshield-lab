@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 from app.developer.domain.entities.automation import (
     AutomationWorkflow,
     WorkflowRun,
@@ -95,12 +93,14 @@ class AutomationService:
         self._runs[run.id] = run
         try:
             for step in wf.steps:
-                run.add_result({
-                    "step_id": step.id,
-                    "action": step.action,
-                    "status": "completed",
-                    "output": f"Step '{step.action}' executed successfully",
-                })
+                run.add_result(
+                    {
+                        "step_id": step.id,
+                        "action": step.action,
+                        "status": "completed",
+                        "output": f"Step '{step.action}' executed successfully",
+                    }
+                )
             run.finish("completed")
             wf.mark_completed()
         except Exception as exc:
@@ -169,9 +169,7 @@ class AutomationService:
         if workflow_id not in self._workflows:
             return False
         del self._workflows[workflow_id]
-        to_remove = [
-            rid for rid, r in self._runs.items() if r.workflow_id == workflow_id
-        ]
+        to_remove = [rid for rid, r in self._runs.items() if r.workflow_id == workflow_id]
         for rid in to_remove:
             del self._runs[rid]
         return True
@@ -182,9 +180,7 @@ class AutomationService:
         total = len(runs)
         completed = sum(1 for r in runs if r.status == "completed")
         failed = sum(1 for r in runs if r.status == "failed")
-        avg_duration = (
-            sum(r.duration_seconds for r in runs) / total if total > 0 else 0.0
-        )
+        avg_duration = sum(r.duration_seconds for r in runs) / total if total > 0 else 0.0
         return {
             "workflow_id": workflow_id,
             "total_runs": total,

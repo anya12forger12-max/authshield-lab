@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ..domain.entities.assessment_lms import AssessmentStatus
 from ..domain.events.lms_events import AssessmentAttempted
 from ..domain.interfaces.lms_interfaces import IAssessmentRepository
 from ..validators.lms_validator import validate_assessment_data
@@ -26,15 +25,13 @@ class AssessmentLmsService:
             raise ValueError(f"Validation failed: {validation.to_dict()}")
         return self._repo.create(data)
 
-    def get_assessment(self, assessment_id: str) -> Optional[dict[str, Any]]:
+    def get_assessment(self, assessment_id: str) -> dict[str, Any] | None:
         return self._repo.get_by_id(assessment_id)
 
     def list_assessments_by_course(self, course_id: str) -> list[dict[str, Any]]:
         return self._repo.get_by_course(course_id)
 
-    def update_assessment(
-        self, assessment_id: str, data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def update_assessment(self, assessment_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         existing = self._repo.get_by_id(assessment_id)
         if not existing:
             raise ValueError(f"Assessment '{assessment_id}' not found.")
@@ -73,16 +70,16 @@ class AssessmentLmsService:
         attempts = self._repo.get_attempts(assessment_id, learner_id)
         attempts_allowed = assessment.get("attempts_allowed", 1)
         if len(attempts) >= attempts_allowed:
-            raise ValueError(
-                f"Learner '{learner_id}' has used all {attempts_allowed} attempt(s)."
-            )
+            raise ValueError(f"Learner '{learner_id}' has used all {attempts_allowed} attempt(s).")
 
         attempt_number = len(attempts) + 1
-        attempt = self._repo.create_attempt({
-            "assessment_id": assessment_id,
-            "learner_id": learner_id,
-            "attempt_number": attempt_number,
-        })
+        attempt = self._repo.create_attempt(
+            {
+                "assessment_id": assessment_id,
+                "learner_id": learner_id,
+                "attempt_number": attempt_number,
+            }
+        )
         logger.info(
             "assessment_attempt_started",
             extra={"attempt_id": attempt["id"], "learner_id": learner_id},
@@ -93,7 +90,7 @@ class AssessmentLmsService:
         self,
         attempt_id: str,
         score: float,
-        feedback: Optional[str] = None,
+        feedback: str | None = None,
     ) -> dict[str, Any]:
         attempt = self._find_attempt(attempt_id)
         if not attempt:
@@ -101,12 +98,15 @@ class AssessmentLmsService:
         if attempt.get("submitted_at") is not None:
             raise ValueError("This attempt has already been submitted.")
 
-        now = datetime.now(timezone.utc).isoformat()
-        updated = self._repo.update_attempt(attempt_id, {
-            "submitted_at": now,
-            "score": score,
-            "feedback": feedback,
-        })
+        now = datetime.now(UTC).isoformat()
+        updated = self._repo.update_attempt(
+            attempt_id,
+            {
+                "submitted_at": now,
+                "score": score,
+                "feedback": feedback,
+            },
+        )
 
         result = updated or attempt
         event = AssessmentAttempted(
@@ -123,7 +123,7 @@ class AssessmentLmsService:
         return result
 
     def get_attempts(
-        self, assessment_id: str, learner_id: Optional[str] = None
+        self, assessment_id: str, learner_id: str | None = None
     ) -> list[dict[str, Any]]:
         return self._repo.get_attempts(assessment_id, learner_id)
 
@@ -138,23 +138,23 @@ class AssessmentLmsService:
         return attempt["score"] >= passing_score
 
     def create_submission(
-        self, attempt_id: str, content: str, attachments: Optional[list[str]] = None
+        self, attempt_id: str, content: str, attachments: list[str] | None = None
     ) -> dict[str, Any]:
         attempt = self._find_attempt(attempt_id)
         if not attempt:
             raise ValueError(f"Attempt '{attempt_id}' not found.")
-        return self._repo.create_submission({
-            "attempt_id": attempt_id,
-            "content": content,
-            "attachments": attachments or [],
-        })
+        return self._repo.create_submission(
+            {
+                "attempt_id": attempt_id,
+                "content": content,
+                "attachments": attachments or [],
+            }
+        )
 
     def get_submissions(self, attempt_id: str) -> list[dict[str, Any]]:
         return self._repo.get_submissions(attempt_id)
 
-    def create_question_group(
-        self, assessment_id: str, data: dict[str, Any]
-    ) -> dict[str, Any]:
+    def create_question_group(self, assessment_id: str, data: dict[str, Any]) -> dict[str, Any]:
         assessment = self._repo.get_by_id(assessment_id)
         if not assessment:
             raise ValueError(f"Assessment '{assessment_id}' not found.")
@@ -196,13 +196,13 @@ class AssessmentLmsService:
             "passing_score": passing_score,
         }
 
-    def _find_attempt(self, attempt_id: str) -> Optional[dict[str, Any]]:
+    def _find_attempt(self, attempt_id: str) -> dict[str, Any] | None:
         for attempt_list in self._repo.get_attempts("", None):
             for attempt in attempt_list:
                 if attempt.get("id") == attempt_id:
                     return attempt
 
-        all_assessments = [a for a in self._repo.get_by_course("")]
+        all_assessments = list(self._repo.get_by_course(""))
         for assessment in all_assessments:
             attempts = self._repo.get_attempts(assessment["id"])
             for attempt in attempts:

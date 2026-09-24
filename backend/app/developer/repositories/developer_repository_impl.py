@@ -45,7 +45,6 @@ from app.developer.domain.interfaces.developer_interfaces import (
     AbstractWorkflowRunRepository,
 )
 
-
 # ---------------------------------------------------------------------------
 # SDK Repositories
 # ---------------------------------------------------------------------------
@@ -182,8 +181,7 @@ class InMemoryExtensionRepository(AbstractExtensionRepository):
     def search(self, query: str) -> list[Extension]:
         q = query.lower()
         return [
-            e for e in self._store.values()
-            if q in e.name.lower() or q in e.description.lower()
+            e for e in self._store.values() if q in e.name.lower() or q in e.description.lower()
         ]
 
 
@@ -318,8 +316,7 @@ class InMemoryApiEndpointRepository(AbstractApiEndpointRepository):
     def search(self, query: str) -> list[ApiEndpoint]:
         q = query.lower()
         return [
-            ep for ep in self._store.values()
-            if q in ep.path.lower() or q in ep.description.lower()
+            ep for ep in self._store.values() if q in ep.path.lower() or q in ep.description.lower()
         ]
 
 
@@ -411,7 +408,8 @@ class InMemoryValidationResultRepository(AbstractValidationResultRepository):
 
     def list_by_target(self, target_id: str, target_type: str) -> list[ValidationResult]:
         return [
-            r for r in self._store.values()
+            r
+            for r in self._store.values()
             if r.target_id == target_id and r.target_type == target_type
         ]
 

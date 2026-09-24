@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 EvidenceType = Literal[
@@ -40,7 +40,7 @@ class EvidenceItem:
     description: str = ""
     source_id: str = ""
     source_type: str = ""
-    date_collected: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    date_collected: datetime = field(default_factory=lambda: datetime.now(UTC))
     version: int = 1
     reviewed: bool = False
 
@@ -138,13 +138,15 @@ class EvidenceCollection:
         results: list[EvidenceSearchResult] = []
         for item in self.evidence:
             if q in item.description.lower():
-                results.append(EvidenceSearchResult(
-                    item_id=item.id,
-                    title=item.description[:80],
-                    type=item.evidence_type,
-                    snippet=item.description[:200],
-                    relevance=1.0 if q in item.description.lower() else 0.5,
-                ))
+                results.append(
+                    EvidenceSearchResult(
+                        item_id=item.id,
+                        title=item.description[:80],
+                        type=item.evidence_type,
+                        snippet=item.description[:200],
+                        relevance=1.0 if q in item.description.lower() else 0.5,
+                    )
+                )
         return results
 
     def coverage_pct(self) -> float:

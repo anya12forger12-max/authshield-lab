@@ -1,13 +1,11 @@
 """Tests for PerformanceMonitor: timers, counters, metrics."""
 
-import pytest
 import asyncio
-import time
+
+import pytest
 
 from app.shared.monitoring.performance import (
     PerformanceMonitor,
-    PerformanceMetric,
-    TimingResult,
     get_performance_monitor,
 )
 
@@ -107,7 +105,7 @@ class TestAsyncTrack:
 
     @pytest.mark.asyncio
     async def test_track_exception(self, monitor):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="test error"):
             async with monitor.track("failing_op"):
                 raise ValueError("test error")
         metrics = monitor.get_metrics(name="failing_op")

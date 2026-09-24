@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any
 
 from ..entities.user_profile import UserProfile
 
@@ -12,17 +12,17 @@ class IIdentityService(ABC):
     """Interface for user identity and profile management operations."""
 
     @abstractmethod
-    async def get_user_profile(self, user_id: str) -> Optional[UserProfile]:
+    async def get_user_profile(self, user_id: str) -> UserProfile | None:
         """Retrieve a user profile by user ID."""
         ...
 
     @abstractmethod
-    async def get_user_by_username(self, username: str) -> Optional[UserProfile]:
+    async def get_user_by_username(self, username: str) -> UserProfile | None:
         """Retrieve a user profile by username."""
         ...
 
     @abstractmethod
-    async def update_profile(self, user_id: str, data: dict[str, Any]) -> Optional[UserProfile]:
+    async def update_profile(self, user_id: str, data: dict[str, Any]) -> UserProfile | None:
         """Update a user's profile fields."""
         ...
 
@@ -35,7 +35,7 @@ class IIdentityService(ABC):
     async def search_users(
         self,
         query: str,
-        filters: Optional[dict] = None,
+        filters: dict | None = None,
         page: int = 1,
         per_page: int = 20,
     ) -> dict:
@@ -47,8 +47,8 @@ class IIdentityService(ABC):
         self,
         page: int = 1,
         per_page: int = 20,
-        role: Optional[str] = None,
-        status: Optional[str] = None,
+        role: str | None = None,
+        status: str | None = None,
     ) -> dict:
         """List users with pagination and optional role/status filters."""
         ...

@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import select, func, desc, update
+from sqlalchemy import desc, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.device import Device
 from ..logging_config import get_logger
+from ..models.device import Device
 from .base_repository import BaseRepository
 
 logger = get_logger(__name__)
@@ -32,11 +32,7 @@ class DeviceRepository(BaseRepository[Device]):
 
     async def get_user_devices(self, user_id: str) -> list[Device]:
         """Return all devices (active and inactive) for *user_id*."""
-        stmt = (
-            select(Device)
-            .where(Device.user_id == user_id)
-            .order_by(desc(Device.last_seen))
-        )
+        stmt = select(Device).where(Device.user_id == user_id).order_by(desc(Device.last_seen))
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
 
@@ -65,7 +61,7 @@ class DeviceRepository(BaseRepository[Device]):
         if device is None:
             return None
 
-        device.last_seen = datetime.now(timezone.utc)
+        device.last_seen = datetime.now(UTC)
         self._session.add(device)
         await self._session.flush()
         return device
@@ -75,11 +71,7 @@ class DeviceRepository(BaseRepository[Device]):
 
         Returns ``True`` if a row was affected.
         """
-        stmt = (
-            update(Device)
-            .where(Device.device_id == device_id)
-            .values(is_active=False)
-        )
+        stmt = update(Device).where(Device.device_id == device_id).values(is_active=False)
         result = await self._session.execute(stmt)
         await self._session.flush()
         count = result.rowcount  # type: ignore[attr-defined]

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -118,7 +118,7 @@ class PermissionRegistry:
     # Lookup
     # ------------------------------------------------------------------
 
-    def get(self, name: str) -> Optional[PermissionDefinition]:
+    def get(self, name: str) -> PermissionDefinition | None:
         """Return the permission definition for *name*, or ``None``."""
         return self._permissions.get(name)
 
@@ -226,37 +226,118 @@ class PermissionRegistry:
         """Register all built-in system permissions."""
         builtins = [
             # User permissions
-            PermissionDefinition("user.read", "Read Users", "View user profiles", PermissionCategory.USER),
-            PermissionDefinition("user.write", "Write Users", "Create and edit users", PermissionCategory.USER),
-            PermissionDefinition("user.delete", "Delete Users", "Delete user accounts", PermissionCategory.USER),
+            PermissionDefinition(
+                "user.read", "Read Users", "View user profiles", PermissionCategory.USER
+            ),
+            PermissionDefinition(
+                "user.write", "Write Users", "Create and edit users", PermissionCategory.USER
+            ),
+            PermissionDefinition(
+                "user.delete", "Delete Users", "Delete user accounts", PermissionCategory.USER
+            ),
             # Session permissions
-            PermissionDefinition("session.read", "Read Sessions", "View sessions", PermissionCategory.SESSION),
-            PermissionDefinition("session.terminate", "Terminate Sessions", "Terminate user sessions", PermissionCategory.SESSION),
+            PermissionDefinition(
+                "session.read", "Read Sessions", "View sessions", PermissionCategory.SESSION
+            ),
+            PermissionDefinition(
+                "session.terminate",
+                "Terminate Sessions",
+                "Terminate user sessions",
+                PermissionCategory.SESSION,
+            ),
             # Configuration permissions
-            PermissionDefinition("config.read", "Read Configuration", "View system configuration", PermissionCategory.CONFIGURATION),
-            PermissionDefinition("config.write", "Write Configuration", "Modify system configuration", PermissionCategory.CONFIGURATION),
+            PermissionDefinition(
+                "config.read",
+                "Read Configuration",
+                "View system configuration",
+                PermissionCategory.CONFIGURATION,
+            ),
+            PermissionDefinition(
+                "config.write",
+                "Write Configuration",
+                "Modify system configuration",
+                PermissionCategory.CONFIGURATION,
+            ),
             # Reports
-            PermissionDefinition("reports.read", "Read Reports", "View reports", PermissionCategory.REPORTS),
-            PermissionDefinition("reports.generate", "Generate Reports", "Generate reports", PermissionCategory.REPORTS),
+            PermissionDefinition(
+                "reports.read", "Read Reports", "View reports", PermissionCategory.REPORTS
+            ),
+            PermissionDefinition(
+                "reports.generate",
+                "Generate Reports",
+                "Generate reports",
+                PermissionCategory.REPORTS,
+            ),
             # Learning
-            PermissionDefinition("learning.read", "Read Learning", "Access learning modules", PermissionCategory.LEARNING),
-            PermissionDefinition("learning.progress", "Learning Progress", "Track learning progress", PermissionCategory.LEARNING),
+            PermissionDefinition(
+                "learning.read",
+                "Read Learning",
+                "Access learning modules",
+                PermissionCategory.LEARNING,
+            ),
+            PermissionDefinition(
+                "learning.progress",
+                "Learning Progress",
+                "Track learning progress",
+                PermissionCategory.LEARNING,
+            ),
             # Administration
-            PermissionDefinition("admin.access", "Administration Access", "Access admin panel", PermissionCategory.ADMINISTRATION),
-            PermissionDefinition("admin.manage_roles", "Manage Roles", "Create and manage roles", PermissionCategory.ADMINISTRATION),
+            PermissionDefinition(
+                "admin.access",
+                "Administration Access",
+                "Access admin panel",
+                PermissionCategory.ADMINISTRATION,
+            ),
+            PermissionDefinition(
+                "admin.manage_roles",
+                "Manage Roles",
+                "Create and manage roles",
+                PermissionCategory.ADMINISTRATION,
+            ),
             # Authentication
-            PermissionDefinition("auth.manage", "Manage Authentication", "Manage authentication settings", PermissionCategory.AUTHENTICATION),
+            PermissionDefinition(
+                "auth.manage",
+                "Manage Authentication",
+                "Manage authentication settings",
+                PermissionCategory.AUTHENTICATION,
+            ),
             # Attack
-            PermissionDefinition("attack.run", "Run Attacks", "Execute attack simulations", PermissionCategory.ATTACK),
-            PermissionDefinition("attack.configure", "Configure Attacks", "Configure attack parameters", PermissionCategory.ATTACK),
+            PermissionDefinition(
+                "attack.run", "Run Attacks", "Execute attack simulations", PermissionCategory.ATTACK
+            ),
+            PermissionDefinition(
+                "attack.configure",
+                "Configure Attacks",
+                "Configure attack parameters",
+                PermissionCategory.ATTACK,
+            ),
             # Defense
-            PermissionDefinition("defense.read", "Read Defenses", "View defense configurations", PermissionCategory.DEFENSE),
-            PermissionDefinition("defense.write", "Write Defenses", "Configure defense policies", PermissionCategory.DEFENSE),
+            PermissionDefinition(
+                "defense.read",
+                "Read Defenses",
+                "View defense configurations",
+                PermissionCategory.DEFENSE,
+            ),
+            PermissionDefinition(
+                "defense.write",
+                "Write Defenses",
+                "Configure defense policies",
+                PermissionCategory.DEFENSE,
+            ),
             # Analytics
-            PermissionDefinition("analytics.read", "Read Analytics", "View security analytics", PermissionCategory.ANALYTICS),
+            PermissionDefinition(
+                "analytics.read",
+                "Read Analytics",
+                "View security analytics",
+                PermissionCategory.ANALYTICS,
+            ),
             # Audit
-            PermissionDefinition("audit.read", "Read Audit Logs", "View audit logs", PermissionCategory.AUDIT),
-            PermissionDefinition("audit.export", "Export Audit Logs", "Export audit data", PermissionCategory.AUDIT),
+            PermissionDefinition(
+                "audit.read", "Read Audit Logs", "View audit logs", PermissionCategory.AUDIT
+            ),
+            PermissionDefinition(
+                "audit.export", "Export Audit Logs", "Export audit data", PermissionCategory.AUDIT
+            ),
         ]
         for p in builtins:
             self._permissions[p.name] = p
@@ -267,12 +348,12 @@ class PermissionRegistry:
 # Module-level singleton
 # ------------------------------------------------------------------
 
-_permission_registry: Optional[PermissionRegistry] = None
+_permission_registry: PermissionRegistry | None = None
 
 
 def get_permission_registry() -> PermissionRegistry:
     """Return the global :class:`PermissionRegistry`, creating it lazily."""
-    global _permission_registry  # noqa: PLW0603
+    global _permission_registry
     if _permission_registry is None:
         _permission_registry = PermissionRegistry()
     return _permission_registry

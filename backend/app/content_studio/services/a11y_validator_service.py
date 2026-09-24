@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.a11y_validator import (
     A11yCheck,
-    A11yRemediation,
     A11yValidationReport,
 )
 from ..domain.events.content_studio_events import A11yValidationCompleted
@@ -98,52 +97,60 @@ class A11yValidatorService:
 
         report = A11yValidationReport(content_id=content_id)
         for check in checks:
-            self._check_repo.create({
-                "id": check.id,
-                "report_id": "",
-                "check_type": check.check_type,
-                "description": check.description,
-                "passed": check.passed,
-                "element": check.element,
-                "evidence": check.evidence,
-                "remediation": check.remediation,
-                "severity": check.severity,
-            })
+            self._check_repo.create(
+                {
+                    "id": check.id,
+                    "report_id": "",
+                    "check_type": check.check_type,
+                    "description": check.description,
+                    "passed": check.passed,
+                    "element": check.element,
+                    "evidence": check.evidence,
+                    "remediation": check.remediation,
+                    "severity": check.severity,
+                }
+            )
             report.add_check(check)
 
-        report_dict = self._report_repo.create({
-            "content_id": content_id,
-            "total": report.total,
-            "passed": report.passed,
-            "failed": report.failed,
-            "na": report.na,
-            "compliance_pct": report.compliance_pct,
-            "generated_at": report.generated_at.isoformat(),
-        })
+        report_dict = self._report_repo.create(
+            {
+                "content_id": content_id,
+                "total": report.total,
+                "passed": report.passed,
+                "failed": report.failed,
+                "na": report.na,
+                "compliance_pct": report.compliance_pct,
+                "generated_at": report.generated_at.isoformat(),
+            }
+        )
 
         for check in checks:
-            self._check_repo.create({
-                "id": check.id,
-                "report_id": report_dict["id"],
-                "check_type": check.check_type,
-                "description": check.description,
-                "passed": check.passed,
-                "element": check.element,
-                "evidence": check.evidence,
-                "remediation": check.remediation,
-                "severity": check.severity,
-            })
+            self._check_repo.create(
+                {
+                    "id": check.id,
+                    "report_id": report_dict["id"],
+                    "check_type": check.check_type,
+                    "description": check.description,
+                    "passed": check.passed,
+                    "element": check.element,
+                    "evidence": check.evidence,
+                    "remediation": check.remediation,
+                    "severity": check.severity,
+                }
+            )
 
         for check in checks:
             if not check.passed:
-                self._remediation_repo.create({
-                    "report_id": report_dict["id"],
-                    "check_id": check.id,
-                    "action": check.remediation or f"Fix {check.check_type}",
-                    "priority": "critical" if check.severity == "critical" else "high",
-                    "status": "open",
-                    "assignee": "",
-                })
+                self._remediation_repo.create(
+                    {
+                        "report_id": report_dict["id"],
+                        "check_id": check.id,
+                        "action": check.remediation or f"Fix {check.check_type}",
+                        "priority": "critical" if check.severity == "critical" else "high",
+                        "status": "open",
+                        "assignee": "",
+                    }
+                )
 
         event = A11yValidationCompleted(
             report_id=report_dict["id"],
@@ -152,12 +159,15 @@ class A11yValidatorService:
             total_checks=report.total,
             passed_checks=report.passed,
         )
-        logger.info("a11y_validation_completed", extra={
-            "report_id": report_dict["id"],
-            "content_id": content_id,
-            "compliance_pct": report.compliance_pct,
-            "event_id": event.event_id,
-        })
+        logger.info(
+            "a11y_validation_completed",
+            extra={
+                "report_id": report_dict["id"],
+                "content_id": content_id,
+                "compliance_pct": report.compliance_pct,
+                "event_id": event.event_id,
+            },
+        )
         return report_dict
 
     def _evaluate_check(self, check_type: str, content_data: dict[str, Any]) -> bool:
@@ -186,15 +196,13 @@ class A11yValidatorService:
             return content_data.get("has_focus_indicators", True)
         return True
 
-    def get_report(self, report_id: str) -> Optional[dict[str, Any]]:
+    def get_report(self, report_id: str) -> dict[str, Any] | None:
         return self._report_repo.get_by_id(report_id)
 
-    def get_report_by_content(self, content_id: str) -> Optional[dict[str, Any]]:
+    def get_report_by_content(self, content_id: str) -> dict[str, Any] | None:
         return self._report_repo.get_by_content(content_id)
 
-    def list_reports(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    def list_reports(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         return self._report_repo.get_all(page=page, per_page=per_page)
 
     def get_checks_for_report(self, report_id: str) -> list[dict[str, Any]]:
@@ -208,19 +216,21 @@ class A11yValidatorService:
 
     def update_remediation(
         self, remediation_id: str, data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         existing = self._remediation_repo.get_by_id(remediation_id)
         if not existing:
             raise ValueError(f"Remediation '{remediation_id}' not found.")
         return self._remediation_repo.update(remediation_id, data)
 
-    def assign_remediation(self, remediation_id: str, assignee: str) -> Optional[dict[str, Any]]:
-        return self.update_remediation(remediation_id, {"assignee": assignee, "status": "in_progress"})
+    def assign_remediation(self, remediation_id: str, assignee: str) -> dict[str, Any] | None:
+        return self.update_remediation(
+            remediation_id, {"assignee": assignee, "status": "in_progress"}
+        )
 
-    def complete_remediation(self, remediation_id: str) -> Optional[dict[str, Any]]:
+    def complete_remediation(self, remediation_id: str) -> dict[str, Any] | None:
         return self.update_remediation(remediation_id, {"status": "completed"})
 
-    def dismiss_remediation(self, remediation_id: str) -> Optional[dict[str, Any]]:
+    def dismiss_remediation(self, remediation_id: str) -> dict[str, Any] | None:
         return self.update_remediation(remediation_id, {"status": "dismissed"})
 
     def get_compliance_summary(self, content_id: str) -> dict[str, Any]:
@@ -229,7 +239,9 @@ class A11yValidatorService:
             return {"content_id": content_id, "compliance_pct": 0.0, "has_report": False}
 
         checks = self._check_repo.get_by_report(report["id"])
-        critical_failures = [c for c in checks if not c.get("passed") and c.get("severity") == "critical"]
+        critical_failures = [
+            c for c in checks if not c.get("passed") and c.get("severity") == "critical"
+        ]
         remediations = self._remediation_repo.get_by_report(report["id"])
         open_remediations = [r for r in remediations if r.get("status") in ("open", "in_progress")]
 

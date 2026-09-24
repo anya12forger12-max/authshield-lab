@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ..domain.entities.authentication_result import AuthenticationResult
-from ..domain.interfaces.event_publisher import IAuthenticationEventPublisher
 from ...shared.events.event_bus import (
     DomainEvent,
     EventBus,
@@ -14,6 +12,8 @@ from ...shared.events.event_bus import (
     EventType,
     get_event_bus,
 )
+from ..domain.entities.authentication_result import AuthenticationResult
+from ..domain.interfaces.event_publisher import IAuthenticationEventPublisher
 
 logger = logging.getLogger(__name__)
 
@@ -65,9 +65,7 @@ class AuthenticationEventPublisher(IAuthenticationEventPublisher):
     # Authentication events
     # ------------------------------------------------------------------
 
-    async def publish_authentication_requested(
-        self, username: str, correlation_id: str
-    ) -> None:
+    async def publish_authentication_requested(self, username: str, correlation_id: str) -> None:
         await self._publish(
             EventType.AUTHENTICATION_REQUESTED,
             message=f"Authentication requested for user: {username}",
@@ -75,9 +73,7 @@ class AuthenticationEventPublisher(IAuthenticationEventPublisher):
             metadata={"username": username},
         )
 
-    async def publish_authentication_succeeded(
-        self, result: AuthenticationResult
-    ) -> None:
+    async def publish_authentication_succeeded(self, result: AuthenticationResult) -> None:
         await self._publish(
             EventType.AUTHENTICATION_SUCCEEDED,
             message=f"Authentication succeeded for user_id={result.user_id}",
@@ -90,9 +86,7 @@ class AuthenticationEventPublisher(IAuthenticationEventPublisher):
             },
         )
 
-    async def publish_authentication_failed(
-        self, result: AuthenticationResult
-    ) -> None:
+    async def publish_authentication_failed(self, result: AuthenticationResult) -> None:
         severity = EventSeverity.WARNING
         if result.security_flags:
             severity = EventSeverity.ERROR
@@ -114,9 +108,7 @@ class AuthenticationEventPublisher(IAuthenticationEventPublisher):
     # Registration events
     # ------------------------------------------------------------------
 
-    async def publish_registration_requested(
-        self, username: str, correlation_id: str
-    ) -> None:
+    async def publish_registration_requested(self, username: str, correlation_id: str) -> None:
         await self._publish(
             EventType.REGISTRATION_REQUESTED,
             message=f"Registration requested for user: {username}",
@@ -124,9 +116,7 @@ class AuthenticationEventPublisher(IAuthenticationEventPublisher):
             metadata={"username": username},
         )
 
-    async def publish_registration_completed(
-        self, result: AuthenticationResult
-    ) -> None:
+    async def publish_registration_completed(self, result: AuthenticationResult) -> None:
         await self._publish(
             EventType.REGISTRATION_COMPLETED,
             message=f"Registration completed for user_id={result.user_id}",
@@ -158,9 +148,7 @@ class AuthenticationEventPublisher(IAuthenticationEventPublisher):
             session_id=session_id,
         )
 
-    async def publish_session_destroyed(
-        self, session_id: str, user_id: str
-    ) -> None:
+    async def publish_session_destroyed(self, session_id: str, user_id: str) -> None:
         await self._publish(
             EventType.SESSION_DESTROYED,
             message=f"Session destroyed: {session_id}",
@@ -172,9 +160,7 @@ class AuthenticationEventPublisher(IAuthenticationEventPublisher):
     # Logout events
     # ------------------------------------------------------------------
 
-    async def publish_logout(
-        self, user_id: str, session_id: str, correlation_id: str
-    ) -> None:
+    async def publish_logout(self, user_id: str, session_id: str, correlation_id: str) -> None:
         await self._publish(
             EventType.SESSION_DESTROYED,
             message=f"Logout completed for user_id={user_id}",

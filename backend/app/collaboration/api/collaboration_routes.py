@@ -1,24 +1,22 @@
 """Collaboration API routes."""
+# ruff: noqa: B006
 
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
-
-from domain.entities.academic_hub import ProjectStatus, ReviewStatus
-from domain.entities.peer_review import ReviewStage, ReviewDecisionType
 from repositories.collaboration_repository_impl import (
     InMemoryAcademicHubRepository,
     InMemoryCurriculumExchangeRepository,
-    InMemoryResearchWorkspaceRepository,
-    InMemoryPeerReviewRepository,
     InMemoryKnowledgeBaseRepository,
+    InMemoryPeerReviewRepository,
+    InMemoryResearchWorkspaceRepository,
 )
 from services.academic_hub_service import AcademicHubService
 from services.curriculum_exchange_service import CurriculumExchangeService
-from services.research_service import ResearchService
-from services.peer_review_service import PeerReviewService
 from services.knowledge_base_service import KnowledgeBaseService
 from services.package_validation_service import PackageValidationService
+from services.peer_review_service import PeerReviewService
+from services.research_service import ResearchService
 from validators.collaboration_validator import CollaborationValidator
 
 router = APIRouter(prefix="/api/v1/collaboration", tags=["collaboration"])
@@ -39,6 +37,7 @@ validator = CollaborationValidator()
 
 
 # ── Academic Hub ──────────────────────────────────────────────────────────
+
 
 @router.get("/hub/projects")
 def list_projects():
@@ -110,8 +109,13 @@ def share_curriculum_package(
     if not validator.validate_semver(version):
         raise HTTPException(400, "Invalid semver version")
     pkg = academic_service.share_curriculum_package(
-        title, source_institution, version, content_type,
-        checksum, signature, compatibility,
+        title,
+        source_institution,
+        version,
+        content_type,
+        checksum,
+        signature,
+        compatibility,
     )
     return vars(pkg)
 
@@ -155,7 +159,9 @@ def create_review_request(
     errors = validator.validate_review_request(title, request_type, submitter)
     if errors:
         raise HTTPException(400, "; ".join(errors))
-    request = academic_service.create_review_request(title, request_type, submitter, assignees, due_date)
+    request = academic_service.create_review_request(
+        title, request_type, submitter, assignees, due_date
+    )
     return vars(request)
 
 
@@ -181,12 +187,16 @@ def queue_publication(
     version: str,
     submitted_by: str,
 ):
-    errors = validator.validate_publication_item(content_id, content_type, title, version, submitted_by)
+    errors = validator.validate_publication_item(
+        content_id, content_type, title, version, submitted_by
+    )
     if errors:
         raise HTTPException(400, "; ".join(errors))
     if not validator.validate_semver(version):
         raise HTTPException(400, "Invalid semver version")
-    item = academic_service.queue_publication(content_id, content_type, title, version, submitted_by)
+    item = academic_service.queue_publication(
+        content_id, content_type, title, version, submitted_by
+    )
     return vars(item)
 
 
@@ -212,6 +222,7 @@ def get_version_history(entity_id: str):
 
 # ── Curriculum Exchange ───────────────────────────────────────────────────
 
+
 @router.get("/exchange/packages")
 def list_exchange_packages():
     return [vars(p) for p in exchange_service.list_packages()]
@@ -235,9 +246,18 @@ def create_exchange_package(
     if not validator.validate_semver(version):
         raise HTTPException(400, "Invalid semver version")
     pkg = exchange_service.create_package(
-        name, description, package_type, version, author,
-        source_institution, checksum, signature, license,
-        compatibility, dependencies, metadata,
+        name,
+        description,
+        package_type,
+        version,
+        author,
+        source_institution,
+        checksum,
+        signature,
+        license,
+        compatibility,
+        dependencies,
+        metadata,
     )
     return vars(pkg)
 
@@ -284,7 +304,11 @@ def export_package(package_id: str, exported_by: str = "anonymous"):
         manifest = exchange_service.export_package(package_id, exported_by)
     except ValueError as e:
         raise HTTPException(404, str(e))
-    return {"manifest_id": manifest.id, "package_id": manifest.package_id, "total_size": manifest.total_size}
+    return {
+        "manifest_id": manifest.id,
+        "package_id": manifest.package_id,
+        "total_size": manifest.total_size,
+    }
 
 
 @router.post("/exchange/packages/{package_id}/import")
@@ -330,6 +354,7 @@ def validate_batch(package_ids: list[str]):
 
 
 # ── Research ──────────────────────────────────────────────────────────────
+
 
 @router.get("/research/projects")
 def list_research_projects():
@@ -403,7 +428,9 @@ def add_literature_entry(
     keywords: list[str] = [],
     notes: str = "",
 ):
-    entry = research_service.add_literature_entry(title, author, year, source, abstract, keywords, notes)
+    entry = research_service.add_literature_entry(
+        title, author, year, source, abstract, keywords, notes
+    )
     return vars(entry)
 
 
@@ -505,7 +532,12 @@ def add_link_to_map(
         link = research_service.add_link_to_map(map_id, source_id, target_id, relationship, weight)
     except ValueError as e:
         raise HTTPException(404, str(e))
-    return {"source_id": link.source_id, "target_id": link.target_id, "relationship": link.relationship, "weight": link.weight}
+    return {
+        "source_id": link.source_id,
+        "target_id": link.target_id,
+        "relationship": link.relationship,
+        "weight": link.weight,
+    }
 
 
 @router.get("/research/projects/{project_id}/reading-lists")
@@ -525,12 +557,15 @@ def list_bibliographies(project_id: str):
 
 
 @router.post("/research/projects/{project_id}/bibliographies")
-def create_bibliography(project_id: str, name: str = "default", entries: list[str] = [], format: str = "apa"):
+def create_bibliography(
+    project_id: str, name: str = "default", entries: list[str] = [], format: str = "apa"
+):
     bib = research_service.create_bibliography(project_id, name, entries, format)
     return vars(bib)
 
 
 # ── Peer Review ───────────────────────────────────────────────────────────
+
 
 @router.get("/reviews")
 def list_reviews():
@@ -577,7 +612,9 @@ def add_review_comment(
 ):
     try:
         c = review_service.add_comment(
-            review_id, author, comment,
+            review_id,
+            author,
+            comment,
             severity=severity if severity else None,
         )
     except ValueError as e:
@@ -632,11 +669,21 @@ def get_review_history(review_id: str):
     history = review_service.get_history(review_id)
     if not history:
         raise HTTPException(404, "Review history not found")
-    events = [{"stage": e.stage.value, "action": e.action, "actor": e.actor, "timestamp": e.timestamp.isoformat(), "details": e.details} for e in history.events]
+    events = [
+        {
+            "stage": e.stage.value,
+            "action": e.action,
+            "actor": e.actor,
+            "timestamp": e.timestamp.isoformat(),
+            "details": e.details,
+        }
+        for e in history.events
+    ]
     return {"review_id": history.review_id, "events": events}
 
 
 # ── Knowledge Base ────────────────────────────────────────────────────────
+
 
 @router.get("/knowledge/articles")
 def list_articles():
@@ -759,7 +806,16 @@ def delete_category(category_id: str):
 
 @router.get("/knowledge/articles/{article_id}/versions")
 def get_article_versions(article_id: str):
-    return [{"article_id": v.article_id, "version": v.version, "content": v.content, "author": v.author, "created_at": v.created_at.isoformat()} for v in kb_service.get_versions(article_id)]
+    return [
+        {
+            "article_id": v.article_id,
+            "version": v.version,
+            "content": v.content,
+            "author": v.author,
+            "created_at": v.created_at.isoformat(),
+        }
+        for v in kb_service.get_versions(article_id)
+    ]
 
 
 @router.post("/knowledge/citations")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -18,7 +18,7 @@ class TechnicalDebtItem:
     description: str = ""
     severity: str = ""
     estimated_hours: float = 0.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -47,4 +47,4 @@ class BuildHealth:
     tests_passed: int = 0
     tests_failed: int = 0
     duration_seconds: float = 0.0
-    built_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    built_at: datetime = field(default_factory=lambda: datetime.now(UTC))

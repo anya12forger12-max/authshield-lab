@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.entities.policy_entity import (
+    VALID_STATUS_TRANSITIONS,
     PolicyCategory,
     PolicyConfiguration,
     PolicyStatus,
     SecurityPolicy,
-    VALID_STATUS_TRANSITIONS,
 )
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class PolicyRepository:
             The newly created policy.
         """
         policy_id = data.get("policy_id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         category = PolicyCategory(data.get("category", "authentication"))
         config_data = data.get("configuration", {})
@@ -87,7 +87,7 @@ class PolicyRepository:
     # Read
     # ------------------------------------------------------------------
 
-    def get_by_id(self, policy_id: str) -> Optional[SecurityPolicy]:
+    def get_by_id(self, policy_id: str) -> SecurityPolicy | None:
         """Return a policy by ID, or ``None``."""
         return self._policies.get(policy_id)
 
@@ -95,8 +95,8 @@ class PolicyRepository:
         self,
         page: int = 1,
         per_page: int = 20,
-        status: Optional[PolicyStatus] = None,
-        category: Optional[PolicyCategory] = None,
+        status: PolicyStatus | None = None,
+        category: PolicyCategory | None = None,
     ) -> dict[str, Any]:
         """Return a paginated list of policies.
 
@@ -131,7 +131,7 @@ class PolicyRepository:
     def search(
         self,
         query: str,
-        category: Optional[PolicyCategory] = None,
+        category: PolicyCategory | None = None,
     ) -> list[SecurityPolicy]:
         """Search policies by name or description.
 
@@ -163,9 +163,7 @@ class PolicyRepository:
     # Update
     # ------------------------------------------------------------------
 
-    def update(
-        self, policy_id: str, data: dict[str, Any]
-    ) -> Optional[SecurityPolicy]:
+    def update(self, policy_id: str, data: dict[str, Any]) -> SecurityPolicy | None:
         """Update a policy's fields.
 
         Parameters
@@ -212,7 +210,7 @@ class PolicyRepository:
         if "supported_event_types" in data:
             policy.supported_event_types = data["supported_event_types"]
 
-        policy.updated_at = datetime.now(timezone.utc)
+        policy.updated_at = datetime.now(UTC)
         policy.version += 1
 
         logger.info("policy_updated", policy_id=policy_id, version=policy.version)
@@ -260,7 +258,7 @@ class PolicyRepository:
             return False
 
         policy.status = PolicyStatus.ENABLED
-        policy.updated_at = datetime.now(timezone.utc)
+        policy.updated_at = datetime.now(UTC)
         return True
 
     def disable(self, policy_id: str) -> bool:
@@ -280,7 +278,7 @@ class PolicyRepository:
             return False
 
         policy.status = PolicyStatus.DISABLED
-        policy.updated_at = datetime.now(timezone.utc)
+        policy.updated_at = datetime.now(UTC)
         return True
 
     # ------------------------------------------------------------------
@@ -291,7 +289,7 @@ class PolicyRepository:
         """Return version history snapshots for a policy."""
         return list(self._versions.get(policy_id, []))
 
-    def rollback(self, policy_id: str, version_index: int) -> Optional[SecurityPolicy]:
+    def rollback(self, policy_id: str, version_index: int) -> SecurityPolicy | None:
         """Rollback a policy to a previous version.
 
         Parameters
@@ -330,8 +328,10 @@ class PolicyRepository:
         policy.execution_order = snapshot.get("execution_order", policy.execution_order)
         policy.risk_weight = snapshot.get("risk_weight", policy.risk_weight)
         policy.metadata = snapshot.get("metadata", policy.metadata)
-        policy.supported_event_types = snapshot.get("supported_event_types", policy.supported_event_types)
-        policy.updated_at = datetime.now(timezone.utc)
+        policy.supported_event_types = snapshot.get(
+            "supported_event_types", policy.supported_event_types
+        )
+        policy.updated_at = datetime.now(UTC)
         policy.version += 1
 
         logger.info("policy_rolled_back", policy_id=policy_id, version=policy.version)
@@ -346,7 +346,7 @@ class PolicyRepository:
         return {
             "policies": [p.to_dict() for p in self._policies.values()],
             "total": len(self._policies),
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": datetime.now(UTC).isoformat(),
         }
 
     def import_data(self, data: dict[str, Any]) -> int:

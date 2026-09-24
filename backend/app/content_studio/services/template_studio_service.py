@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.template_studio import (
     ContentTemplate,
     TemplateInstance,
     TemplateType,
-    TemplateVersion,
 )
 from ..domain.events.content_studio_events import TemplateCreated
 from ..domain.interfaces.content_studio_interfaces import IContentTemplateRepository
@@ -43,21 +42,25 @@ class TemplateStudioService:
             merged_structure.update(template.structure)
             template.structure = merged_structure
 
-        result = self._template_repo.create({
-            "id": template.id,
-            "name": template.name,
-            "template_type": template.template_type.value,
-            "description": template.description,
-            "structure": template.structure,
-            "version": template.version,
-            "author": template.author,
-            "inherit_from": template.inherit_from,
-        })
+        result = self._template_repo.create(
+            {
+                "id": template.id,
+                "name": template.name,
+                "template_type": template.template_type.value,
+                "description": template.description,
+                "structure": template.structure,
+                "version": template.version,
+                "author": template.author,
+                "inherit_from": template.inherit_from,
+            }
+        )
 
-        self._version_history.setdefault(template.id, []).append({
-            "version": template.version,
-            "changes": ["Initial creation"],
-        })
+        self._version_history.setdefault(template.id, []).append(
+            {
+                "version": template.version,
+                "changes": ["Initial creation"],
+            }
+        )
 
         event = TemplateCreated(
             template_id=template.id,
@@ -65,20 +68,24 @@ class TemplateStudioService:
             template_type=template.template_type.value,
             created_by=template.author,
         )
-        logger.info("template_created", extra={"template_id": result["id"], "event_id": event.event_id})
+        logger.info(
+            "template_created", extra={"template_id": result["id"], "event_id": event.event_id}
+        )
         return result
 
-    def get_template(self, template_id: str) -> Optional[dict[str, Any]]:
+    def get_template(self, template_id: str) -> dict[str, Any] | None:
         return self._template_repo.get_by_id(template_id)
 
     def list_templates(
-        self, page: int = 1, per_page: int = 20, template_type: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, template_type: str | None = None
     ) -> dict[str, Any]:
-        return self._template_repo.get_all(page=page, per_page=per_page, template_type=template_type)
+        return self._template_repo.get_all(
+            page=page, per_page=per_page, template_type=template_type
+        )
 
     def update_template(
         self, template_id: str, data: dict[str, Any], changes: list[str] | None = None
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         existing = self._template_repo.get_by_id(template_id)
         if not existing:
             raise ValueError(f"Template '{template_id}' not found.")
@@ -88,10 +95,12 @@ class TemplateStudioService:
         result = self._template_repo.update(template_id, data)
 
         change_descriptions = changes or [f"Updated at version {new_version}"]
-        self._version_history.setdefault(template_id, []).append({
-            "version": new_version,
-            "changes": change_descriptions,
-        })
+        self._version_history.setdefault(template_id, []).append(
+            {
+                "version": new_version,
+                "changes": change_descriptions,
+            }
+        )
         return result
 
     def delete_template(self, template_id: str) -> bool:
@@ -120,10 +129,13 @@ class TemplateStudioService:
         )
         instance_dict = instance.to_dict()
         self._instances.setdefault(template_id, []).append(instance_dict)
-        logger.info("template_instance_created", extra={
-            "template_id": template_id,
-            "instance_id": instance.id,
-        })
+        logger.info(
+            "template_instance_created",
+            extra={
+                "template_id": template_id,
+                "instance_id": instance.id,
+            },
+        )
         return instance_dict
 
     def get_instances(self, template_id: str) -> list[dict[str, Any]]:

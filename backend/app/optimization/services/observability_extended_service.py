@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.entities.optimization import DiagnosticTrace, TraceSpan
 from ..domain.interfaces.optimization_interfaces import IDiagnosticTraceRepository
@@ -27,15 +27,19 @@ class ObservabilityExtendedService:
     def record_event(self, timeline_id: str, event_data: dict[str, Any]) -> dict[str, Any]:
         """Record an event on a named timeline."""
         import uuid as _uuid
+
         event_entry = {
             "event_id": event_data.get("event_id") or str(_uuid.uuid4()),
             "event_type": event_data.get("event_type", ""),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "details": event_data.get("details", {}),
             "source_module": event_data.get("source_module", ""),
         }
         self._event_timelines.setdefault(timeline_id, []).append(event_entry)
-        logger.info("event_recorded", extra={"timeline_id": timeline_id, "event_type": event_entry["event_type"]})
+        logger.info(
+            "event_recorded",
+            extra={"timeline_id": timeline_id, "event_type": event_entry["event_type"]},
+        )
         return event_entry
 
     def get_timeline(self, timeline_id: str, limit: int = 100) -> dict[str, Any]:
@@ -60,7 +64,7 @@ class ObservabilityExtendedService:
         return False
 
     def search_events(
-        self, timeline_id: str, event_type: Optional[str] = None, keyword: Optional[str] = None
+        self, timeline_id: str, event_type: str | None = None, keyword: str | None = None
     ) -> list[dict[str, Any]]:
         """Search events on a timeline by type or keyword."""
         events = self._event_timelines.get(timeline_id, [])
@@ -70,9 +74,9 @@ class ObservabilityExtendedService:
         if keyword:
             kw = keyword.lower()
             results = [
-                e for e in results
-                if kw in str(e.get("details", {})).lower()
-                or kw in e.get("event_type", "").lower()
+                e
+                for e in results
+                if kw in str(e.get("details", {})).lower() or kw in e.get("event_type", "").lower()
             ]
         return results
 
@@ -98,7 +102,7 @@ class ObservabilityExtendedService:
         logger.info("trace_created", extra={"trace_id": result["id"], "name": trace.name})
         return result
 
-    def get_trace(self, trace_id: str) -> Optional[dict[str, Any]]:
+    def get_trace(self, trace_id: str) -> dict[str, Any] | None:
         return self._trace_repo.get_by_id(trace_id)
 
     def list_traces(self, limit: int = 50) -> list[dict[str, Any]]:
@@ -107,29 +111,34 @@ class ObservabilityExtendedService:
     def delete_trace(self, trace_id: str) -> bool:
         return self._trace_repo.delete(trace_id)
 
-    def add_span_to_trace(self, trace_id: str, span_data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def add_span_to_trace(self, trace_id: str, span_data: dict[str, Any]) -> dict[str, Any] | None:
         """Add a span to an existing trace."""
         trace_dict = self._trace_repo.get_by_id(trace_id)
         if not trace_dict:
             return None
         spans = trace_dict.get("spans", [])
-        spans.append({
-            "name": span_data.get("name", ""),
-            "start_ms": float(span_data.get("start_ms", 0.0)),
-            "end_ms": float(span_data.get("end_ms", 0.0)),
-            "module": span_data.get("module", ""),
-            "details": span_data.get("details", {}),
-            "duration_ms": round(
-                float(span_data.get("end_ms", 0.0)) - float(span_data.get("start_ms", 0.0)), 3
-            ),
-        })
+        spans.append(
+            {
+                "name": span_data.get("name", ""),
+                "start_ms": float(span_data.get("start_ms", 0.0)),
+                "end_ms": float(span_data.get("end_ms", 0.0)),
+                "module": span_data.get("module", ""),
+                "details": span_data.get("details", {}),
+                "duration_ms": round(
+                    float(span_data.get("end_ms", 0.0)) - float(span_data.get("start_ms", 0.0)), 3
+                ),
+            }
+        )
         all_starts = [s.get("start_ms", 0.0) for s in spans]
         all_ends = [s.get("end_ms", 0.0) for s in spans]
         total_ms = max(0.0, max(all_ends) - min(all_starts)) if spans else 0.0
-        return self._trace_repo.update(trace_id, {
-            "spans_json": str(spans),
-            "total_duration_ms": total_ms,
-        })
+        return self._trace_repo.update(
+            trace_id,
+            {
+                "spans_json": str(spans),
+                "total_duration_ms": total_ms,
+            },
+        )
 
     def traces_by_module(self, module: str) -> list[dict[str, Any]]:
         """Return all traces that contain spans from the given module."""
@@ -152,13 +161,13 @@ class ObservabilityExtendedService:
             "name": name,
             "description": description,
             "status": "registered",
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
             "completed_at": None,
         }
         self._background_tasks[task_id] = task
         return task
 
-    def start_task(self, task_id: str) -> Optional[dict[str, Any]]:
+    def start_task(self, task_id: str) -> dict[str, Any] | None:
         """Mark a background task as started."""
         task = self._background_tasks.get(task_id)
         if not task:
@@ -166,16 +175,16 @@ class ObservabilityExtendedService:
         task["status"] = "running"
         return task
 
-    def complete_task(self, task_id: str) -> Optional[dict[str, Any]]:
+    def complete_task(self, task_id: str) -> dict[str, Any] | None:
         """Mark a background task as completed."""
         task = self._background_tasks.get(task_id)
         if not task:
             return None
         task["status"] = "completed"
-        task["completed_at"] = datetime.now(timezone.utc).isoformat()
+        task["completed_at"] = datetime.now(UTC).isoformat()
         return task
 
-    def fail_task(self, task_id: str, error: str = "") -> Optional[dict[str, Any]]:
+    def fail_task(self, task_id: str, error: str = "") -> dict[str, Any] | None:
         """Mark a background task as failed."""
         task = self._background_tasks.get(task_id)
         if not task:
@@ -184,10 +193,10 @@ class ObservabilityExtendedService:
         task["error"] = error
         return task
 
-    def get_task(self, task_id: str) -> Optional[dict[str, Any]]:
+    def get_task(self, task_id: str) -> dict[str, Any] | None:
         return self._background_tasks.get(task_id)
 
-    def list_tasks(self, status: Optional[str] = None) -> list[dict[str, Any]]:
+    def list_tasks(self, status: str | None = None) -> list[dict[str, Any]]:
         tasks = list(self._background_tasks.values())
         if status:
             tasks = [t for t in tasks if t.get("status") == status]
@@ -219,9 +228,13 @@ class ObservabilityExtendedService:
         if usage_pct > 80:
             recommendations.append("Storage usage is above 80% — consider cleanup or expansion.")
         if backups > total * 0.2:
-            recommendations.append("Backups consume more than 20% of storage — review backup retention policy.")
+            recommendations.append(
+                "Backups consume more than 20% of storage — review backup retention policy."
+            )
         if archives > total * 0.3:
-            recommendations.append("Archives exceed 30% of storage — consider moving cold data offsite.")
+            recommendations.append(
+                "Archives exceed 30% of storage — consider moving cold data offsite."
+            )
 
         return {
             "total_mb": total,

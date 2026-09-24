@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -22,7 +22,7 @@ class ServiceStatus:
 
     name: str = ""
     status: ServiceHealthStatus = ServiceHealthStatus.HEALTHY
-    last_check: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_check: datetime = field(default_factory=lambda: datetime.now(UTC))
     response_time_ms: float = 0.0
     error_rate: float = 0.0
 
@@ -49,7 +49,7 @@ class PlatformHealth:
     services: list[ServiceStatus] = field(default_factory=list)
     overall_status: str = "healthy"
     uptime_hours: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def recalculate_overall(self) -> None:
         """Derive ``overall_status`` from the worst individual service status."""
@@ -95,7 +95,7 @@ class ModuleInventory:
     status: str = "active"
     enabled: bool = True
     dependencies: list[str] = field(default_factory=list)
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def has_dependency(self, dep_name: str) -> bool:
         """Check whether *dep_name* is listed as a dependency."""
@@ -124,7 +124,7 @@ class PackageHealth:
     integrity: bool = True
     compatibility: bool = True
     health_score: float = 100.0
-    last_validated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_validated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def is_healthy(self) -> bool:
         """Return ``True`` when integrity and compatibility both pass."""
@@ -155,7 +155,7 @@ class EcosystemDashboard:
     a11y_score: float = 0.0
     security_score: float = 0.0
     performance_score: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def overall_score(self) -> float:
         """Compute a weighted average across the four numeric scores."""

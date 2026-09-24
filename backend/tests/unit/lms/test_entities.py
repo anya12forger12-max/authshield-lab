@@ -2,19 +2,25 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-from app.lms.domain.entities.classroom import Classroom, ClassroomMember, ClassroomRole, ClassroomStatus
-from app.lms.domain.entities.enrollment import Enrollment, EnrollmentStatus
-from app.lms.domain.entities.competency import Competency, CompetencyLevel, LearnerCompetencyProgress, CompetencyStatus
-from app.lms.domain.entities.gradebook import GradebookEntry, GradeItem, GradeScale, GradingCategory
 from app.lms.domain.entities.assessment_lms import (
     AssessmentAttempt,
     AssessmentStatus,
-    AssessmentType,
     LmsAssessment,
     QuestionGroup,
 )
+from app.lms.domain.entities.classroom import (
+    Classroom,
+    ClassroomRole,
+    ClassroomStatus,
+)
+from app.lms.domain.entities.competency import (
+    Competency,
+    CompetencyLevel,
+    CompetencyStatus,
+    LearnerCompetencyProgress,
+)
+from app.lms.domain.entities.enrollment import Enrollment, EnrollmentStatus
+from app.lms.domain.entities.gradebook import GradebookEntry, GradeItem, GradeScale
 
 
 class TestClassroom:
@@ -33,6 +39,7 @@ class TestClassroom:
         c = Classroom(name="CS101")
         c.add_member("user1")
         import pytest
+
         with pytest.raises(ValueError, match="already an active member"):
             c.add_member("user1")
 
@@ -40,6 +47,7 @@ class TestClassroom:
         c = Classroom(name="CS101", capacity=1)
         c.add_member("user1")
         import pytest
+
         with pytest.raises(ValueError, match="capacity"):
             c.add_member("user2")
 
@@ -51,8 +59,8 @@ class TestClassroom:
 
     def test_active_members(self):
         c = Classroom()
-        m = c.add_member("user1")
-        with_observer = c.add_member("user2", ClassroomRole.OBSERVER)
+        c.add_member("user1")
+        c.add_member("user2", ClassroomRole.OBSERVER)
         assert len(c.active_members) == 2
 
     def test_available_seats(self):
@@ -74,7 +82,8 @@ class TestEnrollment:
     def test_activate_non_pending_raises(self):
         e = Enrollment(status=EnrollmentStatus.ACTIVE)
         import pytest
-        with pytest.raises(ValueError):
+
+        with pytest.raises(ValueError, match="Cannot activate enrollment"):
             e.activate()
 
     def test_complete(self):
@@ -159,6 +168,7 @@ class TestGradebook:
         g.add_item(i1)
         g.add_item(i2)
         from app.lms.domain.entities.gradebook import GradeEntry
+
         entries = [
             GradeEntry(grade_item_id=i1.id, score=8.0),
             GradeEntry(grade_item_id=i2.id, score=16.0),
@@ -173,6 +183,7 @@ class TestGradebook:
         i = GradeItem(name="Final", points_possible=100.0, weight=1.0)
         g.add_item(i)
         from app.lms.domain.entities.gradebook import GradeEntry
+
         entries = [GradeEntry(grade_item_id=i.id, score=92.0)]
         letter = g.calculate_letter_grade(entries, scale)
         assert letter == "A"

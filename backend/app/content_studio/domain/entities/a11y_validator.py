@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -56,7 +56,7 @@ class A11yValidationReport:
     failed: int = 0
     na: int = 0
     compliance_pct: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_check(self, check: A11yCheck) -> None:
         self.checks.append(check)
@@ -121,7 +121,7 @@ class A11yRemediation:
     def complete(self) -> None:
         self.status = "completed"
 
-    def dismiss(self, reason: str = "") -> None:
+    def dismiss(self, _reason: str = "") -> None:
         self.status = "dismissed"
 
     def reassign(self, new_assignee: str) -> None:

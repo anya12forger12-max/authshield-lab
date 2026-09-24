@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import time
 
-from ...shared.logging_config import get_logger, log_audit_event
 from ...config.constants import MODULE_AUTH
+from ...shared.logging_config import get_logger, log_audit_event
 from ..domain.entities.authentication_result import (
     AuthenticationOutcome,
     AuthenticationResult,
@@ -79,9 +79,7 @@ class LogoutService:
                     terminated_count=terminated_count,
                 )
 
-                await self._event_publisher.publish_logout(
-                    user_id, "all", correlation_id
-                )
+                await self._event_publisher.publish_logout(user_id, "all", correlation_id)
 
                 logger.info(
                     "logout_all_sessions_success",
@@ -133,16 +131,15 @@ class LogoutService:
                         authentication_duration_ms=duration_ms,
                         message="Logged out successfully.",
                     )
-                else:
-                    return AuthenticationResult(
-                        outcome=AuthenticationOutcome.FAILURE,
-                        failure_reason=FailureReason.INVALID_SESSION,
-                        user_id=user_id,
-                        correlation_id=correlation_id,
-                        authentication_duration_ms=duration_ms,
-                        error_code="SESSION_NOT_FOUND",
-                        message="Session not found or already terminated.",
-                    )
+                return AuthenticationResult(
+                    outcome=AuthenticationOutcome.FAILURE,
+                    failure_reason=FailureReason.INVALID_SESSION,
+                    user_id=user_id,
+                    correlation_id=correlation_id,
+                    authentication_duration_ms=duration_ms,
+                    error_code="SESSION_NOT_FOUND",
+                    message="Session not found or already terminated.",
+                )
 
             # No session_id and no terminate_all — terminate all user sessions as a safe default
             terminated_count = await self._session_service.terminate_all_user_sessions(user_id)
@@ -157,9 +154,7 @@ class LogoutService:
                 terminated_count=terminated_count,
             )
 
-            await self._event_publisher.publish_logout(
-                user_id, "all", correlation_id
-            )
+            await self._event_publisher.publish_logout(user_id, "all", correlation_id)
 
             return AuthenticationResult(
                 outcome=AuthenticationOutcome.SUCCESS,

@@ -6,11 +6,29 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.marketplace import LocalPackage, InstallationRecord, PackageSearch
-    from domain.entities.library import LibraryItem, Bookmark, Annotation, Citation
-    from domain.entities.research import ResearchProject, LiteratureEntry, ResearchNote, KnowledgeMap, ReadingList, Bibliography
-    from domain.entities.institution import Organization, Department, AcademicProgram, InstructorAssignment, ResourceAllocation
-    from domain.entities.content_distribution import DistributionPackage, DistributionManifest, ImportRecord, SyncOperation
+    from domain.entities.content_distribution import (
+        DistributionManifest,
+        DistributionPackage,
+        ImportRecord,
+        SyncOperation,
+    )
+    from domain.entities.institution import (
+        AcademicProgram,
+        Department,
+        InstructorAssignment,
+        Organization,
+        ResourceAllocation,
+    )
+    from domain.entities.library import Annotation, Bookmark, Citation, LibraryItem
+    from domain.entities.marketplace import InstallationRecord, LocalPackage, PackageSearch
+    from domain.entities.research import (
+        Bibliography,
+        KnowledgeMap,
+        LiteratureEntry,
+        ReadingList,
+        ResearchNote,
+        ResearchProject,
+    )
 
 
 class MarketplaceRepository(ABC):
@@ -53,7 +71,9 @@ class LibraryRepository(ABC):
     def get_item(self, item_id: str) -> LibraryItem | None: ...
 
     @abstractmethod
-    def search_items(self, query: str = "", item_type: str = "", tag: str = "") -> list[LibraryItem]: ...
+    def search_items(
+        self, query: str = "", item_type: str = "", tag: str = ""
+    ) -> list[LibraryItem]: ...
 
     @abstractmethod
     def update_item(self, item: LibraryItem) -> None: ...

@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import math
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from ...shared.logging_config import get_logger
 from ..domain.entities.analytics import AssessmentOutcome
@@ -33,7 +31,7 @@ class AssessmentAnalyticsService:
         total_attempts: int = 0,
         passed: int = 0,
         failed: int = 0,
-        question_scores: Optional[dict[str, list[float]]] = None,
+        question_scores: dict[str, list[float]] | None = None,
     ) -> AssessmentOutcome:
         """Record an assessment outcome with optional per-question score data."""
         avg_score = 0.0
@@ -53,16 +51,19 @@ class AssessmentAnalyticsService:
 
         existing = await self._outcome_repo.get_by_assessment_id(assessment_id)
         if existing is not None:
-            updated = await self._outcome_repo.update(assessment_id, {
-                "title": title,
-                "total_attempts": total_attempts,
-                "passed": passed,
-                "failed": failed,
-                "avg_score": round(avg_score, 2),
-                "pass_rate": round(pass_rate, 2),
-                "question_difficulty": question_difficulty,
-                "question_discrimination": question_discrimination,
-            })
+            updated = await self._outcome_repo.update(
+                assessment_id,
+                {
+                    "title": title,
+                    "total_attempts": total_attempts,
+                    "passed": passed,
+                    "failed": failed,
+                    "avg_score": round(avg_score, 2),
+                    "pass_rate": round(pass_rate, 2),
+                    "question_difficulty": question_difficulty,
+                    "question_discrimination": question_discrimination,
+                },
+            )
             return updated if updated else existing
 
         outcome = AssessmentOutcome(
@@ -84,9 +85,7 @@ class AssessmentAnalyticsService:
         )
         return created
 
-    async def get_assessment_outcome(
-        self, assessment_id: str
-    ) -> Optional[AssessmentOutcome]:
+    async def get_assessment_outcome(self, assessment_id: str) -> AssessmentOutcome | None:
         """Retrieve a specific assessment outcome by ID."""
         return await self._outcome_repo.get_by_assessment_id(assessment_id)
 
@@ -129,9 +128,7 @@ class AssessmentAnalyticsService:
             "needs_attention": needs_attention,
         }
 
-    async def analyze_question_items(
-        self, assessment_id: str
-    ) -> dict[str, Any]:
+    async def analyze_question_items(self, assessment_id: str) -> dict[str, Any]:
         """Analyze individual question items for an assessment."""
         outcome = await self._outcome_repo.get_by_assessment_id(assessment_id)
         if outcome is None:
@@ -147,12 +144,12 @@ class AssessmentAnalyticsService:
         return {
             "assessment_id": assessment_id,
             "total_questions": len(difficulty),
-            "avg_difficulty": round(
-                sum(difficulty.values()) / len(difficulty), 2
-            ) if difficulty else 0.0,
-            "avg_discrimination": round(
-                sum(discrimination.values()) / len(discrimination), 2
-            ) if discrimination else 0.0,
+            "avg_difficulty": round(sum(difficulty.values()) / len(difficulty), 2)
+            if difficulty
+            else 0.0,
+            "avg_discrimination": round(sum(discrimination.values()) / len(discrimination), 2)
+            if discrimination
+            else 0.0,
             "easy_questions": easy_questions,
             "hard_questions": hard_questions,
             "poor_discrimination_questions": poor_discrimination,
@@ -160,9 +157,7 @@ class AssessmentAnalyticsService:
             "question_discrimination": discrimination,
         }
 
-    async def compute_reliability_index(
-        self, assessment_id: str
-    ) -> dict[str, Any]:
+    async def compute_reliability_index(self, assessment_id: str) -> dict[str, Any]:
         """Compute a simplified reliability index (KR-20 approximation) for an assessment."""
         outcome = await self._outcome_repo.get_by_assessment_id(assessment_id)
         if outcome is None:
@@ -175,12 +170,9 @@ class AssessmentAnalyticsService:
         n = len(difficulty)
         p_values = list(difficulty.values())
         q_values = [1.0 - p for p in p_values]
-        p_times_q = sum(p * q for p, q in zip(p_values, q_values))
-        variance_estimate = sum(p * q for p, q in zip(p_values, q_values)) / n if n > 0 else 0.0
+        p_times_q = sum(p * q for p, q in zip(p_values, q_values, strict=False))
 
-        total_variance = sum(
-            (p - sum(p_values) / n) ** 2 for p in p_values
-        ) / n if n > 1 else 1.0
+        total_variance = sum((p - sum(p_values) / n) ** 2 for p in p_values) / n if n > 1 else 1.0
 
         if total_variance == 0:
             reliability = 0.0
@@ -194,9 +186,7 @@ class AssessmentAnalyticsService:
             "interpretation": self._interpret_reliability(max(0.0, reliability)),
         }
 
-    async def get_feedback_summary(
-        self, assessment_id: str
-    ) -> dict[str, Any]:
+    async def get_feedback_summary(self, assessment_id: str) -> dict[str, Any]:
         """Generate a feedback summary for an assessment."""
         outcome = await self._outcome_repo.get_by_assessment_id(assessment_id)
         if outcome is None:
@@ -221,9 +211,13 @@ class AssessmentAnalyticsService:
         if difficulty:
             avg_diff = sum(difficulty.values()) / len(difficulty)
             if avg_diff > 0.85:
-                feedback_items.append("Questions are generally too easy – consider adding challenge.")
+                feedback_items.append(
+                    "Questions are generally too easy – consider adding challenge."
+                )
             elif avg_diff < 0.35:
-                feedback_items.append("Questions are generally too hard – review prerequisite instruction.")
+                feedback_items.append(
+                    "Questions are generally too hard – review prerequisite instruction."
+                )
 
         if discrimination:
             poor = [q for q, d in discrimination.items() if d < 0.2]
@@ -264,7 +258,6 @@ class AssessmentAnalyticsService:
         """Compute discrimination index per question using point-biserial approximation."""
         discrimination: dict[str, float] = {}
 
-        all_totals: list[float] = []
         per_question: dict[str, list[float]] = {}
         for q_id, scores in question_scores.items():
             per_question[q_id] = scores
@@ -276,7 +269,7 @@ class AssessmentAnalyticsService:
         for i in range(num_questions):
             first_q_scores = list(per_question.values())[i]
             total_per_participant = [0.0] * len(first_q_scores)
-            for q_id, scores in per_question.items():
+            for _q_id, scores in per_question.items():
                 for j, s in enumerate(scores):
                     if j < len(total_per_participant):
                         total_per_participant[j] += s
@@ -286,7 +279,11 @@ class AssessmentAnalyticsService:
                 discrimination[q_id] = 0.0
                 continue
 
-            mean_total = sum(total_per_participant) / len(total_per_participant) if total_per_participant else 0.0
+            mean_total = (
+                sum(total_per_participant) / len(total_per_participant)
+                if total_per_participant
+                else 0.0
+            )
             sq_diffs = [(t - mean_total) ** 2 for t in total_per_participant]
             std_total = math.sqrt(sum(sq_diffs) / len(sq_diffs)) if sq_diffs else 1.0
             if std_total == 0:
@@ -314,12 +311,12 @@ class AssessmentAnalyticsService:
         """Interpret a reliability index value."""
         if index >= 0.9:
             return "Excellent reliability"
-        elif index >= 0.8:
+        if index >= 0.8:
             return "Good reliability"
-        elif index >= 0.7:
+        if index >= 0.7:
             return "Acceptable reliability"
-        elif index >= 0.6:
+        if index >= 0.6:
             return "Questionable reliability"
-        elif index >= 0.5:
+        if index >= 0.5:
             return "Poor reliability"
         return "Unacceptable reliability"

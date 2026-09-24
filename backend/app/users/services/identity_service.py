@@ -3,28 +3,28 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Optional
+from datetime import UTC
+from typing import Any
 
-from sqlalchemy import select, func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...shared.exceptions import NotFoundError, ValidationError, ConflictError
+from ...config.constants import MAX_PER_PAGE, MODULE_USERS
+from ...shared.events.event_bus import DomainEvent, EventBus
+from ...shared.exceptions import NotFoundError, ValidationError
 from ...shared.logging_config import get_logger, log_audit_event
-from ...shared.events.event_bus import EventBus, DomainEvent, EventType, EventSeverity
 from ...shared.models.user import User
-from ...config.constants import MODULE_USERS, DEFAULT_PER_PAGE, MAX_PER_PAGE
-from ..domain.entities.user_profile import UserProfile
 from ..domain.entities.identity_lifecycle import (
     UserLifecycleState,
-    can_transition,
     validate_transition,
 )
-from ..domain.interfaces.identity_service import IIdentityService
+from ..domain.entities.user_profile import UserProfile
 from ..domain.events.identity_events import (
-    UserUpdatedEvent,
     UserDeletedEvent,
     UserStatusChangedEvent,
+    UserUpdatedEvent,
 )
+from ..domain.interfaces.identity_service import IIdentityService
 
 logger = get_logger(MODULE_USERS)
 
@@ -40,7 +40,7 @@ class IdentityService(IIdentityService):
         In-process event bus for publishing domain events.
     """
 
-    def __init__(self, session_factory: Any, event_bus: Optional[EventBus] = None) -> None:
+    def __init__(self, session_factory: Any, event_bus: EventBus | None = None) -> None:
         self._session_factory = session_factory
         self._event_bus = event_bus
 
@@ -80,7 +80,7 @@ class IdentityService(IIdentityService):
             audit_history_count=audit_count,
         )
 
-    async def get_user_profile(self, user_id: str) -> Optional[UserProfile]:
+    async def get_user_profile(self, user_id: str) -> UserProfile | None:
         """Retrieve a user profile by user ID."""
         async with await self._get_session() as session:
             result = await session.execute(select(User).where(User.id == user_id))
@@ -100,7 +100,7 @@ class IdentityService(IIdentityService):
 
             return self._build_profile(user, active_sessions=session_count, audit_count=audit_count)
 
-    async def get_user_by_username(self, username: str) -> Optional[UserProfile]:
+    async def get_user_by_username(self, username: str) -> UserProfile | None:
         """Retrieve a user profile by username."""
         async with await self._get_session() as session:
             result = await session.execute(select(User).where(User.username == username))
@@ -109,7 +109,7 @@ class IdentityService(IIdentityService):
                 return None
             return self._build_profile(user)
 
-    async def update_profile(self, user_id: str, data: dict[str, Any]) -> Optional[UserProfile]:
+    async def update_profile(self, user_id: str, data: dict[str, Any]) -> UserProfile | None:
         """Update user profile fields and publish an update event."""
         async with await self._get_session() as session:
             result = await session.execute(select(User).where(User.id == user_id))
@@ -159,9 +159,10 @@ class IdentityService(IIdentityService):
                 raise NotFoundError(f"User {user_id} not found.")
 
             if soft:
-                from datetime import datetime, timezone
+                from datetime import datetime
+
                 user.is_deleted = True
-                user.deleted_at = datetime.now(timezone.utc)
+                user.deleted_at = datetime.now(UTC)
                 user.account_status = "deleted"
             else:
                 await session.delete(user)
@@ -188,7 +189,7 @@ class IdentityService(IIdentityService):
     async def search_users(
         self,
         query: str,
-        filters: Optional[dict] = None,
+        filters: dict | None = None,
         page: int = 1,
         per_page: int = 20,
     ) -> dict:
@@ -245,8 +246,8 @@ class IdentityService(IIdentityService):
         self,
         page: int = 1,
         per_page: int = 20,
-        role: Optional[str] = None,
-        status: Optional[str] = None,
+        role: str | None = None,
+        status: str | None = None,
     ) -> dict:
         """List users with pagination and optional filters."""
         return await self.search_users(

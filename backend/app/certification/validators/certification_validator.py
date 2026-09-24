@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 
 from ..domain.entities.certification_center import CertificationStatus, PlatformCertification
-from ..domain.entities.operations import ModuleInventory
-from ..domain.entities.sustainability import DependencyLifecycle
-from ..domain.entities.release_engineering import ReleasePlan, ReleasePhase
 from ..domain.entities.disaster_recovery import BackupValidation, RestoreTest
+from ..domain.entities.operations import ModuleInventory
+from ..domain.entities.release_engineering import ReleasePhase, ReleasePlan
+from ..domain.entities.sustainability import DependencyLifecycle
 
 
 @dataclass
@@ -39,8 +38,7 @@ class CertificationValidationReport:
         return {
             "valid": self.valid,
             "checks": [
-                {"check": c.check, "passed": c.passed, "message": c.message}
-                for c in self.checks
+                {"check": c.check, "passed": c.passed, "message": c.message} for c in self.checks
             ],
         }
 
@@ -48,7 +46,9 @@ class CertificationValidationReport:
 class CertificationValidator:
     """Pre-flight validation for certification workflows."""
 
-    def validate_certification_can_start(self, cert: PlatformCertification) -> CertificationValidationReport:
+    def validate_certification_can_start(
+        self, cert: PlatformCertification
+    ) -> CertificationValidationReport:
         """Check whether a certification can transition to in_progress."""
         report = CertificationValidationReport()
         if cert.status != CertificationStatus.PENDING:
@@ -178,7 +178,9 @@ class CertificationValidator:
             report.add("version_check", True, f"Version {plan.version}")
         return report
 
-    def validate_backup_readiness(self, backups: list[BackupValidation]) -> CertificationValidationReport:
+    def validate_backup_readiness(
+        self, backups: list[BackupValidation]
+    ) -> CertificationValidationReport:
         """Validate that backups are healthy enough for certification."""
         report = CertificationValidationReport()
         if not backups:

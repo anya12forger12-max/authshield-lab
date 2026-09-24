@@ -1,8 +1,41 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from fastapi import APIRouter, HTTPException
 
-from app.quality.domain.entities.accessibility_a11y import A11yAudit, A11yProfile, A11yScorecard, KeyboardShortcut
+if TYPE_CHECKING:
+    from app.quality.domain.interfaces.repositories import (
+        A11yAuditRepository,
+        A11yProfileRepository,
+        A11yScorecardRepository,
+        ApplicationMetricRepository,
+        BenchmarkHistoryRepository,
+        BenchmarkRepository,
+        BuildHealthRepository,
+        CoverageReportRepository,
+        DiagnosticBundleRepository,
+        DiagnosticCheckRepository,
+        KeyboardShortcutRepository,
+        ModuleHealthRepository,
+        ObservabilitySnapshotRepository,
+        PerformanceReportRepository,
+        QualityDashboardRepository,
+        QualityScoreRepository,
+        ReleaseNoteRepository,
+        ReleaseReadinessRepository,
+        ReleaseRepository,
+        TechnicalDebtItemRepository,
+        TestCaseRepository,
+        TestSuiteRepository,
+    )
+
+from app.quality.domain.entities.accessibility_a11y import (
+    A11yAudit,
+    A11yProfile,
+    A11yScorecard,
+    KeyboardShortcut,
+)
 from app.quality.domain.entities.diagnostics import DiagnosticBundle
 from app.quality.domain.entities.maintainability import BuildHealth, TechnicalDebtItem
 from app.quality.domain.entities.observability import ApplicationMetric, ObservabilitySnapshot
@@ -68,11 +101,15 @@ _release_repo: ReleaseRepository = InMemoryReleaseRepository()
 _readiness_repo: ReleaseReadinessRepository = InMemoryReleaseReadinessRepository()
 _note_repo: ReleaseNoteRepository = InMemoryReleaseNoteRepository()
 
-_dashboard_svc = QualityDashboardService(_quality_score_repo, _quality_dash_repo, _module_health_repo)
+_dashboard_svc = QualityDashboardService(
+    _quality_score_repo, _quality_dash_repo, _module_health_repo
+)
 _test_svc = TestPlatformService(_test_case_repo, _suite_repo, _coverage_repo)
 _observability_svc = ObservabilityService(_metric_repo, _snapshot_repo)
 _diagnostics_svc = DiagnosticsService(_diag_check_repo, _diag_bundle_repo)
-_accessibility_svc = AccessibilityService(_a11y_profile_repo, _a11y_audit_repo, _a11y_scorecard_repo, _shortcut_repo)
+_accessibility_svc = AccessibilityService(
+    _a11y_profile_repo, _a11y_audit_repo, _a11y_scorecard_repo, _shortcut_repo
+)
 _performance_svc = PerformanceService(_benchmark_repo, _perf_report_repo, _benchmark_history_repo)
 _maintainability_svc = MaintainabilityService(_debt_repo, _build_repo)
 _release_svc = ReleaseService(_release_repo, _readiness_repo, _note_repo)

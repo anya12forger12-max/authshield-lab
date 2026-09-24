@@ -3,8 +3,32 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional
 
+from ..domain.entities.analytics import (
+    AssessmentOutcome,
+    ContentUsage,
+    CourseCompletion,
+    CurriculumCoverage,
+    EducationalAnalyticsDashboard,
+    LearningProgress,
+)
+from ..domain.entities.content_health import (
+    ContentHealthDashboard,
+    ContentHealthItem,
+    MaintenanceSchedule,
+)
+from ..domain.entities.continuous_improvement import (
+    ActionPlan,
+    ActionPlanItem,
+    ImprovementInitiative,
+    ImprovementReport,
+)
+from ..domain.entities.curriculum_evaluation import (
+    CurriculumEvaluationResult,
+    EvaluationRecommendation,
+)
+from ..domain.entities.learning_quality import LearningQualityDashboard
+from ..domain.entities.program_evaluation import ExecutiveSummary, ProgramEvaluation
 from ..domain.interfaces import (
     IActionPlanItemRepository,
     IActionPlanRepository,
@@ -16,39 +40,14 @@ from ..domain.interfaces import (
     ICourseCompletionRepository,
     ICurriculumCoverageRepository,
     ICurriculumEvaluationRepository,
-    IExecutiveSummaryRepository,
     IEvaluationRecommendationRepository,
+    IExecutiveSummaryRepository,
     IImprovementInitiativeRepository,
     IImprovementReportRepository,
     ILearningProgressRepository,
     IMaintenanceScheduleRepository,
     IProgramEvaluationRepository,
     IQualityDashboardRepository,
-)
-from ..domain.entities.analytics import (
-    AssessmentOutcome,
-    ContentUsage,
-    CurriculumCoverage,
-    EducationalAnalyticsDashboard,
-    LearningProgress,
-    CourseCompletion,
-)
-from ..domain.entities.learning_quality import LearningQualityDashboard
-from ..domain.entities.curriculum_evaluation import (
-    CurriculumEvaluationResult,
-    EvaluationRecommendation,
-)
-from ..domain.entities.content_health import (
-    ContentHealthDashboard,
-    ContentHealthItem,
-    MaintenanceSchedule,
-)
-from ..domain.entities.program_evaluation import ExecutiveSummary, ProgramEvaluation
-from ..domain.entities.continuous_improvement import (
-    ActionPlan,
-    ActionPlanItem,
-    ImprovementInitiative,
-    ImprovementReport,
 )
 
 
@@ -73,18 +72,20 @@ class InMemoryAnalyticsDashboardRepository(IAnalyticsDashboardRepository):
     def __init__(self) -> None:
         self._store: dict[str, EducationalAnalyticsDashboard] = {}
 
-    async def create(self, dashboard: EducationalAnalyticsDashboard) -> EducationalAnalyticsDashboard:
+    async def create(
+        self, dashboard: EducationalAnalyticsDashboard
+    ) -> EducationalAnalyticsDashboard:
         self._store[dashboard.id] = copy.deepcopy(dashboard)
         return self._store[dashboard.id]
 
-    async def get_by_id(self, dashboard_id: str) -> Optional[EducationalAnalyticsDashboard]:
+    async def get_by_id(self, dashboard_id: str) -> EducationalAnalyticsDashboard | None:
         item = self._store.get(dashboard_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self, page: int = 1, per_page: int = 20) -> dict:
         return _paginate(list(self._store.values()), page, per_page)
 
-    async def get_latest(self) -> Optional[EducationalAnalyticsDashboard]:
+    async def get_latest(self) -> EducationalAnalyticsDashboard | None:
         if not self._store:
             return None
         latest = max(self._store.values(), key=lambda d: d.generated_at)
@@ -107,14 +108,14 @@ class InMemoryLearningProgressRepository(ILearningProgressRepository):
         self._store[progress.learner_id] = copy.deepcopy(progress)
         return self._store[progress.learner_id]
 
-    async def get_by_learner_id(self, learner_id: str) -> Optional[LearningProgress]:
+    async def get_by_learner_id(self, learner_id: str) -> LearningProgress | None:
         item = self._store.get(learner_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self) -> list[LearningProgress]:
         return [copy.deepcopy(v) for v in self._store.values()]
 
-    async def update(self, learner_id: str, data: dict) -> Optional[LearningProgress]:
+    async def update(self, learner_id: str, data: dict) -> LearningProgress | None:
         item = self._store.get(learner_id)
         if item is None:
             return None
@@ -134,14 +135,14 @@ class InMemoryCourseCompletionRepository(ICourseCompletionRepository):
         self._store[completion.course_id] = copy.deepcopy(completion)
         return self._store[completion.course_id]
 
-    async def get_by_course_id(self, course_id: str) -> Optional[CourseCompletion]:
+    async def get_by_course_id(self, course_id: str) -> CourseCompletion | None:
         item = self._store.get(course_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self) -> list[CourseCompletion]:
         return [copy.deepcopy(v) for v in self._store.values()]
 
-    async def update(self, course_id: str, data: dict) -> Optional[CourseCompletion]:
+    async def update(self, course_id: str, data: dict) -> CourseCompletion | None:
         item = self._store.get(course_id)
         if item is None:
             return None
@@ -161,14 +162,14 @@ class InMemoryAssessmentOutcomeRepository(IAssessmentOutcomeRepository):
         self._store[outcome.assessment_id] = copy.deepcopy(outcome)
         return self._store[outcome.assessment_id]
 
-    async def get_by_assessment_id(self, assessment_id: str) -> Optional[AssessmentOutcome]:
+    async def get_by_assessment_id(self, assessment_id: str) -> AssessmentOutcome | None:
         item = self._store.get(assessment_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self) -> list[AssessmentOutcome]:
         return [copy.deepcopy(v) for v in self._store.values()]
 
-    async def update(self, assessment_id: str, data: dict) -> Optional[AssessmentOutcome]:
+    async def update(self, assessment_id: str, data: dict) -> AssessmentOutcome | None:
         item = self._store.get(assessment_id)
         if item is None:
             return None
@@ -188,14 +189,14 @@ class InMemoryCurriculumCoverageRepository(ICurriculumCoverageRepository):
         self._store[coverage.framework_id] = copy.deepcopy(coverage)
         return self._store[coverage.framework_id]
 
-    async def get_by_framework_id(self, framework_id: str) -> Optional[CurriculumCoverage]:
+    async def get_by_framework_id(self, framework_id: str) -> CurriculumCoverage | None:
         item = self._store.get(framework_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self) -> list[CurriculumCoverage]:
         return [copy.deepcopy(v) for v in self._store.values()]
 
-    async def update(self, framework_id: str, data: dict) -> Optional[CurriculumCoverage]:
+    async def update(self, framework_id: str, data: dict) -> CurriculumCoverage | None:
         item = self._store.get(framework_id)
         if item is None:
             return None
@@ -215,14 +216,14 @@ class InMemoryContentUsageRepository(IContentUsageRepository):
         self._store[usage.content_id] = copy.deepcopy(usage)
         return self._store[usage.content_id]
 
-    async def get_by_content_id(self, content_id: str) -> Optional[ContentUsage]:
+    async def get_by_content_id(self, content_id: str) -> ContentUsage | None:
         item = self._store.get(content_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self) -> list[ContentUsage]:
         return [copy.deepcopy(v) for v in self._store.values()]
 
-    async def update(self, content_id: str, data: dict) -> Optional[ContentUsage]:
+    async def update(self, content_id: str, data: dict) -> ContentUsage | None:
         item = self._store.get(content_id)
         if item is None:
             return None
@@ -242,14 +243,14 @@ class InMemoryQualityDashboardRepository(IQualityDashboardRepository):
         self._store[dashboard.id] = copy.deepcopy(dashboard)
         return self._store[dashboard.id]
 
-    async def get_by_id(self, dashboard_id: str) -> Optional[LearningQualityDashboard]:
+    async def get_by_id(self, dashboard_id: str) -> LearningQualityDashboard | None:
         item = self._store.get(dashboard_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self, page: int = 1, per_page: int = 20) -> dict:
         return _paginate(list(self._store.values()), page, per_page)
 
-    async def get_latest(self) -> Optional[LearningQualityDashboard]:
+    async def get_latest(self) -> LearningQualityDashboard | None:
         if not self._store:
             return None
         latest = max(self._store.values(), key=lambda d: d.generated_at)
@@ -266,7 +267,7 @@ class InMemoryCurriculumEvaluationRepository(ICurriculumEvaluationRepository):
         self._store[result.id] = copy.deepcopy(result)
         return self._store[result.id]
 
-    async def get_by_id(self, evaluation_id: str) -> Optional[CurriculumEvaluationResult]:
+    async def get_by_id(self, evaluation_id: str) -> CurriculumEvaluationResult | None:
         item = self._store.get(evaluation_id)
         return copy.deepcopy(item) if item else None
 
@@ -284,14 +285,14 @@ class InMemoryEvaluationRecommendationRepository(IEvaluationRecommendationReposi
         self._store[rec.id] = copy.deepcopy(rec)
         return self._store[rec.id]
 
-    async def get_by_id(self, rec_id: str) -> Optional[EvaluationRecommendation]:
+    async def get_by_id(self, rec_id: str) -> EvaluationRecommendation | None:
         item = self._store.get(rec_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self) -> list[EvaluationRecommendation]:
         return [copy.deepcopy(v) for v in self._store.values()]
 
-    async def update(self, rec_id: str, data: dict) -> Optional[EvaluationRecommendation]:
+    async def update(self, rec_id: str, data: dict) -> EvaluationRecommendation | None:
         item = self._store.get(rec_id)
         if item is None:
             return None
@@ -311,11 +312,11 @@ class InMemoryContentHealthRepository(IContentHealthRepository):
         self._store[item.id] = copy.deepcopy(item)
         return self._store[item.id]
 
-    async def get_by_id(self, item_id: str) -> Optional[ContentHealthItem]:
+    async def get_by_id(self, item_id: str) -> ContentHealthItem | None:
         item = self._store.get(item_id)
         return copy.deepcopy(item) if item else None
 
-    async def get_by_content_id(self, content_id: str) -> Optional[ContentHealthItem]:
+    async def get_by_content_id(self, content_id: str) -> ContentHealthItem | None:
         for item in self._store.values():
             if item.content_id == content_id:
                 return copy.deepcopy(item)
@@ -324,7 +325,7 @@ class InMemoryContentHealthRepository(IContentHealthRepository):
     async def get_all(self) -> list[ContentHealthItem]:
         return [copy.deepcopy(v) for v in self._store.values()]
 
-    async def update(self, item_id: str, data: dict) -> Optional[ContentHealthItem]:
+    async def update(self, item_id: str, data: dict) -> ContentHealthItem | None:
         item = self._store.get(item_id)
         if item is None:
             return None
@@ -350,11 +351,11 @@ class InMemoryContentHealthDashboardRepository(IContentHealthDashboardRepository
         self._store[dashboard.id] = copy.deepcopy(dashboard)
         return self._store[dashboard.id]
 
-    async def get_by_id(self, dashboard_id: str) -> Optional[ContentHealthDashboard]:
+    async def get_by_id(self, dashboard_id: str) -> ContentHealthDashboard | None:
         item = self._store.get(dashboard_id)
         return copy.deepcopy(item) if item else None
 
-    async def get_latest(self) -> Optional[ContentHealthDashboard]:
+    async def get_latest(self) -> ContentHealthDashboard | None:
         if not self._store:
             return None
         latest = max(self._store.values(), key=lambda d: d.generated_at)
@@ -371,7 +372,7 @@ class InMemoryMaintenanceScheduleRepository(IMaintenanceScheduleRepository):
         self._store[schedule.id] = copy.deepcopy(schedule)
         return self._store[schedule.id]
 
-    async def get_by_id(self, schedule_id: str) -> Optional[MaintenanceSchedule]:
+    async def get_by_id(self, schedule_id: str) -> MaintenanceSchedule | None:
         item = self._store.get(schedule_id)
         return copy.deepcopy(item) if item else None
 
@@ -389,7 +390,7 @@ class InMemoryProgramEvaluationRepository(IProgramEvaluationRepository):
         self._store[evaluation.id] = copy.deepcopy(evaluation)
         return self._store[evaluation.id]
 
-    async def get_by_id(self, evaluation_id: str) -> Optional[ProgramEvaluation]:
+    async def get_by_id(self, evaluation_id: str) -> ProgramEvaluation | None:
         item = self._store.get(evaluation_id)
         return copy.deepcopy(item) if item else None
 
@@ -407,7 +408,7 @@ class InMemoryExecutiveSummaryRepository(IExecutiveSummaryRepository):
         self._store.append(copy.deepcopy(summary))
         return self._store[-1]
 
-    async def get_latest(self) -> Optional[ExecutiveSummary]:
+    async def get_latest(self) -> ExecutiveSummary | None:
         if not self._store:
             return None
         latest = max(self._store, key=lambda s: s.generated_at)
@@ -427,14 +428,14 @@ class InMemoryActionPlanRepository(IActionPlanRepository):
         self._store[plan.id] = copy.deepcopy(plan)
         return self._store[plan.id]
 
-    async def get_by_id(self, plan_id: str) -> Optional[ActionPlan]:
+    async def get_by_id(self, plan_id: str) -> ActionPlan | None:
         item = self._store.get(plan_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self, page: int = 1, per_page: int = 20) -> dict:
         return _paginate(list(self._store.values()), page, per_page)
 
-    async def update(self, plan_id: str, data: dict) -> Optional[ActionPlan]:
+    async def update(self, plan_id: str, data: dict) -> ActionPlan | None:
         item = self._store.get(plan_id)
         if item is None:
             return None
@@ -454,16 +455,14 @@ class InMemoryActionPlanItemRepository(IActionPlanItemRepository):
         self._store[item.id] = copy.deepcopy(item)
         return self._store[item.id]
 
-    async def get_by_id(self, item_id: str) -> Optional[ActionPlanItem]:
+    async def get_by_id(self, item_id: str) -> ActionPlanItem | None:
         item = self._store.get(item_id)
         return copy.deepcopy(item) if item else None
 
     async def get_by_plan_id(self, plan_id: str) -> list[ActionPlanItem]:
-        return [
-            copy.deepcopy(v) for v in self._store.values() if v.plan_id == plan_id
-        ]
+        return [copy.deepcopy(v) for v in self._store.values() if v.plan_id == plan_id]
 
-    async def update(self, item_id: str, data: dict) -> Optional[ActionPlanItem]:
+    async def update(self, item_id: str, data: dict) -> ActionPlanItem | None:
         item = self._store.get(item_id)
         if item is None:
             return None
@@ -483,14 +482,14 @@ class InMemoryImprovementInitiativeRepository(IImprovementInitiativeRepository):
         self._store[initiative.id] = copy.deepcopy(initiative)
         return self._store[initiative.id]
 
-    async def get_by_id(self, initiative_id: str) -> Optional[ImprovementInitiative]:
+    async def get_by_id(self, initiative_id: str) -> ImprovementInitiative | None:
         item = self._store.get(initiative_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self, page: int = 1, per_page: int = 20) -> dict:
         return _paginate(list(self._store.values()), page, per_page)
 
-    async def update(self, initiative_id: str, data: dict) -> Optional[ImprovementInitiative]:
+    async def update(self, initiative_id: str, data: dict) -> ImprovementInitiative | None:
         item = self._store.get(initiative_id)
         if item is None:
             return None
@@ -510,16 +509,12 @@ class InMemoryImprovementReportRepository(IImprovementReportRepository):
         self._store[report.id] = copy.deepcopy(report)
         return self._store[report.id]
 
-    async def get_by_id(self, report_id: str) -> Optional[ImprovementReport]:
+    async def get_by_id(self, report_id: str) -> ImprovementReport | None:
         item = self._store.get(report_id)
         return copy.deepcopy(item) if item else None
 
     async def get_by_initiative_id(self, initiative_id: str) -> list[ImprovementReport]:
-        return [
-            copy.deepcopy(v)
-            for v in self._store.values()
-            if v.initiative_id == initiative_id
-        ]
+        return [copy.deepcopy(v) for v in self._store.values() if v.initiative_id == initiative_id]
 
     async def get_all(self, page: int = 1, per_page: int = 20) -> dict:
         return _paginate(list(self._store.values()), page, per_page)

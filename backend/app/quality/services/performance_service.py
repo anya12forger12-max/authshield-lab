@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.quality.domain.entities.performance import (
     Benchmark,
@@ -26,19 +26,19 @@ class PerformanceService:
         self._history_repo = history_repo
 
     def run_benchmark(self, benchmark: Benchmark) -> Benchmark:
-        benchmark.measured_at = datetime.now(timezone.utc)
+        benchmark.measured_at = datetime.now(UTC)
         benchmark.passed = benchmark.value <= benchmark.threshold
         result = self._benchmark_repo.save(benchmark)
         history = self._history_repo.find_by_benchmark_name(benchmark.name)
         if history:
-            history.measurements.append((datetime.now(timezone.utc), benchmark.value))
+            history.measurements.append((datetime.now(UTC), benchmark.value))
             history.trend = self._calculate_trend(history.measurements)
             history.regression_detected = self._detect_regression(history.measurements)
             self._history_repo.save(history)
         else:
             new_history = BenchmarkHistory(
                 benchmark_name=benchmark.name,
-                measurements=[(datetime.now(timezone.utc), benchmark.value)],
+                measurements=[(datetime.now(UTC), benchmark.value)],
                 trend="stable",
                 regression_detected=False,
             )
@@ -77,7 +77,7 @@ class PerformanceService:
             name=name,
             benchmarks=benchmarks,
             overall_score=overall,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
         return self._report_repo.save(report)
 

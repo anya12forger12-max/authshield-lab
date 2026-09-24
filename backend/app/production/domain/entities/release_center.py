@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -25,7 +25,7 @@ class BuildInfo:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     version: str = ""
     build_number: str = ""
-    built_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    built_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     build_environment: str = ""
     python_version: str = ""
     platform: str = ""
@@ -48,7 +48,7 @@ class Release:
     known_issues: list[str] = field(default_factory=list)
     deprecations: list[str] = field(default_factory=list)
     minimum_platform_version: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -62,4 +62,4 @@ class ReleasePackage:
     platform: str = ""
     checksum: str = ""
     file_size: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))

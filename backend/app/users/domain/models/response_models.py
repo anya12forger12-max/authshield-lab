@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Optional, Any
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -12,14 +13,14 @@ class UserProfileResponse(BaseModel):
     user_id: str = ""
     username: str = ""
     display_name: str = ""
-    email: Optional[str] = None
-    profile_picture: Optional[str] = None
-    bio: Optional[str] = None
+    email: str | None = None
+    profile_picture: str | None = None
+    bio: str | None = None
     account_status: str = "active"
     role: str = "student"
-    created_at: Optional[str] = None
-    last_updated: Optional[str] = None
-    last_login: Optional[str] = None
+    created_at: str | None = None
+    last_updated: str | None = None
+    last_login: str | None = None
     login_count: int = 0
     preferred_language: str = "en"
     preferred_theme: str = "dark"
@@ -50,7 +51,7 @@ class RoleResponse(BaseModel):
     is_active: bool = True
     version: int = 1
     permissions: list[str] = Field(default_factory=list)
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
 
 class RoleListResponse(BaseModel):
@@ -86,8 +87,8 @@ class DeviceResponse(BaseModel):
     platform: str = ""
     is_active: bool = True
     is_trusted: bool = False
-    last_seen: Optional[str] = None
-    registered_at: Optional[str] = None
+    last_seen: str | None = None
+    registered_at: str | None = None
 
 
 class DeviceListResponse(BaseModel):
@@ -104,12 +105,12 @@ class AdminUserResponse(BaseModel):
     user_id: str = ""
     username: str = ""
     display_name: str = ""
-    email: Optional[str] = None
+    email: str | None = None
     account_status: str = "active"
     role: str = "student"
-    created_at: Optional[str] = None
-    last_updated: Optional[str] = None
-    last_login: Optional[str] = None
+    created_at: str | None = None
+    last_updated: str | None = None
+    last_login: str | None = None
     login_count: int = 0
     failed_login_count: int = 0
     security_score: int = 50
@@ -117,6 +118,6 @@ class AdminUserResponse(BaseModel):
     trusted_device_count: int = 0
     active_session_count: int = 0
     audit_history_count: int = 0
-    password_last_changed: Optional[str] = None
+    password_last_changed: str | None = None
     password_algorithm: str = ""
     password_version: int = 0

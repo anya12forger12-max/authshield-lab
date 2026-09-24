@@ -4,28 +4,25 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import math
 import uuid
-from collections import Counter
-from datetime import datetime, timezone, timedelta
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...shared.exceptions import NotFoundError, ValidationError
+from ...config.constants import MAX_PER_PAGE, MODULE_AUDIT
+from ...shared.events.event_bus import DomainEvent, EventBus
 from ...shared.logging_config import get_logger
-from ...shared.events.event_bus import EventBus, DomainEvent
 from ...shared.models.audit_event import AuditEvent
-from ...config.constants import MODULE_AUDIT, DEFAULT_PER_PAGE, MAX_PER_PAGE
 from ..domain.entities.audit_entry import AuditEntry
-from ..domain.interfaces.audit_service import IAuditService
 from ..domain.events.audit_events import (
-    AuditEventRecordedEvent,
     AuditEventQueriedEvent,
+    AuditEventRecordedEvent,
     AuditExportedEvent,
 )
+from ..domain.interfaces.audit_service import IAuditService
 
 logger = get_logger(MODULE_AUDIT)
 
@@ -68,7 +65,7 @@ class AuditService(IAuditService):
         In-process event bus for publishing domain events.
     """
 
-    def __init__(self, session_factory: Any, event_bus: Optional[EventBus] = None) -> None:
+    def __init__(self, session_factory: Any, event_bus: EventBus | None = None) -> None:
         self._session_factory = session_factory
         self._event_bus = event_bus
 
@@ -125,9 +122,7 @@ class AuditService(IAuditService):
 
             return audit_event.id
 
-    async def get_audit_trail(
-        self, user_id: str, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def get_audit_trail(self, user_id: str, page: int = 1, per_page: int = 20) -> dict:
         """Return the audit trail for a specific user."""
         per_page = min(per_page, MAX_PER_PAGE)
 
@@ -140,8 +135,7 @@ class AuditService(IAuditService):
             total = count_result.scalar() or 0
 
             stmt = (
-                base_stmt
-                .order_by(AuditEvent.timestamp.desc())
+                base_stmt.order_by(AuditEvent.timestamp.desc())
                 .offset((page - 1) * per_page)
                 .limit(per_page)
             )
@@ -160,9 +154,7 @@ class AuditService(IAuditService):
                 "pages": pages,
             }
 
-    async def get_module_audit(
-        self, module: str, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def get_module_audit(self, module: str, page: int = 1, per_page: int = 20) -> dict:
         """Return audit events for a specific module."""
         per_page = min(per_page, MAX_PER_PAGE)
 
@@ -175,8 +167,7 @@ class AuditService(IAuditService):
             total = count_result.scalar() or 0
 
             stmt = (
-                base_stmt
-                .order_by(AuditEvent.timestamp.desc())
+                base_stmt.order_by(AuditEvent.timestamp.desc())
                 .offset((page - 1) * per_page)
                 .limit(per_page)
             )
@@ -196,7 +187,7 @@ class AuditService(IAuditService):
             }
 
     async def search_audit(
-        self, filters: Optional[dict] = None, page: int = 1, per_page: int = 20
+        self, filters: dict | None = None, page: int = 1, per_page: int = 20
     ) -> dict:
         """Search audit events with filters and pagination."""
         per_page = min(per_page, MAX_PER_PAGE)
@@ -238,9 +229,11 @@ class AuditService(IAuditService):
             total = total_result.scalar() or 0
 
             # Paginate
-            stmt = stmt.order_by(AuditEvent.timestamp.desc()).offset(
-                (page - 1) * per_page
-            ).limit(per_page)
+            stmt = (
+                stmt.order_by(AuditEvent.timestamp.desc())
+                .offset((page - 1) * per_page)
+                .limit(per_page)
+            )
 
             result = await session.execute(stmt)
             events = result.scalars().all()
@@ -285,29 +278,27 @@ class AuditService(IAuditService):
 
             # By module
             module_result = await session.execute(
-                select(AuditEvent.module, func.count(AuditEvent.id))
-                .group_by(AuditEvent.module)
+                select(AuditEvent.module, func.count(AuditEvent.id)).group_by(AuditEvent.module)
             )
             by_module = {row[0]: row[1] for row in module_result.all()}
 
             # By severity
             severity_result = await session.execute(
-                select(AuditEvent.severity, func.count(AuditEvent.id))
-                .group_by(AuditEvent.severity)
+                select(AuditEvent.severity, func.count(AuditEvent.id)).group_by(AuditEvent.severity)
             )
             by_severity = {row[0]: row[1] for row in severity_result.all()}
 
             # By event type
             type_result = await session.execute(
-                select(AuditEvent.event_type, func.count(AuditEvent.id))
-                .group_by(AuditEvent.event_type)
+                select(AuditEvent.event_type, func.count(AuditEvent.id)).group_by(
+                    AuditEvent.event_type
+                )
             )
             by_type = {row[0]: row[1] for row in type_result.all()}
 
             # By result
             result_result = await session.execute(
-                select(AuditEvent.result, func.count(AuditEvent.id))
-                .group_by(AuditEvent.result)
+                select(AuditEvent.result, func.count(AuditEvent.id)).group_by(AuditEvent.result)
             )
             by_result = {row[0]: row[1] for row in result_result.all()}
 
@@ -318,12 +309,9 @@ class AuditService(IAuditService):
             unique_users = unique_result.scalar() or 0
 
             # Events today
-            today_start = datetime.now(timezone.utc).replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
+            today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
             today_result = await session.execute(
-                select(func.count(AuditEvent.id))
-                .where(AuditEvent.timestamp >= today_start)
+                select(func.count(AuditEvent.id)).where(AuditEvent.timestamp >= today_start)
             )
             events_today = today_result.scalar() or 0
 
@@ -338,13 +326,9 @@ class AuditService(IAuditService):
                 "average_events_per_day": round(total / max(1, 30), 2),
             }
 
-    async def export_audit(
-        self, filters: Optional[dict] = None, format: str = "json"
-    ) -> Any:
+    async def export_audit(self, filters: dict | None = None, format: str = "json") -> Any:
         """Export audit events in the specified format."""
-        search_result = await self.search_audit(
-            filters=filters, page=1, per_page=MAX_PER_PAGE
-        )
+        search_result = await self.search_audit(filters=filters, page=1, per_page=MAX_PER_PAGE)
         items = search_result.get("items", [])
 
         event = AuditExportedEvent(

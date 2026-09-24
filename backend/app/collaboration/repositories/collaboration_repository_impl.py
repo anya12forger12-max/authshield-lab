@@ -5,49 +5,49 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.interfaces import (
-        AcademicHubRepository,
-        CurriculumExchangeRepository,
-        ResearchWorkspaceRepository,
-        PeerReviewRepository,
-        KnowledgeBaseRepository,
-    )
     from domain.entities.academic_hub import (
-        InstitutionalProject,
-        SharedCurriculumPackage,
         ImportedResource,
-        ReviewRequest,
+        InstitutionalProject,
         PublicationQueueItem,
+        ReviewRequest,
+        SharedCurriculumPackage,
         VersionHistory,
     )
     from domain.entities.curriculum_exchange import (
-        ExchangePackage,
-        ExchangeManifest,
-        PackageValidationReport,
         ExchangeHistory,
+        ExchangeManifest,
+        ExchangePackage,
+        PackageValidationReport,
     )
-    from domain.entities.research_workspace import (
-        ResearchProject,
-        LiteratureCollection,
-        LiteratureEntry,
-        ResearchNote,
-        Citation,
-        KnowledgeMap,
-        ReadingList,
-        Bibliography,
+    from domain.entities.knowledge_base import (
+        ArticleCitation,
+        ArticleVersion,
+        KnowledgeArticle,
+        KnowledgeCategory,
     )
     from domain.entities.peer_review import (
         PeerReview,
         ReviewComment,
         ReviewDecision,
-        ReviewRevision,
         ReviewHistory,
+        ReviewRevision,
     )
-    from domain.entities.knowledge_base import (
-        KnowledgeArticle,
-        KnowledgeCategory,
-        ArticleVersion,
-        ArticleCitation,
+    from domain.entities.research_workspace import (
+        Bibliography,
+        Citation,
+        KnowledgeMap,
+        LiteratureCollection,
+        LiteratureEntry,
+        ReadingList,
+        ResearchNote,
+        ResearchProject,
+    )
+    from domain.interfaces import (
+        AcademicHubRepository,
+        CurriculumExchangeRepository,
+        KnowledgeBaseRepository,
+        PeerReviewRepository,
+        ResearchWorkspaceRepository,
     )
 
 

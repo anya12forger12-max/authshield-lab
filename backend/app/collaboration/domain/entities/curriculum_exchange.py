@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -50,7 +50,7 @@ class ExchangePackage:
         self.compatibility = compatibility
         self.dependencies = dependencies or []
         self.metadata = metadata or {}
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
 
 
 class ExchangeItem:
@@ -110,7 +110,7 @@ class PackageValidationReport:
         self.licensing = licensing
         self.score = score
         self.issues = issues or []
-        self.validated_at = validated_at or datetime.now(timezone.utc)
+        self.validated_at = validated_at or datetime.now(UTC)
 
 
 class ExchangeHistory:
@@ -126,5 +126,5 @@ class ExchangeHistory:
         self.package_id = package_id
         self.action = action
         self.performed_by = performed_by
-        self.performed_at = performed_at or datetime.now(timezone.utc)
+        self.performed_at = performed_at or datetime.now(UTC)
         self.details = details or {}

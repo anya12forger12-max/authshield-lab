@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 
-class AuthShieldException(Exception):
+class AuthShieldException(Exception):  # noqa: N818  # public API name; renaming would change serialized error field
     """Base exception for all AuthShieldLab errors.
 
     Parameters
@@ -69,9 +69,7 @@ class SecurityViolationError(AuthShieldException):
 
     def __init__(
         self,
-        message: str = (
-            "Security violation: operation outside the localhost boundary."
-        ),
+        message: str = ("Security violation: operation outside the localhost boundary."),
         detail: Any = None,
     ) -> None:
         super().__init__(message=message, status_code=403, detail=detail)

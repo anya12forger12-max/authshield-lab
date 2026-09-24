@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -23,7 +23,7 @@ async def init_db() -> None:
 
     Called once during application startup.
     """
-    global _engine, _session_factory  # noqa: PLW0603
+    global _engine, _session_factory
 
     settings = get_settings()
     db_url = settings.database.url
@@ -49,7 +49,7 @@ async def close_db() -> None:
 
     Called once during application shutdown.
     """
-    global _engine, _session_factory  # noqa: PLW0603
+    global _engine, _session_factory
 
     if _engine is not None:
         await _engine.dispose()
@@ -63,9 +63,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     The session is automatically closed when the request handler completes.
     """
     if _session_factory is None:
-        raise RuntimeError(
-            "Database not initialized. Call init_db() during application startup."
-        )
+        raise RuntimeError("Database not initialized. Call init_db() during application startup.")
 
     async with _session_factory() as session:
         try:

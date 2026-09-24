@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -37,11 +37,11 @@ _a11y_remediation_repo: Any = None
 
 
 def _get_repos() -> dict[str, Any]:
-    global _program_repo, _course_repo, _lab_repo, _lab_template_repo  # noqa: PLW0603
-    global _asset_repo, _collection_repo, _template_repo  # noqa: PLW0603
-    global _publish_repo, _history_repo, _version_repo  # noqa: PLW0603
-    global _review_repo, _comment_repo, _decision_repo  # noqa: PLW0603
-    global _a11y_check_repo, _a11y_report_repo, _a11y_remediation_repo  # noqa: PLW0603
+    global _program_repo, _course_repo, _lab_repo, _lab_template_repo
+    global _asset_repo, _collection_repo, _template_repo
+    global _publish_repo, _history_repo, _version_repo
+    global _review_repo, _comment_repo, _decision_repo
+    global _a11y_check_repo, _a11y_report_repo, _a11y_remediation_repo
 
     from ..repositories.content_studio_repository_impl import (
         InMemoryA11yCheckRepository,
@@ -117,55 +117,68 @@ def _get_repos() -> dict[str, Any]:
 
 def _get_course_design_service() -> Any:
     from ..services.course_designer_service import CourseDesignerService
+
     repos = _get_repos()
     return CourseDesignerService(repos["program_repo"], repos["course_repo"])
 
 
 def _get_lesson_builder_service() -> Any:
     from ..services.lesson_builder_service import LessonBuilderService
+
     repos = _get_repos()
     return LessonBuilderService(repos["course_repo"])
 
 
 def _get_virtual_lab_service() -> Any:
     from ..services.virtual_lab_service import VirtualLabService
+
     repos = _get_repos()
     return VirtualLabService(repos["lab_repo"], repos["lab_template_repo"])
 
 
 def _get_multimedia_service() -> Any:
     from ..services.multimedia_service import MultimediaService
+
     repos = _get_repos()
     return MultimediaService(repos["asset_repo"], repos["collection_repo"])
 
 
 def _get_template_studio_service() -> Any:
     from ..services.template_studio_service import TemplateStudioService
+
     repos = _get_repos()
     return TemplateStudioService(repos["template_repo"])
 
 
 def _get_publishing_service() -> Any:
     from ..services.publishing_center_service import PublishingCenterService
+
     repos = _get_repos()
-    return PublishingCenterService(repos["publish_repo"], repos["history_repo"], repos["version_repo"])
+    return PublishingCenterService(
+        repos["publish_repo"], repos["history_repo"], repos["version_repo"]
+    )
 
 
 def _get_review_service() -> Any:
     from ..services.review_center_service import ReviewCenterService
+
     repos = _get_repos()
     return ReviewCenterService(repos["review_repo"], repos["comment_repo"], repos["decision_repo"])
 
 
 def _get_a11y_service() -> Any:
     from ..services.a11y_validator_service import A11yValidatorService
+
     repos = _get_repos()
-    return A11yValidatorService(repos["a11y_check_repo"], repos["a11y_report_repo"], repos["a11y_remediation_repo"])
+    return A11yValidatorService(
+        repos["a11y_check_repo"], repos["a11y_report_repo"], repos["a11y_remediation_repo"]
+    )
 
 
 # ---------------------------------------------------------------------------
 # Request models
 # ---------------------------------------------------------------------------
+
 
 class ProgramRequest(BaseModel):
     name: str
@@ -271,7 +284,7 @@ class TemplateRequest(BaseModel):
     description: str = ""
     structure: dict[str, Any] = Field(default_factory=dict)
     author: str = ""
-    inherit_from: Optional[str] = None
+    inherit_from: str | None = None
 
 
 class TemplateInstanceRequest(BaseModel):
@@ -302,7 +315,7 @@ class ReviewRequest(BaseModel):
 class ReviewCommentRequest(BaseModel):
     author: str
     comment: str = ""
-    severity: Optional[str] = None
+    severity: str | None = None
 
 
 class ReviewDecisionRequest(BaseModel):
@@ -314,6 +327,7 @@ class ReviewDecisionRequest(BaseModel):
 # ===================================================================
 # Program endpoints
 # ===================================================================
+
 
 @router.post("/programs", status_code=201)
 async def create_program(request: ProgramRequest) -> dict[str, Any]:
@@ -328,7 +342,7 @@ async def create_program(request: ProgramRequest) -> dict[str, Any]:
 async def list_programs(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    status: Optional[str] = Query(None),
+    status: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_course_design_service()
     return service.list_programs(page=page, per_page=per_page, status=status)
@@ -381,6 +395,7 @@ async def update_program_status(program_id: str, status: str = Query(...)) -> di
 # Course Design endpoints
 # ===================================================================
 
+
 @router.post("/courses", status_code=201)
 async def create_course(request: CourseRequest) -> dict[str, Any]:
     service = _get_course_design_service()
@@ -394,7 +409,7 @@ async def create_course(request: CourseRequest) -> dict[str, Any]:
 async def list_courses(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    status: Optional[str] = Query(None),
+    status: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_course_design_service()
     return service.list_courses(page=page, per_page=per_page, status=status)
@@ -473,6 +488,7 @@ async def get_courses_by_program(program_id: str) -> dict[str, Any]:
 # Unit / Module / Lesson endpoints
 # ===================================================================
 
+
 @router.post("/courses/{course_id}/units", status_code=201)
 async def add_unit(course_id: str, request: UnitRequest) -> dict[str, Any]:
     service = _get_course_design_service()
@@ -538,7 +554,9 @@ async def update_content_block(
 ) -> dict[str, Any]:
     service = _get_lesson_builder_service()
     try:
-        return service.update_content_block(course_id, lesson_id, block_id, request.model_dump(exclude_unset=True))
+        return service.update_content_block(
+            course_id, lesson_id, block_id, request.model_dump(exclude_unset=True)
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -556,9 +574,7 @@ async def remove_content_block(course_id: str, lesson_id: str, block_id: str) ->
 
 
 @router.post("/courses/{course_id}/lessons/{lesson_id}/activities", status_code=201)
-async def add_activity(
-    course_id: str, lesson_id: str, request: ActivityRequest
-) -> dict[str, Any]:
+async def add_activity(course_id: str, lesson_id: str, request: ActivityRequest) -> dict[str, Any]:
     service = _get_lesson_builder_service()
     try:
         return service.add_activity(course_id, lesson_id, request.model_dump())
@@ -572,7 +588,9 @@ async def update_activity(
 ) -> dict[str, Any]:
     service = _get_lesson_builder_service()
     try:
-        return service.update_activity(course_id, lesson_id, activity_id, request.model_dump(exclude_unset=True))
+        return service.update_activity(
+            course_id, lesson_id, activity_id, request.model_dump(exclude_unset=True)
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -604,6 +622,7 @@ async def duplicate_lesson(
 # Virtual Lab endpoints
 # ===================================================================
 
+
 @router.post("/labs", status_code=201)
 async def create_lab(request: VirtualLabRequest) -> dict[str, Any]:
     service = _get_virtual_lab_service()
@@ -617,7 +636,7 @@ async def create_lab(request: VirtualLabRequest) -> dict[str, Any]:
 async def list_labs(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    status: Optional[str] = Query(None),
+    status: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_virtual_lab_service()
     return service.list_labs(page=page, per_page=per_page, status=status)
@@ -664,9 +683,7 @@ async def add_lab_step(lab_id: str, request: LabStepRequest) -> dict[str, Any]:
 
 
 @router.put("/labs/{lab_id}/steps/{step_id}")
-async def update_lab_step(
-    lab_id: str, step_id: str, request: LabStepRequest
-) -> dict[str, Any]:
+async def update_lab_step(lab_id: str, step_id: str, request: LabStepRequest) -> dict[str, Any]:
     service = _get_virtual_lab_service()
     try:
         return service.update_step(lab_id, step_id, request.model_dump(exclude_unset=True))
@@ -699,6 +716,7 @@ async def search_labs(
 # ===================================================================
 # Lab Template endpoints
 # ===================================================================
+
 
 @router.post("/lab-templates", status_code=201)
 async def create_lab_template(request: LabTemplateRequest) -> dict[str, Any]:
@@ -735,9 +753,7 @@ async def delete_lab_template(template_id: str) -> SuccessResponse:
 
 
 @router.post("/lab-templates/{template_id}/create-lab", status_code=201)
-async def create_lab_from_template(
-    template_id: str, lab_name: str = Query(...)
-) -> dict[str, Any]:
+async def create_lab_from_template(template_id: str, lab_name: str = Query(...)) -> dict[str, Any]:
     service = _get_virtual_lab_service()
     try:
         return service.create_lab_from_template(template_id, lab_name)
@@ -748,6 +764,7 @@ async def create_lab_from_template(
 # ===================================================================
 # Multimedia Asset endpoints
 # ===================================================================
+
 
 @router.post("/assets", status_code=201)
 async def create_asset(request: MultimediaAssetRequest) -> dict[str, Any]:
@@ -762,7 +779,7 @@ async def create_asset(request: MultimediaAssetRequest) -> dict[str, Any]:
 async def list_assets(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    asset_type: Optional[str] = Query(None),
+    asset_type: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_multimedia_service()
     return service.list_assets(page=page, per_page=per_page, asset_type=asset_type)
@@ -821,6 +838,7 @@ async def search_assets(
 # ===================================================================
 # Asset Collection endpoints
 # ===================================================================
+
 
 @router.post("/asset-collections", status_code=201)
 async def create_asset_collection(request: AssetCollectionRequest) -> dict[str, Any]:
@@ -890,6 +908,7 @@ async def validate_collection_assets(collection_id: str) -> dict[str, Any]:
 # Content Template endpoints
 # ===================================================================
 
+
 @router.post("/templates", status_code=201)
 async def create_template(request: TemplateRequest) -> dict[str, Any]:
     service = _get_template_studio_service()
@@ -903,7 +922,7 @@ async def create_template(request: TemplateRequest) -> dict[str, Any]:
 async def list_templates(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    template_type: Optional[str] = Query(None),
+    template_type: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_template_studio_service()
     return service.list_templates(page=page, per_page=per_page, template_type=template_type)
@@ -922,12 +941,14 @@ async def get_template(template_id: str) -> dict[str, Any]:
 async def update_template(
     template_id: str,
     request: TemplateRequest,
-    changes: Optional[str] = Query(None),
+    changes: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_template_studio_service()
     try:
         change_list = [changes] if changes else None
-        result = service.update_template(template_id, request.model_dump(exclude_unset=True), changes=change_list)
+        result = service.update_template(
+            template_id, request.model_dump(exclude_unset=True), changes=change_list
+        )
         if not result:
             raise HTTPException(status_code=404, detail=f"Template '{template_id}' not found")
         return result
@@ -970,7 +991,9 @@ async def create_template_instance(
 ) -> dict[str, Any]:
     service = _get_template_studio_service()
     try:
-        return service.create_instance(template_id, request.customizations, created_by=request.created_by)
+        return service.create_instance(
+            template_id, request.customizations, created_by=request.created_by
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -988,6 +1011,7 @@ async def get_template_instances(template_id: str) -> dict[str, Any]:
 # ===================================================================
 # Publishing endpoints
 # ===================================================================
+
 
 @router.post("/publish/requests", status_code=201)
 async def request_publish(request: PublishRequestModel) -> dict[str, Any]:
@@ -1008,7 +1032,7 @@ async def request_publish(request: PublishRequestModel) -> dict[str, Any]:
 async def list_publish_requests(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    status: Optional[str] = Query(None),
+    status: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_publishing_service()
     return service.list_publish_requests(page=page, per_page=per_page, status=status)
@@ -1044,9 +1068,7 @@ async def set_validation_results(
 
 
 @router.put("/publish/requests/{request_id}/a11y-results")
-async def set_a11y_results(
-    request_id: str, results: ValidationResultsRequest
-) -> dict[str, Any]:
+async def set_a11y_results(request_id: str, results: ValidationResultsRequest) -> dict[str, Any]:
     service = _get_publishing_service()
     try:
         return service.set_a11y_results(request_id, results.model_dump())
@@ -1108,6 +1130,7 @@ async def get_latest_version(content_id: str) -> dict[str, Any]:
 # Review endpoints
 # ===================================================================
 
+
 @router.post("/reviews", status_code=201)
 async def create_review(request: ReviewRequest) -> dict[str, Any]:
     service = _get_review_service()
@@ -1121,7 +1144,7 @@ async def create_review(request: ReviewRequest) -> dict[str, Any]:
 async def list_reviews(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    stage: Optional[str] = Query(None),
+    stage: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_review_service()
     return service.list_reviews(page=page, per_page=per_page, stage=stage)
@@ -1164,12 +1187,12 @@ async def set_review_stage(review_id: str, stage: str = Query(...)) -> dict[str,
 
 
 @router.post("/reviews/{review_id}/comments", status_code=201)
-async def add_review_comment(
-    review_id: str, request: ReviewCommentRequest
-) -> dict[str, Any]:
+async def add_review_comment(review_id: str, request: ReviewCommentRequest) -> dict[str, Any]:
     service = _get_review_service()
     try:
-        return service.add_comment(review_id, request.author, request.comment, severity=request.severity)
+        return service.add_comment(
+            review_id, request.author, request.comment, severity=request.severity
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -1182,12 +1205,12 @@ async def get_review_comments(review_id: str) -> dict[str, Any]:
 
 
 @router.post("/reviews/{review_id}/decisions", status_code=201)
-async def add_review_decision(
-    review_id: str, request: ReviewDecisionRequest
-) -> dict[str, Any]:
+async def add_review_decision(review_id: str, request: ReviewDecisionRequest) -> dict[str, Any]:
     service = _get_review_service()
     try:
-        return service.add_decision(review_id, request.reviewer, request.decision, comments=request.comments)
+        return service.add_decision(
+            review_id, request.reviewer, request.decision, comments=request.comments
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -1211,6 +1234,7 @@ async def get_review_progress(review_id: str) -> dict[str, Any]:
 # ===================================================================
 # A11y Validation endpoints
 # ===================================================================
+
 
 @router.post("/a11y/validate/{content_id}", status_code=201)
 async def run_a11y_validation(content_id: str) -> dict[str, Any]:
@@ -1270,9 +1294,7 @@ async def get_remediations_for_report(report_id: str) -> dict[str, Any]:
 
 
 @router.put("/a11y/remediations/{remediation_id}")
-async def update_remediation(
-    remediation_id: str, data: dict[str, Any]
-) -> dict[str, Any]:
+async def update_remediation(remediation_id: str, data: dict[str, Any]) -> dict[str, Any]:
     service = _get_a11y_service()
     try:
         result = service.update_remediation(remediation_id, data)
@@ -1284,9 +1306,7 @@ async def update_remediation(
 
 
 @router.put("/a11y/remediations/{remediation_id}/assign")
-async def assign_remediation(
-    remediation_id: str, assignee: str = Query(...)
-) -> dict[str, Any]:
+async def assign_remediation(remediation_id: str, assignee: str = Query(...)) -> dict[str, Any]:
     service = _get_a11y_service()
     try:
         result = service.assign_remediation(remediation_id, assignee)

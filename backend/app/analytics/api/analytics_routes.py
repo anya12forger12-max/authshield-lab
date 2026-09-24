@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
-
-from ...shared.responses import SuccessResponse
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
 
@@ -37,15 +35,15 @@ class RecordCourseCompletionRequest(BaseModel):
 
 
 class FilterOptionsRequest(BaseModel):
-    institution: Optional[str] = None
-    campus: Optional[str] = None
-    department: Optional[str] = None
-    program: Optional[str] = None
-    course: Optional[str] = None
-    instructor: Optional[str] = None
-    term: Optional[str] = None
-    date_from: Optional[str] = None
-    date_to: Optional[str] = None
+    institution: str | None = None
+    campus: str | None = None
+    department: str | None = None
+    program: str | None = None
+    course: str | None = None
+    instructor: str | None = None
+    term: str | None = None
+    date_from: str | None = None
+    date_to: str | None = None
 
 
 class GenerateQualityDashboardRequest(BaseModel):
@@ -63,8 +61,8 @@ class GenerateQualityDashboardRequest(BaseModel):
 class EvaluateCurriculumRequest(BaseModel):
     topics: list[str] = Field(default_factory=list)
     competencies: list[str] = Field(default_factory=list)
-    mapped_competencies: Optional[list[str]] = None
-    existing_content: Optional[list[dict[str, Any]]] = None
+    mapped_competencies: list[str] | None = None
+    existing_content: list[dict[str, Any]] | None = None
     review_frequency_days: int = Field(default=30, ge=1)
 
 
@@ -74,7 +72,7 @@ class RecordAssessmentOutcomeRequest(BaseModel):
     total_attempts: int = Field(default=0, ge=0)
     passed: int = Field(default=0, ge=0)
     failed: int = Field(default=0, ge=0)
-    question_scores: Optional[dict[str, list[float]]] = None
+    question_scores: dict[str, list[float]] | None = None
 
 
 class AddContentHealthItemRequest(BaseModel):
@@ -97,10 +95,10 @@ class GenerateProgramEvaluationRequest(BaseModel):
     period: str = Field(default="")
     effectiveness_score: float = Field(default=0.0, ge=0.0, le=100.0)
     competency_coverage: float = Field(default=0.0, ge=0.0, le=100.0)
-    course_performance: Optional[dict[str, float]] = None
+    course_performance: dict[str, float] | None = None
     resource_utilization: float = Field(default=0.0, ge=0.0, le=100.0)
-    instructor_workload: Optional[dict[str, float]] = None
-    certification_outcomes: Optional[dict[str, float]] = None
+    instructor_workload: dict[str, float] | None = None
+    certification_outcomes: dict[str, float] | None = None
     a11y_readiness: float = Field(default=0.0, ge=0.0, le=100.0)
     governance_compliance: float = Field(default=0.0, ge=0.0, le=100.0)
     doc_health: float = Field(default=0.0, ge=0.0, le=100.0)
@@ -111,7 +109,7 @@ class CreateActionPlanRequest(BaseModel):
     description: str = Field(default="")
     owner: str = Field(default="")
     target_date: str = Field(default="")
-    items: Optional[list[str]] = None
+    items: list[str] | None = None
 
 
 class CreateInitiativeRequest(BaseModel):
@@ -119,16 +117,16 @@ class CreateInitiativeRequest(BaseModel):
     description: str = Field(default="")
     start_date: str = Field(default="")
     end_date: str = Field(default="")
-    assignees: Optional[list[str]] = None
-    metrics: Optional[dict] = None
+    assignees: list[str] | None = None
+    metrics: dict | None = None
 
 
 class GenerateImprovementReportRequest(BaseModel):
     initiative_id: str
     period: str = Field(default="")
     progress: float = Field(default=0.0, ge=0.0, le=100.0)
-    findings: Optional[list[str]] = None
-    next_steps: Optional[list[str]] = None
+    findings: list[str] | None = None
+    next_steps: list[str] | None = None
 
 
 class ComparePeriodsRequest(BaseModel):
@@ -161,8 +159,8 @@ def _get_services() -> dict[str, Any]:
         InMemoryCourseCompletionRepository,
         InMemoryCurriculumCoverageRepository,
         InMemoryCurriculumEvaluationRepository,
-        InMemoryExecutiveSummaryRepository,
         InMemoryEvaluationRecommendationRepository,
+        InMemoryExecutiveSummaryRepository,
         InMemoryImprovementInitiativeRepository,
         InMemoryImprovementReportRepository,
         InMemoryLearningProgressRepository,
@@ -170,14 +168,14 @@ def _get_services() -> dict[str, Any]:
         InMemoryProgramEvaluationRepository,
         InMemoryQualityDashboardRepository,
     )
-    from ..services.analytics_center_service import AnalyticsCenterService
-    from ..services.learning_quality_service import LearningQualityService
-    from ..services.curriculum_evaluation_service import CurriculumEvaluationService
-    from ..services.assessment_analytics_service import AssessmentAnalyticsService
     from ..services.a11y_analytics_service import A11yAnalyticsService
+    from ..services.analytics_center_service import AnalyticsCenterService
+    from ..services.assessment_analytics_service import AssessmentAnalyticsService
     from ..services.content_health_service import ContentHealthService
-    from ..services.program_evaluation_service import ProgramEvaluationService
     from ..services.continuous_improvement_service import ContinuousImprovementService
+    from ..services.curriculum_evaluation_service import CurriculumEvaluationService
+    from ..services.learning_quality_service import LearningQualityService
+    from ..services.program_evaluation_service import ProgramEvaluationService
 
     dashboard_repo = InMemoryAnalyticsDashboardRepository()
     progress_repo = InMemoryLearningProgressRepository()
@@ -199,19 +197,28 @@ def _get_services() -> dict[str, Any]:
     report_repo = InMemoryImprovementReportRepository()
 
     _services["analytics"] = AnalyticsCenterService(
-        dashboard_repo, progress_repo, course_repo,
-        assessment_repo, coverage_repo, content_usage_repo,
+        dashboard_repo,
+        progress_repo,
+        course_repo,
+        assessment_repo,
+        coverage_repo,
+        content_usage_repo,
     )
     _services["quality"] = LearningQualityService(quality_dash_repo)
     _services["curriculum"] = CurriculumEvaluationService(eval_repo, rec_repo)
     _services["assessment"] = AssessmentAnalyticsService(assessment_repo)
     _services["a11y"] = A11yAnalyticsService(content_health_repo)
     _services["content_health"] = ContentHealthService(
-        content_health_repo, content_health_dash_repo, maintenance_repo,
+        content_health_repo,
+        content_health_dash_repo,
+        maintenance_repo,
     )
     _services["program"] = ProgramEvaluationService(program_eval_repo, exec_summary_repo)
     _services["improvement"] = ContinuousImprovementService(
-        plan_repo, plan_item_repo, initiative_repo, report_repo,
+        plan_repo,
+        plan_item_repo,
+        initiative_repo,
+        report_repo,
     )
     return _services
 
@@ -227,7 +234,7 @@ async def analytics_health() -> dict:
     return {
         "status": "healthy",
         "module": "analytics",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).replace(tzinfo=None).isoformat(),
     }
 
 
@@ -237,9 +244,10 @@ async def analytics_health() -> dict:
 
 
 @router.post("/dashboards/generate", status_code=201)
-async def generate_dashboard(body: Optional[FilterOptionsRequest] = None) -> dict:
+async def generate_dashboard(body: FilterOptionsRequest | None = None) -> dict:
     svc = _get_services()["analytics"]
     from ..domain.entities.analytics import FilterOptions
+
     filters = None
     if body:
         filters = FilterOptions(
@@ -254,11 +262,14 @@ async def generate_dashboard(body: Optional[FilterOptionsRequest] = None) -> dic
             date_to=body.date_to,
         )
     dashboard = await svc.generate_dashboard(filters=filters)
-    return {"status": "success", "data": {
-        "id": dashboard.id,
-        "doc_quality": dashboard.doc_quality,
-        "generated_at": dashboard.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": dashboard.id,
+            "doc_quality": dashboard.doc_quality,
+            "generated_at": dashboard.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/dashboards")
@@ -268,11 +279,18 @@ async def list_dashboards(
 ) -> dict:
     svc = _get_services()["analytics"]
     result = await svc.list_dashboards(page=page, per_page=per_page)
-    items = [{"id": d.id, "doc_quality": d.doc_quality, "generated_at": d.generated_at.isoformat()}
-             for d in result.get("items", [])]
-    return {"status": "success", "items": items, "total": result.get("total", 0),
-            "page": result.get("page", 1), "per_page": result.get("per_page", 20),
-            "pages": result.get("pages", 1)}
+    items = [
+        {"id": d.id, "doc_quality": d.doc_quality, "generated_at": d.generated_at.isoformat()}
+        for d in result.get("items", [])
+    ]
+    return {
+        "status": "success",
+        "items": items,
+        "total": result.get("total", 0),
+        "page": result.get("page", 1),
+        "per_page": result.get("per_page", 20),
+        "pages": result.get("pages", 1),
+    }
 
 
 @router.get("/dashboards/latest")
@@ -281,11 +299,14 @@ async def get_latest_dashboard() -> dict:
     dashboard = await svc.get_latest_dashboard()
     if dashboard is None:
         raise HTTPException(status_code=404, detail="No dashboards found")
-    return {"status": "success", "data": {
-        "id": dashboard.id,
-        "doc_quality": dashboard.doc_quality,
-        "generated_at": dashboard.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": dashboard.id,
+            "doc_quality": dashboard.doc_quality,
+            "generated_at": dashboard.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/dashboards/{dashboard_id}")
@@ -294,23 +315,29 @@ async def get_dashboard(dashboard_id: str) -> dict:
     dashboard = await svc.get_dashboard(dashboard_id)
     if dashboard is None:
         raise HTTPException(status_code=404, detail="Dashboard not found")
-    return {"status": "success", "data": {
-        "id": dashboard.id,
-        "doc_quality": dashboard.doc_quality,
-        "generated_at": dashboard.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": dashboard.id,
+            "doc_quality": dashboard.doc_quality,
+            "generated_at": dashboard.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/metrics")
 async def get_aggregate_metrics(
-    institution: Optional[str] = Query(default=None),
-    department: Optional[str] = Query(default=None),
-    term: Optional[str] = Query(default=None),
+    institution: str | None = Query(default=None),
+    department: str | None = Query(default=None),
+    term: str | None = Query(default=None),
 ) -> dict:
     svc = _get_services()["analytics"]
     from ..domain.entities.analytics import FilterOptions
+
     filters = FilterOptions(
-        institution=institution, department=department, term=term,
+        institution=institution,
+        department=department,
+        term=term,
     )
     metrics = await svc.get_aggregate_metrics(filters=filters)
     return {"status": "success", "data": metrics}
@@ -332,11 +359,14 @@ async def record_learning_progress(body: RecordLearningProgressRequest) -> dict:
         avg_score=body.avg_score,
         total_time_hours=body.total_time_hours,
     )
-    return {"status": "success", "data": {
-        "learner_id": progress.learner_id,
-        "courses_enrolled": progress.courses_enrolled,
-        "courses_completed": progress.courses_completed,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "learner_id": progress.learner_id,
+            "courses_enrolled": progress.courses_enrolled,
+            "courses_completed": progress.courses_completed,
+        },
+    }
 
 
 @router.post("/courses", status_code=201)
@@ -350,10 +380,13 @@ async def record_course_completion(body: RecordCourseCompletionRequest) -> dict:
         in_progress=body.in_progress,
         dropped=body.dropped,
     )
-    return {"status": "success", "data": {
-        "course_id": completion.course_id,
-        "completion_rate": completion.completion_rate,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "course_id": completion.course_id,
+            "completion_rate": completion.completion_rate,
+        },
+    }
 
 
 # ======================================================================
@@ -375,10 +408,13 @@ async def generate_quality_dashboard(body: GenerateQualityDashboardRequest) -> d
         reflection_participation=body.reflection_participation,
         instructor_review_status=body.instructor_review_status,
     )
-    return {"status": "success", "data": {
-        "id": dashboard.id,
-        "generated_at": dashboard.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": dashboard.id,
+            "generated_at": dashboard.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/quality/dashboards/latest")
@@ -387,11 +423,14 @@ async def get_latest_quality_dashboard() -> dict:
     dashboard = await svc.get_latest_dashboard()
     if dashboard is None:
         raise HTTPException(status_code=404, detail="No quality dashboards found")
-    return {"status": "success", "data": {
-        "id": dashboard.id,
-        "completion_rates": dashboard.completion_rates,
-        "generated_at": dashboard.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": dashboard.id,
+            "completion_rates": dashboard.completion_rates,
+            "generated_at": dashboard.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/quality/dashboards/{dashboard_id}")
@@ -400,22 +439,33 @@ async def get_quality_dashboard(dashboard_id: str) -> dict:
     dashboard = await svc.get_dashboard(dashboard_id)
     if dashboard is None:
         raise HTTPException(status_code=404, detail="Quality dashboard not found")
-    return {"status": "success", "data": {
-        "id": dashboard.id,
-        "completion_rates": dashboard.completion_rates,
-        "generated_at": dashboard.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": dashboard.id,
+            "completion_rates": dashboard.completion_rates,
+            "generated_at": dashboard.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/quality/indicators")
 async def get_quality_indicators() -> dict:
     svc = _get_services()["quality"]
     indicators = await svc.generate_quality_indicators()
-    return {"status": "success", "items": [
-        {"name": i.name, "value": i.value, "benchmark": i.benchmark,
-         "status": i.status, "trend": i.trend}
-        for i in indicators
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {
+                "name": i.name,
+                "value": i.value,
+                "benchmark": i.benchmark,
+                "status": i.status,
+                "trend": i.trend,
+            }
+            for i in indicators
+        ],
+    }
 
 
 @router.get("/quality/overall-score")
@@ -440,12 +490,15 @@ async def evaluate_curriculum(body: EvaluateCurriculumRequest) -> dict:
         existing_content=body.existing_content,
         review_frequency_days=body.review_frequency_days,
     )
-    return {"status": "success", "data": {
-        "id": result.id,
-        "assessment_alignment": result.assessment_alignment,
-        "a11y_coverage": result.a11y_coverage,
-        "generated_at": result.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": result.id,
+            "assessment_alignment": result.assessment_alignment,
+            "a11y_coverage": result.a11y_coverage,
+            "generated_at": result.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/curriculum/evaluations")
@@ -455,12 +508,22 @@ async def list_curriculum_evaluations(
 ) -> dict:
     svc = _get_services()["curriculum"]
     result = await svc.list_evaluations(page=page, per_page=per_page)
-    items = [{"id": e.id, "assessment_alignment": e.assessment_alignment,
-              "generated_at": e.generated_at.isoformat()}
-             for e in result.get("items", [])]
-    return {"status": "success", "items": items, "total": result.get("total", 0),
-            "page": result.get("page", 1), "per_page": result.get("per_page", 20),
-            "pages": result.get("pages", 1)}
+    items = [
+        {
+            "id": e.id,
+            "assessment_alignment": e.assessment_alignment,
+            "generated_at": e.generated_at.isoformat(),
+        }
+        for e in result.get("items", [])
+    ]
+    return {
+        "status": "success",
+        "items": items,
+        "total": result.get("total", 0),
+        "page": result.get("page", 1),
+        "per_page": result.get("per_page", 20),
+        "pages": result.get("pages", 1),
+    }
 
 
 @router.get("/curriculum/evaluations/{evaluation_id}")
@@ -469,40 +532,55 @@ async def get_curriculum_evaluation(evaluation_id: str) -> dict:
     result = await svc.get_evaluation(evaluation_id)
     if result is None:
         raise HTTPException(status_code=404, detail="Curriculum evaluation not found")
-    return {"status": "success", "data": {
-        "id": result.id,
-        "curriculum_balance": result.curriculum_balance,
-        "topic_coverage": result.topic_coverage,
-        "redundant_content": result.redundant_content,
-        "missing_prerequisites": result.missing_prerequisites,
-        "assessment_alignment": result.assessment_alignment,
-        "a11y_coverage": result.a11y_coverage,
-        "localization_coverage": result.localization_coverage,
-        "content_freshness": result.content_freshness,
-        "generated_at": result.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": result.id,
+            "curriculum_balance": result.curriculum_balance,
+            "topic_coverage": result.topic_coverage,
+            "redundant_content": result.redundant_content,
+            "missing_prerequisites": result.missing_prerequisites,
+            "assessment_alignment": result.assessment_alignment,
+            "a11y_coverage": result.a11y_coverage,
+            "localization_coverage": result.localization_coverage,
+            "content_freshness": result.content_freshness,
+            "generated_at": result.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/curriculum/recommendations")
 async def get_curriculum_recommendations() -> dict:
     svc = _get_services()["curriculum"]
     recs = await svc.get_recommendations()
-    return {"status": "success", "items": [
-        {"id": r.id, "category": r.category, "priority": r.priority,
-         "recommendation": r.recommendation, "rationale": r.rationale,
-         "impact": r.impact, "effort": r.effort}
-        for r in recs
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {
+                "id": r.id,
+                "category": r.category,
+                "priority": r.priority,
+                "recommendation": r.recommendation,
+                "rationale": r.rationale,
+                "impact": r.impact,
+                "effort": r.effort,
+            }
+            for r in recs
+        ],
+    }
 
 
 @router.get("/curriculum/prerequisite-gaps")
 async def get_prerequisite_gaps() -> dict:
     svc = _get_services()["curriculum"]
     gaps = await svc.analyze_prerequisite_gaps()
-    return {"status": "success", "items": [
-        {"missing_from": g.missing_from, "needed_by": g.needed_by, "severity": g.severity}
-        for g in gaps
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {"missing_from": g.missing_from, "needed_by": g.needed_by, "severity": g.severity}
+            for g in gaps
+        ],
+    }
 
 
 # ======================================================================
@@ -521,22 +599,32 @@ async def record_assessment_outcome(body: RecordAssessmentOutcomeRequest) -> dic
         failed=body.failed,
         question_scores=body.question_scores,
     )
-    return {"status": "success", "data": {
-        "assessment_id": outcome.assessment_id,
-        "pass_rate": outcome.pass_rate,
-        "avg_score": outcome.avg_score,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "assessment_id": outcome.assessment_id,
+            "pass_rate": outcome.pass_rate,
+            "avg_score": outcome.avg_score,
+        },
+    }
 
 
 @router.get("/assessments")
 async def list_assessment_outcomes() -> dict:
     svc = _get_services()["assessment"]
     outcomes = await svc.list_all_outcomes()
-    return {"status": "success", "items": [
-        {"assessment_id": o.assessment_id, "title": o.title,
-         "pass_rate": o.pass_rate, "avg_score": o.avg_score}
-        for o in outcomes
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {
+                "assessment_id": o.assessment_id,
+                "title": o.title,
+                "pass_rate": o.pass_rate,
+                "avg_score": o.avg_score,
+            }
+            for o in outcomes
+        ],
+    }
 
 
 @router.get("/assessments/{assessment_id}")
@@ -545,15 +633,18 @@ async def get_assessment_outcome(assessment_id: str) -> dict:
     outcome = await svc.get_assessment_outcome(assessment_id)
     if outcome is None:
         raise HTTPException(status_code=404, detail="Assessment not found")
-    return {"status": "success", "data": {
-        "assessment_id": outcome.assessment_id,
-        "title": outcome.title,
-        "total_attempts": outcome.total_attempts,
-        "passed": outcome.passed,
-        "failed": outcome.failed,
-        "pass_rate": outcome.pass_rate,
-        "avg_score": outcome.avg_score,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "assessment_id": outcome.assessment_id,
+            "title": outcome.title,
+            "total_attempts": outcome.total_attempts,
+            "passed": outcome.passed,
+            "failed": outcome.failed,
+            "pass_rate": outcome.pass_rate,
+            "avg_score": outcome.avg_score,
+        },
+    }
 
 
 @router.get("/assessments/analysis/pass-rates")
@@ -654,20 +745,33 @@ async def add_content_health_item(body: AddContentHealthItemRequest) -> dict:
         publication_quality=body.publication_quality,
         dependency_health=body.dependency_health,
     )
-    return {"status": "success", "data": {
-        "id": item.id, "content_id": item.content_id, "title": item.title,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": item.id,
+            "content_id": item.content_id,
+            "title": item.title,
+        },
+    }
 
 
 @router.get("/content-health/items")
 async def list_content_health_items() -> dict:
     svc = _get_services()["content_health"]
     items = await svc.list_all_items()
-    return {"status": "success", "items": [
-        {"id": i.id, "content_id": i.content_id, "title": i.title,
-         "content_type": i.content_type, "a11y_status": i.a11y_status}
-        for i in items
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {
+                "id": i.id,
+                "content_id": i.content_id,
+                "title": i.title,
+                "content_type": i.content_type,
+                "a11y_status": i.a11y_status,
+            }
+            for i in items
+        ],
+    }
 
 
 @router.get("/content-health/items/{content_id}")
@@ -676,26 +780,35 @@ async def get_content_health_item(content_id: str) -> dict:
     item = await svc.get_content_item(content_id)
     if item is None:
         raise HTTPException(status_code=404, detail="Content item not found")
-    return {"status": "success", "data": {
-        "id": item.id, "content_id": item.content_id, "title": item.title,
-        "version_status": item.version_status, "broken_refs": item.broken_refs,
-        "a11y_status": item.a11y_status,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": item.id,
+            "content_id": item.content_id,
+            "title": item.title,
+            "version_status": item.version_status,
+            "broken_refs": item.broken_refs,
+            "a11y_status": item.a11y_status,
+        },
+    }
 
 
 @router.post("/content-health/dashboard", status_code=201)
 async def generate_content_health_dashboard() -> dict:
     svc = _get_services()["content_health"]
     dashboard = await svc.generate_health_dashboard()
-    return {"status": "success", "data": {
-        "id": dashboard.id,
-        "total_items": dashboard.total_items,
-        "healthy": dashboard.healthy,
-        "needs_attention": dashboard.needs_attention,
-        "critical": dashboard.critical,
-        "by_type": dashboard.by_type,
-        "generated_at": dashboard.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": dashboard.id,
+            "total_items": dashboard.total_items,
+            "healthy": dashboard.healthy,
+            "needs_attention": dashboard.needs_attention,
+            "critical": dashboard.critical,
+            "by_type": dashboard.by_type,
+            "generated_at": dashboard.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/content-health/dashboard/latest")
@@ -704,53 +817,68 @@ async def get_latest_content_health_dashboard() -> dict:
     dashboard = await svc.get_latest_dashboard()
     if dashboard is None:
         raise HTTPException(status_code=404, detail="No content health dashboards found")
-    return {"status": "success", "data": {
-        "id": dashboard.id,
-        "total_items": dashboard.total_items,
-        "healthy": dashboard.healthy,
-        "generated_at": dashboard.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": dashboard.id,
+            "total_items": dashboard.total_items,
+            "healthy": dashboard.healthy,
+            "generated_at": dashboard.generated_at.isoformat(),
+        },
+    }
 
 
 @router.post("/content-health/maintenance", status_code=201)
 async def generate_maintenance_schedule() -> dict:
     svc = _get_services()["content_health"]
     schedule = await svc.generate_maintenance_schedule()
-    return {"status": "success", "data": {
-        "id": schedule.id,
-        "item_count": len(schedule.items),
-        "generated_at": schedule.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": schedule.id,
+            "item_count": len(schedule.items),
+            "generated_at": schedule.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/content-health/maintenance")
 async def list_maintenance_schedules() -> dict:
     svc = _get_services()["content_health"]
     schedules = await svc.get_maintenance_schedules()
-    return {"status": "success", "items": [
-        {"id": s.id, "item_count": len(s.items), "generated_at": s.generated_at.isoformat()}
-        for s in schedules
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {"id": s.id, "item_count": len(s.items), "generated_at": s.generated_at.isoformat()}
+            for s in schedules
+        ],
+    }
 
 
 @router.get("/content-health/attention")
 async def get_items_needing_attention() -> dict:
     svc = _get_services()["content_health"]
     items = await svc.get_items_needing_attention()
-    return {"status": "success", "items": [
-        {"content_id": i.content_id, "title": i.title, "a11y_status": i.a11y_status}
-        for i in items
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {"content_id": i.content_id, "title": i.title, "a11y_status": i.a11y_status}
+            for i in items
+        ],
+    }
 
 
 @router.get("/content-health/critical")
 async def get_critical_items() -> dict:
     svc = _get_services()["content_health"]
     items = await svc.get_critical_items()
-    return {"status": "success", "items": [
-        {"content_id": i.content_id, "title": i.title, "a11y_status": i.a11y_status}
-        for i in items
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {"content_id": i.content_id, "title": i.title, "a11y_status": i.a11y_status}
+            for i in items
+        ],
+    }
 
 
 # ======================================================================
@@ -774,12 +902,15 @@ async def evaluate_program(body: GenerateProgramEvaluationRequest) -> dict:
         governance_compliance=body.governance_compliance,
         doc_health=body.doc_health,
     )
-    return {"status": "success", "data": {
-        "id": evaluation.id,
-        "program_name": evaluation.program_name,
-        "effectiveness_score": evaluation.effectiveness_score,
-        "generated_at": evaluation.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": evaluation.id,
+            "program_name": evaluation.program_name,
+            "effectiveness_score": evaluation.effectiveness_score,
+            "generated_at": evaluation.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/programs/evaluations")
@@ -789,13 +920,23 @@ async def list_program_evaluations(
 ) -> dict:
     svc = _get_services()["program"]
     result = await svc.list_evaluations(page=page, per_page=per_page)
-    items = [{"id": e.id, "program_name": e.program_name,
-              "effectiveness_score": e.effectiveness_score,
-              "generated_at": e.generated_at.isoformat()}
-             for e in result.get("items", [])]
-    return {"status": "success", "items": items, "total": result.get("total", 0),
-            "page": result.get("page", 1), "per_page": result.get("per_page", 20),
-            "pages": result.get("pages", 1)}
+    items = [
+        {
+            "id": e.id,
+            "program_name": e.program_name,
+            "effectiveness_score": e.effectiveness_score,
+            "generated_at": e.generated_at.isoformat(),
+        }
+        for e in result.get("items", [])
+    ]
+    return {
+        "status": "success",
+        "items": items,
+        "total": result.get("total", 0),
+        "page": result.get("page", 1),
+        "per_page": result.get("per_page", 20),
+        "pages": result.get("pages", 1),
+    }
 
 
 @router.get("/programs/evaluations/{evaluation_id}")
@@ -804,32 +945,38 @@ async def get_program_evaluation(evaluation_id: str) -> dict:
     evaluation = await svc.get_evaluation(evaluation_id)
     if evaluation is None:
         raise HTTPException(status_code=404, detail="Program evaluation not found")
-    return {"status": "success", "data": {
-        "id": evaluation.id,
-        "program_name": evaluation.program_name,
-        "period": evaluation.period,
-        "effectiveness_score": evaluation.effectiveness_score,
-        "competency_coverage": evaluation.competency_coverage,
-        "course_performance": evaluation.course_performance,
-        "resource_utilization": evaluation.resource_utilization,
-        "a11y_readiness": evaluation.a11y_readiness,
-        "governance_compliance": evaluation.governance_compliance,
-        "doc_health": evaluation.doc_health,
-        "generated_at": evaluation.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": evaluation.id,
+            "program_name": evaluation.program_name,
+            "period": evaluation.period,
+            "effectiveness_score": evaluation.effectiveness_score,
+            "competency_coverage": evaluation.competency_coverage,
+            "course_performance": evaluation.course_performance,
+            "resource_utilization": evaluation.resource_utilization,
+            "a11y_readiness": evaluation.a11y_readiness,
+            "governance_compliance": evaluation.governance_compliance,
+            "doc_health": evaluation.doc_health,
+            "generated_at": evaluation.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/programs/executive-summary")
 async def get_executive_summary() -> dict:
     svc = _get_services()["program"]
     summary = await svc.generate_executive_summary()
-    return {"status": "success", "data": {
-        "overall_health": summary.overall_health,
-        "key_findings": summary.key_findings,
-        "recommendations": summary.recommendations,
-        "priorities": summary.priorities,
-        "generated_at": summary.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "overall_health": summary.overall_health,
+            "key_findings": summary.key_findings,
+            "recommendations": summary.recommendations,
+            "priorities": summary.priorities,
+            "generated_at": summary.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/programs/executive-summary/latest")
@@ -838,12 +985,15 @@ async def get_latest_executive_summary() -> dict:
     summary = await svc.get_latest_summary()
     if summary is None:
         raise HTTPException(status_code=404, detail="No executive summary found")
-    return {"status": "success", "data": {
-        "overall_health": summary.overall_health,
-        "key_findings": summary.key_findings,
-        "recommendations": summary.recommendations,
-        "generated_at": summary.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "overall_health": summary.overall_health,
+            "key_findings": summary.key_findings,
+            "recommendations": summary.recommendations,
+            "generated_at": summary.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/programs/evaluations/{evaluation_id}/export")
@@ -873,10 +1023,15 @@ async def create_action_plan(body: CreateActionPlanRequest) -> dict:
         target_date=body.target_date,
         items=body.items,
     )
-    return {"status": "success", "data": {
-        "id": plan.id, "title": plan.title, "status": plan.status.value,
-        "created_at": plan.created_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": plan.id,
+            "title": plan.title,
+            "status": plan.status.value,
+            "created_at": plan.created_at.isoformat(),
+        },
+    }
 
 
 @router.get("/improvement/plans")
@@ -886,12 +1041,24 @@ async def list_action_plans(
 ) -> dict:
     svc = _get_services()["improvement"]
     result = await svc.list_action_plans(page=page, per_page=per_page)
-    items = [{"id": p.id, "title": p.title, "status": p.status.value,
-              "owner": p.owner, "target_date": p.target_date}
-             for p in result.get("items", [])]
-    return {"status": "success", "items": items, "total": result.get("total", 0),
-            "page": result.get("page", 1), "per_page": result.get("per_page", 20),
-            "pages": result.get("pages", 1)}
+    items = [
+        {
+            "id": p.id,
+            "title": p.title,
+            "status": p.status.value,
+            "owner": p.owner,
+            "target_date": p.target_date,
+        }
+        for p in result.get("items", [])
+    ]
+    return {
+        "status": "success",
+        "items": items,
+        "total": result.get("total", 0),
+        "page": result.get("page", 1),
+        "per_page": result.get("per_page", 20),
+        "pages": result.get("pages", 1),
+    }
 
 
 @router.get("/improvement/plans/{plan_id}")
@@ -900,12 +1067,18 @@ async def get_action_plan(plan_id: str) -> dict:
     plan = await svc.get_action_plan(plan_id)
     if plan is None:
         raise HTTPException(status_code=404, detail="Action plan not found")
-    return {"status": "success", "data": {
-        "id": plan.id, "title": plan.title, "description": plan.description,
-        "owner": plan.owner, "status": plan.status.value,
-        "target_date": plan.target_date,
-        "created_at": plan.created_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": plan.id,
+            "title": plan.title,
+            "description": plan.description,
+            "owner": plan.owner,
+            "status": plan.status.value,
+            "target_date": plan.target_date,
+            "created_at": plan.created_at.isoformat(),
+        },
+    }
 
 
 @router.patch("/improvement/plans/{plan_id}/status")
@@ -917,9 +1090,13 @@ async def update_plan_status(plan_id: str, status: str) -> dict:
         raise HTTPException(status_code=400, detail=str(exc))
     if plan is None:
         raise HTTPException(status_code=404, detail="Action plan not found")
-    return {"status": "success", "data": {
-        "id": plan.id, "status": plan.status.value,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": plan.id,
+            "status": plan.status.value,
+        },
+    }
 
 
 @router.post("/improvement/plans/{plan_id}/items", status_code=201)
@@ -928,21 +1105,33 @@ async def add_plan_item(plan_id: str, description: str, review_date: str = "") -
     item = await svc.add_plan_item(plan_id, description, review_date)
     if item is None:
         raise HTTPException(status_code=404, detail="Action plan not found")
-    return {"status": "success", "data": {
-        "id": item.id, "plan_id": item.plan_id,
-        "description": item.description, "status": item.status,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": item.id,
+            "plan_id": item.plan_id,
+            "description": item.description,
+            "status": item.status,
+        },
+    }
 
 
 @router.get("/improvement/plans/{plan_id}/items")
 async def get_plan_items(plan_id: str) -> dict:
     svc = _get_services()["improvement"]
     items = await svc.get_plan_items(plan_id)
-    return {"status": "success", "items": [
-        {"id": i.id, "description": i.description, "status": i.status,
-         "review_date": i.review_date}
-        for i in items
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {
+                "id": i.id,
+                "description": i.description,
+                "status": i.status,
+                "review_date": i.review_date,
+            }
+            for i in items
+        ],
+    }
 
 
 @router.get("/improvement/plans/{plan_id}/progress")
@@ -968,10 +1157,14 @@ async def create_initiative(body: CreateInitiativeRequest) -> dict:
         assignees=body.assignees,
         metrics=body.metrics,
     )
-    return {"status": "success", "data": {
-        "id": initiative.id, "name": initiative.name,
-        "progress_pct": initiative.progress_pct,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": initiative.id,
+            "name": initiative.name,
+            "progress_pct": initiative.progress_pct,
+        },
+    }
 
 
 @router.get("/improvement/initiatives")
@@ -981,11 +1174,18 @@ async def list_initiatives(
 ) -> dict:
     svc = _get_services()["improvement"]
     result = await svc.list_initiatives(page=page, per_page=per_page)
-    items = [{"id": i.id, "name": i.name, "progress_pct": i.progress_pct}
-             for i in result.get("items", [])]
-    return {"status": "success", "items": items, "total": result.get("total", 0),
-            "page": result.get("page", 1), "per_page": result.get("per_page", 20),
-            "pages": result.get("pages", 1)}
+    items = [
+        {"id": i.id, "name": i.name, "progress_pct": i.progress_pct}
+        for i in result.get("items", [])
+    ]
+    return {
+        "status": "success",
+        "items": items,
+        "total": result.get("total", 0),
+        "page": result.get("page", 1),
+        "per_page": result.get("per_page", 20),
+        "pages": result.get("pages", 1),
+    }
 
 
 @router.get("/improvement/initiatives/{initiative_id}")
@@ -994,27 +1194,35 @@ async def get_initiative(initiative_id: str) -> dict:
     initiative = await svc.get_initiative(initiative_id)
     if initiative is None:
         raise HTTPException(status_code=404, detail="Initiative not found")
-    return {"status": "success", "data": {
-        "id": initiative.id, "name": initiative.name,
-        "description": initiative.description,
-        "progress_pct": initiative.progress_pct,
-        "assignees": initiative.assignees,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": initiative.id,
+            "name": initiative.name,
+            "description": initiative.description,
+            "progress_pct": initiative.progress_pct,
+            "assignees": initiative.assignees,
+        },
+    }
 
 
 @router.patch("/improvement/initiatives/{initiative_id}")
 async def update_initiative(
     initiative_id: str,
-    progress_pct: Optional[float] = None,
+    progress_pct: float | None = None,
 ) -> dict:
     svc = _get_services()["improvement"]
     initiative = await svc.update_initiative(initiative_id, progress_pct=progress_pct)
     if initiative is None:
         raise HTTPException(status_code=404, detail="Initiative not found")
-    return {"status": "success", "data": {
-        "id": initiative.id, "name": initiative.name,
-        "progress_pct": initiative.progress_pct,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": initiative.id,
+            "name": initiative.name,
+            "progress_pct": initiative.progress_pct,
+        },
+    }
 
 
 @router.post("/improvement/reports", status_code=201)
@@ -1029,22 +1237,34 @@ async def generate_improvement_report(body: GenerateImprovementReportRequest) ->
     )
     if report is None:
         raise HTTPException(status_code=404, detail="Initiative not found")
-    return {"status": "success", "data": {
-        "id": report.id, "initiative_id": report.initiative_id,
-        "period": report.period, "progress": report.progress,
-        "generated_at": report.generated_at.isoformat(),
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "id": report.id,
+            "initiative_id": report.initiative_id,
+            "period": report.period,
+            "progress": report.progress,
+            "generated_at": report.generated_at.isoformat(),
+        },
+    }
 
 
 @router.get("/improvement/initiatives/{initiative_id}/reports")
 async def get_initiative_reports(initiative_id: str) -> dict:
     svc = _get_services()["improvement"]
     reports = await svc.get_initiative_reports(initiative_id)
-    return {"status": "success", "items": [
-        {"id": r.id, "period": r.period, "progress": r.progress,
-         "generated_at": r.generated_at.isoformat()}
-        for r in reports
-    ]}
+    return {
+        "status": "success",
+        "items": [
+            {
+                "id": r.id,
+                "period": r.period,
+                "progress": r.progress,
+                "generated_at": r.generated_at.isoformat(),
+            }
+            for r in reports
+        ],
+    }
 
 
 @router.post("/improvement/compare")
@@ -1056,9 +1276,12 @@ async def compare_periods(body: ComparePeriodsRequest) -> dict:
         period_a_metrics=body.period_a_metrics,
         period_b_metrics=body.period_b_metrics,
     )
-    return {"status": "success", "data": {
-        "period_a": comparison.period_a,
-        "period_b": comparison.period_b,
-        "metrics": comparison.metrics,
-        "changes": comparison.changes,
-    }}
+    return {
+        "status": "success",
+        "data": {
+            "period_a": comparison.period_a,
+            "period_b": comparison.period_b,
+            "metrics": comparison.metrics,
+            "changes": comparison.changes,
+        },
+    }

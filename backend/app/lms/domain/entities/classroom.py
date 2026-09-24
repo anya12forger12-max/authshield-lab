@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 
 class ClassroomStatus(str, Enum):
@@ -49,7 +48,7 @@ class ClassroomMember:
 
     user_id: str = ""
     role: ClassroomRole = ClassroomRole.LEARNER
-    joined_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    joined_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: ClassroomMemberStatus = ClassroomMemberStatus.ACTIVE
 
     @property
@@ -76,10 +75,10 @@ class ClassroomSession:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     classroom_id: str = ""
     title: str = ""
-    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    end_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    start_time: datetime = field(default_factory=lambda: datetime.now(UTC))
+    end_time: datetime = field(default_factory=lambda: datetime.now(UTC))
     status: SessionStatus = SessionStatus.SCHEDULED
-    notes: Optional[str] = None
+    notes: str | None = None
 
     @property
     def duration_minutes(self) -> float:
@@ -89,12 +88,12 @@ class ClassroomSession:
     def start(self) -> None:
         self.status = SessionStatus.IN_PROGRESS
 
-    def complete(self, notes: Optional[str] = None) -> None:
+    def complete(self, notes: str | None = None) -> None:
         self.status = SessionStatus.COMPLETED
         if notes:
             self.notes = notes
 
-    def cancel(self, reason: Optional[str] = None) -> None:
+    def cancel(self, reason: str | None = None) -> None:
         self.status = SessionStatus.CANCELLED
         if reason:
             self.notes = reason
@@ -122,8 +121,8 @@ class Classroom:
     capacity: int = 30
     instructor_id: str = ""
     status: ClassroomStatus = ClassroomStatus.ACTIVE
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     _members: list[ClassroomMember] = field(default_factory=list, repr=False)
 
     @property
@@ -167,11 +166,11 @@ class Classroom:
         member = ClassroomMember(
             user_id=user_id,
             role=role,
-            joined_at=datetime.now(timezone.utc),
+            joined_at=datetime.now(UTC),
             status=ClassroomMemberStatus.ACTIVE,
         )
         self._members.append(member)
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
         return member
 
     def remove_member(self, user_id: str) -> bool:
@@ -185,13 +184,13 @@ class Classroom:
         for member in self._members:
             if member.user_id == user_id and member.is_active_member:
                 member.status = ClassroomMemberStatus.REMOVED
-                self.updated_at = datetime.now(timezone.utc)
+                self.updated_at = datetime.now(UTC)
                 return True
         return False
 
     def get_members(
         self,
-        role: Optional[ClassroomRole] = None,
+        role: ClassroomRole | None = None,
     ) -> list[ClassroomMember]:
         """Return active members, optionally filtered by role."""
         members = self.active_members

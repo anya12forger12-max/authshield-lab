@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class AssessmentType(str, Enum):
@@ -37,7 +37,7 @@ class LmsAssessment:
     assessment_type: AssessmentType = AssessmentType.QUIZ
     course_id: str = ""
     passing_score: float = 70.0
-    time_limit_minutes: Optional[int] = None
+    time_limit_minutes: int | None = None
     attempts_allowed: int = 1
     status: AssessmentStatus = AssessmentStatus.DRAFT
 
@@ -80,15 +80,15 @@ class AssessmentAttempt:
     assessment_id: str = ""
     learner_id: str = ""
     attempt_number: int = 1
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    submitted_at: Optional[datetime] = None
-    score: Optional[float] = None
-    feedback: Optional[str] = None
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    submitted_at: datetime | None = None
+    score: float | None = None
+    feedback: str | None = None
 
-    def submit(self, score: float, feedback: Optional[str] = None) -> None:
+    def submit(self, score: float, feedback: str | None = None) -> None:
         if self.submitted_at is not None:
             raise ValueError("This attempt has already been submitted.")
-        self.submitted_at = datetime.now(timezone.utc)
+        self.submitted_at = datetime.now(UTC)
         self.score = score
         if feedback:
             self.feedback = feedback
@@ -109,7 +109,7 @@ class AssessmentAttempt:
         return self.score >= 70.0
 
     @property
-    def duration_seconds(self) -> Optional[float]:
+    def duration_seconds(self) -> float | None:
         if self.submitted_at is None:
             return None
         delta = self.submitted_at - self.started_at
@@ -137,7 +137,7 @@ class Submission:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     attempt_id: str = ""
     content: str = ""
-    submitted_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    submitted_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     attachments: list[str] = field(default_factory=list)
 
     def add_attachment(self, attachment: str) -> None:

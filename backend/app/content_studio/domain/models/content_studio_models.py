@@ -13,10 +13,10 @@ from ....shared.base_model import (
     UUIDPrimaryKeyMixin,
 )
 
-
 # ---------------------------------------------------------------------------
 # Program & Course Design
 # ---------------------------------------------------------------------------
+
 
 class ProgramModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, AuditMixin, Base):
     __tablename__ = "cs_programs"
@@ -100,6 +100,7 @@ class InteractiveActivityModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 # Virtual Labs
 # ---------------------------------------------------------------------------
 
+
 class VirtualLabModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, AuditMixin, Base):
     __tablename__ = "cs_virtual_labs"
 
@@ -143,6 +144,7 @@ class LabTemplateModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 # Multimedia Assets
 # ---------------------------------------------------------------------------
 
+
 class MultimediaAssetModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "cs_multimedia_assets"
 
@@ -179,6 +181,7 @@ class AssetValidationResultModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 # Templates
 # ---------------------------------------------------------------------------
 
+
 class ContentTemplateModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, AuditMixin, Base):
     __tablename__ = "cs_content_templates"
 
@@ -210,6 +213,7 @@ class TemplateInstanceModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 # ---------------------------------------------------------------------------
 # Publishing
 # ---------------------------------------------------------------------------
+
 
 class PublishRequestModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "cs_publish_requests"
@@ -253,6 +257,7 @@ class ContentVersionModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 # Review
 # ---------------------------------------------------------------------------
 
+
 class EditorialReviewModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "cs_editorial_reviews"
 
@@ -286,6 +291,7 @@ class ReviewDecisionModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 # ---------------------------------------------------------------------------
 # Accessibility
 # ---------------------------------------------------------------------------
+
 
 class A11yCheckModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __tablename__ = "cs_a11y_checks"

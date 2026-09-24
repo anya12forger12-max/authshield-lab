@@ -7,8 +7,8 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.user_preference import UserPreference
 from ..logging_config import get_logger
+from ..models.user_preference import UserPreference
 from .base_repository import BaseRepository
 
 logger = get_logger(__name__)
@@ -103,9 +103,7 @@ class PreferenceRepository(BaseRepository[UserPreference]):
         logger.info("accessibility_updated", user_id=user_id, keys=list(settings.keys()))
         return prefs
 
-    async def update_language(
-        self, user_id: str, language: str
-    ) -> UserPreference | None:
+    async def update_language(self, user_id: str, language: str) -> UserPreference | None:
         """Update the language preference for *user_id*."""
         prefs = await self.get_by_user_id(user_id)
         if prefs is None:

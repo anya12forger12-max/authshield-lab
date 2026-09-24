@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Optional
 
 from ...shared.logging_config import get_logger
 from ..domain.entities.release_center import Release, ReleaseStatus
@@ -19,12 +18,25 @@ VALID_ADR_STATUSES = {"proposed", "accepted", "deprecated", "superseded"}
 VALID_CERT_STATUSES = {"pending", "in_progress", "certified", "failed", "expired"}
 VALID_REVIEW_STATUSES = {"pending", "in_progress", "approved", "rejected", "needs_revision"}
 VALID_GOVERNANCE_AREAS = {
-    "architecture", "documentation", "accessibility",
-    "security", "quality", "localization", "plugin", "sdk",
+    "architecture",
+    "documentation",
+    "accessibility",
+    "security",
+    "quality",
+    "localization",
+    "plugin",
+    "sdk",
 }
 VALID_CERT_TYPES = {
-    "accessibility", "security", "quality", "performance",
-    "documentation", "localization", "plugin", "sdk", "release",
+    "accessibility",
+    "security",
+    "quality",
+    "performance",
+    "documentation",
+    "localization",
+    "plugin",
+    "sdk",
+    "release",
 }
 
 
@@ -50,9 +62,7 @@ class ProductionValidator:
         if not version:
             errors.append("Version must not be empty")
         elif not VERSION_PATTERN.match(version):
-            errors.append(
-                f"Version '{version}' does not match pattern X.Y.Z[-prerelease]"
-            )
+            errors.append(f"Version '{version}' does not match pattern X.Y.Z[-prerelease]")
         return errors
 
     @staticmethod
@@ -69,11 +79,8 @@ class ProductionValidator:
         if release.status not in VALID_RELEASE_STATUSES:
             errors.append(f"Invalid release status: {release.status}")
 
-        if release.release_date is not None:
-            if release.status == ReleaseStatus.IN_DEVELOPMENT:
-                errors.append(
-                    "In-development releases should not have a release date"
-                )
+        if release.release_date is not None and release.status == ReleaseStatus.IN_DEVELOPMENT:
+            errors.append("In-development releases should not have a release date")
 
         return errors
 
@@ -85,8 +92,7 @@ class ProductionValidator:
         errors: list[str] = []
         if package_type not in VALID_PACKAGE_TYPES:
             errors.append(
-                f"Invalid package type: {package_type}. "
-                f"Must be one of: {VALID_PACKAGE_TYPES}"
+                f"Invalid package type: {package_type}. Must be one of: {VALID_PACKAGE_TYPES}"
             )
         if not platform:
             errors.append("Package platform must not be empty")
@@ -100,9 +106,7 @@ class ProductionValidator:
     def validate_lts_status(status: str) -> list[str]:
         """Validate an LTS version status."""
         if status not in VALID_LTS_STATUSES:
-            return [
-                f"Invalid LTS status: {status}. Must be one of: {VALID_LTS_STATUSES}"
-            ]
+            return [f"Invalid LTS status: {status}. Must be one of: {VALID_LTS_STATUSES}"]
         return []
 
     @staticmethod
@@ -110,8 +114,7 @@ class ProductionValidator:
         """Validate a migration status."""
         if status not in VALID_MIGRATION_STATUSES:
             return [
-                f"Invalid migration status: {status}. "
-                f"Must be one of: {VALID_MIGRATION_STATUSES}"
+                f"Invalid migration status: {status}. Must be one of: {VALID_MIGRATION_STATUSES}"
             ]
         return []
 
@@ -119,29 +122,21 @@ class ProductionValidator:
     def validate_adr_status(status: str) -> list[str]:
         """Validate an ADR status."""
         if status not in VALID_ADR_STATUSES:
-            return [
-                f"Invalid ADR status: {status}. Must be one of: {VALID_ADR_STATUSES}"
-            ]
+            return [f"Invalid ADR status: {status}. Must be one of: {VALID_ADR_STATUSES}"]
         return []
 
     @staticmethod
     def validate_governance_area(area: str) -> list[str]:
         """Validate a governance area."""
         if area not in VALID_GOVERNANCE_AREAS:
-            return [
-                f"Invalid governance area: {area}. "
-                f"Must be one of: {VALID_GOVERNANCE_AREAS}"
-            ]
+            return [f"Invalid governance area: {area}. Must be one of: {VALID_GOVERNANCE_AREAS}"]
         return []
 
     @staticmethod
     def validate_review_status(status: str) -> list[str]:
         """Validate a governance review status."""
         if status not in VALID_REVIEW_STATUSES:
-            return [
-                f"Invalid review status: {status}. "
-                f"Must be one of: {VALID_REVIEW_STATUSES}"
-            ]
+            return [f"Invalid review status: {status}. Must be one of: {VALID_REVIEW_STATUSES}"]
         return []
 
     @staticmethod
@@ -149,8 +144,7 @@ class ProductionValidator:
         """Validate a certification status."""
         if status not in VALID_CERT_STATUSES:
             return [
-                f"Invalid certification status: {status}. "
-                f"Must be one of: {VALID_CERT_STATUSES}"
+                f"Invalid certification status: {status}. Must be one of: {VALID_CERT_STATUSES}"
             ]
         return []
 
@@ -158,16 +152,11 @@ class ProductionValidator:
     def validate_certification_type(cert_type: str) -> list[str]:
         """Validate a certification type."""
         if cert_type not in VALID_CERT_TYPES:
-            return [
-                f"Invalid certification type: {cert_type}. "
-                f"Must be one of: {VALID_CERT_TYPES}"
-            ]
+            return [f"Invalid certification type: {cert_type}. Must be one of: {VALID_CERT_TYPES}"]
         return []
 
     @staticmethod
-    def validate_knowledge_entry(
-        title: str, category: str, content: str
-    ) -> list[str]:
+    def validate_knowledge_entry(title: str, category: str, content: str) -> list[str]:
         """Validate a knowledge entry."""
         errors: list[str] = []
         if not title:
@@ -181,9 +170,7 @@ class ProductionValidator:
         return errors
 
     @staticmethod
-    def validate_coding_standard(
-        name: str, category: str, description: str
-    ) -> list[str]:
+    def validate_coding_standard(name: str, category: str, description: str) -> list[str]:
         """Validate a coding standard."""
         errors: list[str] = []
         if not name:
@@ -223,9 +210,7 @@ class ProductionValidator:
         return len(errors) == 0
 
     @staticmethod
-    def raise_if_invalid(
-        errors: list[str], context: str = "Validation"
-    ) -> None:
+    def raise_if_invalid(errors: list[str], context: str = "Validation") -> None:
         """Raise a ValidationError if there are any errors."""
         if errors:
             combined = "; ".join(errors)

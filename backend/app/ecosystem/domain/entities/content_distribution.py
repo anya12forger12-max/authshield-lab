@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class DistributionPackage:
@@ -27,7 +27,7 @@ class DistributionPackage:
         self.checksum = checksum
         self.signature = signature
         self.created_by = created_by
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
         self.exported = exported
         self.imported = imported
 
@@ -74,7 +74,7 @@ class ImportRecord:
         self.id = str(uuid.uuid4())
         self.package_id = package_id
         self.imported_by = imported_by
-        self.imported_at = datetime.now(timezone.utc)
+        self.imported_at = datetime.now(UTC)
         self.status = status
         self.conflicts = conflicts or []
 
@@ -96,5 +96,5 @@ class SyncOperation:
         self.status = status
         self.items_processed = items_processed
         self.items_conflict = items_conflict
-        self.started_at = datetime.now(timezone.utc)
+        self.started_at = datetime.now(UTC)
         self.completed_at = None

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -68,7 +68,7 @@ class ArchitectureAudit:
     checks: list[AuditCheck] = field(default_factory=list)
     overall_status: str = "pending"
     score: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -82,4 +82,4 @@ class GovernanceReport:
     findings: list[str] = field(default_factory=list)
     recommendations: list[str] = field(default_factory=list)
     score: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))

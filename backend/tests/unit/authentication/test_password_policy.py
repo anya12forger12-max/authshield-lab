@@ -1,16 +1,21 @@
 """Tests for PasswordPolicyService."""
 
 import pytest
-from unittest.mock import MagicMock
 
-from app.shared.validation.validator import Validator, ValidationResult
+from app.shared.validation.validator import ValidationResult, Validator
 
 
 class PasswordPolicyService:
     """Minimal password policy service for testing validation logic."""
 
-    def __init__(self, min_length=12, require_uppercase=True, require_lowercase=True,
-                 require_digit=True, require_special=True):
+    def __init__(
+        self,
+        min_length=12,
+        require_uppercase=True,
+        require_lowercase=True,
+        require_digit=True,
+        require_special=True,
+    ):
         self.min_length = min_length
         self.require_uppercase = require_uppercase
         self.require_lowercase = require_lowercase
@@ -35,7 +40,9 @@ class PasswordPolicyService:
             "uppercase": bool(__import__("re").search(r"[A-Z]", password)),
             "lowercase": bool(__import__("re").search(r"[a-z]", password)),
             "digit": bool(__import__("re").search(r"[0-9]", password)),
-            "special": bool(__import__("re").search(r"[!@#$%^&*(),.?\":{}|<>\-_=+\[\]\\;'/`~]", password)),
+            "special": bool(
+                __import__("re").search(r"[!@#$%^&*(),.?\":{}|<>\-_=+\[\]\\;'/`~]", password)
+            ),
         }
         score = sum(checks.values())
         return {"score": score, "max_score": 5, "checks": checks}

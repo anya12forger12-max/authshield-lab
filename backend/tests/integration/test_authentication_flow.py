@@ -1,23 +1,19 @@
 """Integration tests for full authentication flow: register -> login -> session -> logout."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock
-from datetime import datetime, timezone, timedelta
-
-from app.shared.events.event_bus import EventBus, EventType
-from app.shared.validation.validator import Validator
 from app.authentication.domain.entities.account_status import AccountStatus, can_transition
 from app.authentication.domain.entities.authentication_result import (
-    AuthenticationResult,
     AuthenticationOutcome,
+    AuthenticationResult,
     FailureReason,
 )
 from app.authentication.domain.entities.session_status import SessionStatus, is_usable
 from app.authentication.domain.models.request_models import (
-    RegistrationRequest,
     LoginRequest,
     LogoutRequest,
+    RegistrationRequest,
 )
+from app.shared.events.event_bus import EventBus, EventType
+from app.shared.validation.validator import Validator
 
 
 class TestRegistrationFlow:
@@ -153,14 +149,13 @@ class TestFullFlowSequence:
 
         import asyncio
 
-        asyncio.get_event_loop().run_until_complete(
-            self._simulate_flow(bus)
-        )
+        asyncio.get_event_loop().run_until_complete(self._simulate_flow(bus))
 
         assert len(published_events) >= 5
 
     async def _simulate_flow(self, bus):
         from app.shared.events.event_bus import DomainEvent
+
         events = [
             EventType.REGISTRATION_REQUESTED,
             EventType.REGISTRATION_COMPLETED,

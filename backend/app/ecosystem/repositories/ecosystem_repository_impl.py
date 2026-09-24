@@ -5,16 +5,37 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from domain.interfaces import (
-    MarketplaceRepository, LibraryRepository, ResearchRepository,
-    InstitutionRepository, DistributionRepository,
+    DistributionRepository,
+    InstitutionRepository,
+    LibraryRepository,
+    MarketplaceRepository,
+    ResearchRepository,
 )
 
 if TYPE_CHECKING:
-    from domain.entities.marketplace import LocalPackage, InstallationRecord, PackageSearch
-    from domain.entities.library import LibraryItem, Bookmark, Annotation, Citation
-    from domain.entities.research import ResearchProject, LiteratureEntry, ResearchNote, KnowledgeMap, ReadingList, Bibliography
-    from domain.entities.institution import Organization, Department, AcademicProgram, InstructorAssignment, ResourceAllocation
-    from domain.entities.content_distribution import DistributionPackage, DistributionManifest, ImportRecord, SyncOperation
+    from domain.entities.content_distribution import (
+        DistributionManifest,
+        DistributionPackage,
+        ImportRecord,
+        SyncOperation,
+    )
+    from domain.entities.institution import (
+        AcademicProgram,
+        Department,
+        InstructorAssignment,
+        Organization,
+        ResourceAllocation,
+    )
+    from domain.entities.library import Annotation, Bookmark, Citation, LibraryItem
+    from domain.entities.marketplace import InstallationRecord, LocalPackage, PackageSearch
+    from domain.entities.research import (
+        Bibliography,
+        KnowledgeMap,
+        LiteratureEntry,
+        ReadingList,
+        ResearchNote,
+        ResearchProject,
+    )
 
 
 class InMemoryMarketplaceRepository(MarketplaceRepository):
@@ -48,7 +69,7 @@ class InMemoryMarketplaceRepository(MarketplaceRepository):
             results.sort(key=lambda p: p.rating, reverse=True)
         elif key == "created_at":
             results.sort(key=lambda p: p.created_at, reverse=True)
-        return results[search.offset:search.offset + search.limit]
+        return results[search.offset : search.offset + search.limit]
 
     def update_package(self, package: LocalPackage) -> None:
         self._packages[package.id] = package
@@ -82,7 +103,9 @@ class InMemoryLibraryRepository(LibraryRepository):
     def get_item(self, item_id: str) -> LibraryItem | None:
         return self._items.get(item_id)
 
-    def search_items(self, query: str = "", item_type: str = "", tag: str = "") -> list[LibraryItem]:
+    def search_items(
+        self, query: str = "", item_type: str = "", tag: str = ""
+    ) -> list[LibraryItem]:
         results = list(self._items.values())
         if query:
             q = query.lower()
@@ -100,7 +123,11 @@ class InMemoryLibraryRepository(LibraryRepository):
         self._items.pop(item_id, None)
         self._bookmarks = {k: v for k, v in self._bookmarks.items() if v.item_id != item_id}
         self._annotations = {k: v for k, v in self._annotations.items() if v.item_id != item_id}
-        self._citations = {k: v for k, v in self._citations.items() if v.source_item_id != item_id and v.target_item_id != item_id}
+        self._citations = {
+            k: v
+            for k, v in self._citations.items()
+            if item_id not in (v.source_item_id, v.target_item_id)
+        }
 
     def all_items(self) -> list[LibraryItem]:
         return list(self._items.values())
@@ -121,7 +148,9 @@ class InMemoryLibraryRepository(LibraryRepository):
         return [a for a in self._annotations.values() if a.item_id == item_id]
 
     def get_citations_for_item(self, item_id: str) -> list[Citation]:
-        return [c for c in self._citations.values() if c.source_item_id == item_id or c.target_item_id == item_id]
+        return [
+            c for c in self._citations.values() if item_id in (c.source_item_id, c.target_item_id)
+        ]
 
 
 class InMemoryResearchRepository(ResearchRepository):
@@ -250,8 +279,8 @@ class InMemoryInstitutionRepository(InstitutionRepository):
     def add_allocation(self, allocation: ResourceAllocation) -> None:
         self._allocations[allocation.id] = allocation
 
-    def get_allocations_for_org(self, org_id: str) -> list[ResourceAllocation]:
-        return [a for a in self._allocations.values()]
+    def get_allocations_for_org(self, _org_id: str) -> list[ResourceAllocation]:
+        return list(self._allocations.values())
 
 
 class InMemoryDistributionRepository(DistributionRepository):

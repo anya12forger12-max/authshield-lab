@@ -220,6 +220,7 @@ def _get_framework_service():  # type: ignore[no-untyped-def]
     global _framework_service
     if _framework_service is None:
         from app.standards.services.framework_service import FrameworkService
+
         _framework_service = FrameworkService()
     return _framework_service
 
@@ -228,6 +229,7 @@ def _get_mapping_service():  # type: ignore[no-untyped-def]
     global _mapping_service
     if _mapping_service is None:
         from app.standards.services.mapping_service import MappingService
+
         _mapping_service = MappingService()
     return _mapping_service
 
@@ -236,6 +238,7 @@ def _get_taxonomy_service():  # type: ignore[no-untyped-def]
     global _taxonomy_service
     if _taxonomy_service is None:
         from app.standards.services.skills_taxonomy_service import SkillsTaxonomyService
+
         _taxonomy_service = SkillsTaxonomyService()
     return _taxonomy_service
 
@@ -244,6 +247,7 @@ def _get_evidence_service():  # type: ignore[no-untyped-def]
     global _evidence_service
     if _evidence_service is None:
         from app.standards.services.evidence_service import EvidenceService
+
         _evidence_service = EvidenceService()
     return _evidence_service
 
@@ -252,6 +256,7 @@ def _get_quality_service():  # type: ignore[no-untyped-def]
     global _quality_service
     if _quality_service is None:
         from app.standards.services.quality_service import QualityService
+
         _quality_service = QualityService()
     return _quality_service
 
@@ -260,6 +265,7 @@ def _get_comparison_service():  # type: ignore[no-untyped-def]
     global _comparison_service
     if _comparison_service is None:
         from app.standards.services.comparison_service import ComparisonService
+
         _comparison_service = ComparisonService()
     return _comparison_service
 
@@ -341,7 +347,9 @@ async def list_competencies(framework_id: str) -> list[dict]:  # type: ignore[no
     return [c.to_dict() for c in _get_framework_service().list_competencies(framework_id)]
 
 
-@router.delete("/frameworks/{framework_id}/competencies/{competency_id}", response_model=MessageResponse)
+@router.delete(
+    "/frameworks/{framework_id}/competencies/{competency_id}", response_model=MessageResponse
+)
 async def remove_competency(framework_id: str, competency_id: str) -> dict:  # type: ignore[no-untyped-def]
     """Remove a competency from a framework."""
     removed = _get_framework_service().remove_competency(framework_id, competency_id)

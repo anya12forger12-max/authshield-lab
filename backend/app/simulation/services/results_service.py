@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
+from ...shared.events.event_bus import DomainEvent, EventBus, EventType, get_event_bus
 from ..domain.entities.results import ExerciseResult, ImprovementRecommendation
 from ..domain.interfaces import ResultsRepositoryInterface
-from ...shared.events.event_bus import EventBus, DomainEvent, EventType, get_event_bus
 
 
 class ResultsService:
@@ -39,25 +38,19 @@ class ResultsService:
         )
         return await self._repo.create(result)
 
-    async def get_result(self, result_id: str) -> Optional[ExerciseResult]:
+    async def get_result(self, result_id: str) -> ExerciseResult | None:
         """Retrieve a result by ID."""
         return await self._repo.get_by_id(result_id)
 
-    async def list_results(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def list_results(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """List all results with pagination."""
         return await self._repo.get_all(page=page, per_page=per_page)
 
-    async def update_result(
-        self, result_id: str, data: dict[str, Any]
-    ) -> Optional[ExerciseResult]:
+    async def update_result(self, result_id: str, data: dict[str, Any]) -> ExerciseResult | None:
         """Update an existing result."""
         return await self._repo.update(result_id, data)
 
-    async def add_score(
-        self, result_id: str, criterion: str, score: float
-    ) -> ExerciseResult:
+    async def add_score(self, result_id: str, criterion: str, score: float) -> ExerciseResult:
         """Add or update a specific assessment score."""
         result = await self._repo.get_by_id(result_id)
         if result is None:
@@ -87,9 +80,7 @@ class ResultsService:
             raise ValueError("Failed to update competency")
         return updated
 
-    async def add_reflection(
-        self, result_id: str, reflection: str
-    ) -> ExerciseResult:
+    async def add_reflection(self, result_id: str, reflection: str) -> ExerciseResult:
         """Add a reflection response to a result."""
         result = await self._repo.get_by_id(result_id)
         if result is None:
@@ -103,9 +94,7 @@ class ResultsService:
             raise ValueError("Failed to add reflection")
         return updated
 
-    async def set_instructor_feedback(
-        self, result_id: str, feedback: str
-    ) -> ExerciseResult:
+    async def set_instructor_feedback(self, result_id: str, feedback: str) -> ExerciseResult:
         """Set instructor feedback on a result."""
         result = await self._repo.get_by_id(result_id)
         if result is None:
@@ -135,9 +124,7 @@ class ResultsService:
             raise ValueError("Failed to record accessibility usage")
         return updated
 
-    async def set_time_on_task(
-        self, result_id: str, seconds: int
-    ) -> ExerciseResult:
+    async def set_time_on_task(self, result_id: str, seconds: int) -> ExerciseResult:
         """Set time on task for a result."""
         result = await self._repo.get_by_id(result_id)
         if result is None:
@@ -151,9 +138,7 @@ class ResultsService:
             raise ValueError("Failed to set time on task")
         return updated
 
-    async def generate_recommendations(
-        self, result_id: str
-    ) -> list[ImprovementRecommendation]:
+    async def generate_recommendations(self, result_id: str) -> list[ImprovementRecommendation]:
         """Auto-generate improvement recommendations based on scores."""
         result = await self._repo.get_by_id(result_id)
         if result is None:
@@ -207,16 +192,12 @@ class ResultsService:
         await self._repo.update(
             result_id,
             {
-                "improvement_recommendations": [
-                    r.to_dict() for r in recommendations
-                ],
+                "improvement_recommendations": [r.to_dict() for r in recommendations],
             },
         )
         return recommendations
 
-    async def calculate_and_finalize(
-        self, result_id: str
-    ) -> ExerciseResult:
+    async def calculate_and_finalize(self, result_id: str) -> ExerciseResult:
         """Calculate final scores and mark the result as complete."""
         result = await self._repo.get_by_id(result_id)
         if result is None:
@@ -252,21 +233,15 @@ class ResultsService:
         await self._event_bus.publish(event)
         return updated
 
-    async def get_by_session(
-        self, session_id: str
-    ) -> Optional[ExerciseResult]:
+    async def get_by_session(self, session_id: str) -> ExerciseResult | None:
         """Return the result for a given session."""
         return await self._repo.get_by_session(session_id)
 
-    async def get_by_exercise(
-        self, exercise_id: str
-    ) -> list[ExerciseResult]:
+    async def get_by_exercise(self, exercise_id: str) -> list[ExerciseResult]:
         """Return all results for a given exercise."""
         return await self._repo.get_by_exercise(exercise_id)
 
-    async def get_score_statistics(
-        self, exercise_id: str
-    ) -> dict[str, Any]:
+    async def get_score_statistics(self, exercise_id: str) -> dict[str, Any]:
         """Calculate aggregate score statistics for an exercise."""
         results = await self._repo.get_by_exercise(exercise_id)
         if not results:

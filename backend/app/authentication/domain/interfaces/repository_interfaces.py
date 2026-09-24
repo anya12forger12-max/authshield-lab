@@ -117,15 +117,11 @@ class IAuditRepository(ABC):
         ...
 
     @abstractmethod
-    async def get_by_user(
-        self, user_id: str, page: int = 1, per_page: int = 50
-    ) -> dict:
+    async def get_by_user(self, user_id: str, page: int = 1, per_page: int = 50) -> dict:
         """Return paginated audit entries for a user."""
         ...
 
     @abstractmethod
-    async def search(
-        self, filters: dict | None = None, page: int = 1, per_page: int = 50
-    ) -> dict:
+    async def search(self, filters: dict | None = None, page: int = 1, per_page: int = 50) -> dict:
         """Search audit entries with filters and pagination."""
         ...

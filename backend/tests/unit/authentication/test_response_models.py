@@ -1,13 +1,12 @@
 """Tests for Pydantic response models."""
 
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.authentication.domain.models.response_models import (
     AuthenticationResponse,
-    RegistrationResponse,
     LoginResponse,
     LogoutResponse,
+    RegistrationResponse,
     SessionResponse,
 )
 
@@ -33,9 +32,7 @@ class TestAuthenticationResponse:
         assert isinstance(resp.timestamp, datetime)
 
     def test_with_metadata(self):
-        resp = AuthenticationResponse(
-            success=True, metadata={"source": "api"}
-        )
+        resp = AuthenticationResponse(success=True, metadata={"source": "api"})
         assert resp.metadata["source"] == "api"
 
     def test_correlation_id_default(self):
@@ -94,7 +91,7 @@ class TestLogoutResponse:
 
 class TestSessionResponse:
     def test_valid_session_response(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         resp = SessionResponse(
             session_id="s-001",
             user_id="u-001",
@@ -108,7 +105,7 @@ class TestSessionResponse:
         assert resp.is_current is False
 
     def test_with_optional_fields(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         resp = SessionResponse(
             session_id="s-001",
             user_id="u-001",

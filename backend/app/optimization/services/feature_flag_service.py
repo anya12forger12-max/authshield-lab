@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.optimization import ConfigProfile, FeatureFlag
 from ..domain.events.optimization_events import FeatureFlagToggled
@@ -46,24 +45,24 @@ class FeatureFlagService:
         logger.info("feature_flag_created", extra={"flag_id": result["id"], "name": flag.name})
         return result
 
-    def get_flag(self, flag_id: str) -> Optional[dict[str, Any]]:
+    def get_flag(self, flag_id: str) -> dict[str, Any] | None:
         return self._flag_repo.get_by_id(flag_id)
 
-    def get_flag_by_name(self, name: str) -> Optional[dict[str, Any]]:
+    def get_flag_by_name(self, name: str) -> dict[str, Any] | None:
         return self._flag_repo.get_by_name(name)
 
     def list_flags(
         self,
         page: int = 1,
         per_page: int = 20,
-        category: Optional[str] = None,
+        category: str | None = None,
         enabled_only: bool = False,
     ) -> dict[str, Any]:
         return self._flag_repo.get_all(
             page=page, per_page=per_page, category=category, enabled_only=enabled_only
         )
 
-    def toggle_flag(self, flag_id: str) -> Optional[dict[str, Any]]:
+    def toggle_flag(self, flag_id: str) -> dict[str, Any] | None:
         """Toggle a feature flag's enabled state."""
         flag = self._flag_repo.get_by_id(flag_id)
         if not flag:
@@ -82,14 +81,14 @@ class FeatureFlagService:
         )
         return result
 
-    def enable_flag(self, flag_id: str) -> Optional[dict[str, Any]]:
+    def enable_flag(self, flag_id: str) -> dict[str, Any] | None:
         """Enable a feature flag."""
         flag = self._flag_repo.get_by_id(flag_id)
         if not flag:
             return None
         return self._flag_repo.update(flag_id, {"enabled": True})
 
-    def disable_flag(self, flag_id: str) -> Optional[dict[str, Any]]:
+    def disable_flag(self, flag_id: str) -> dict[str, Any] | None:
         """Disable a feature flag."""
         flag = self._flag_repo.get_by_id(flag_id)
         if not flag:
@@ -103,7 +102,7 @@ class FeatureFlagService:
             return False
         return flag.get("enabled", False)
 
-    def update_flag(self, flag_id: str, data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def update_flag(self, flag_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         """Update flag properties."""
         return self._flag_repo.update(flag_id, data)
 
@@ -137,22 +136,20 @@ class FeatureFlagService:
         )
         return self._profile_repo.create(profile.to_dict())
 
-    def get_profile(self, profile_id: str) -> Optional[dict[str, Any]]:
+    def get_profile(self, profile_id: str) -> dict[str, Any] | None:
         return self._profile_repo.get_by_id(profile_id)
 
     def list_profiles(
         self,
         page: int = 1,
         per_page: int = 20,
-        target_audience: Optional[str] = None,
+        target_audience: str | None = None,
     ) -> dict[str, Any]:
         return self._profile_repo.get_all(
             page=page, per_page=per_page, target_audience=target_audience
         )
 
-    def update_profile(
-        self, profile_id: str, data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def update_profile(self, profile_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         return self._profile_repo.update(profile_id, data)
 
     def delete_profile(self, profile_id: str) -> bool:
@@ -160,7 +157,7 @@ class FeatureFlagService:
 
     def merge_profile_settings(
         self, profile_id: str, settings: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Merge additional settings into an existing profile."""
         profile = self._profile_repo.get_by_id(profile_id)
         if not profile:
@@ -169,9 +166,7 @@ class FeatureFlagService:
         existing_settings.update(settings)
         return self._profile_repo.update(profile_id, {"settings": existing_settings})
 
-    def get_profile_setting(
-        self, profile_id: str, key: str, default: Any = None
-    ) -> Any:
+    def get_profile_setting(self, profile_id: str, key: str, default: Any = None) -> Any:
         """Get a single setting value from a profile."""
         profile = self._profile_repo.get_by_id(profile_id)
         if not profile:

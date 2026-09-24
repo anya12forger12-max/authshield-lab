@@ -5,12 +5,11 @@ from __future__ import annotations
 import logging
 import time
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.events.event_bus import DomainEvent, EventBus, EventType, EventSeverity
+from ...shared.events.event_bus import DomainEvent, EventBus, EventSeverity, EventType
 from ...shared.monitoring.performance import PerformanceMonitor
-
 from ..domain.entities.policy_entity import (
     PolicyCategory,
     PolicyDecision,
@@ -18,10 +17,7 @@ from ..domain.entities.policy_entity import (
     PolicyStatus,
     SecurityPolicy,
 )
-from ..domain.events.policy_events import (
-    PolicyDecisionEvent,
-    PolicyEvaluatedEvent,
-)
+from ..domain.events.policy_events import PolicyDecisionEvent
 from ..domain.interfaces.policy_engine_interface import IPolicyEngine
 from ..registry.policy_registry import PolicyRegistry
 
@@ -86,10 +82,7 @@ class PolicyEngine(IPolicyEngine):
             p
             for p in all_policies
             if p.is_usable()
-            and (
-                not p.supported_event_types
-                or event_type in p.supported_event_types
-            )
+            and (not p.supported_event_types or event_type in p.supported_event_types)
         ]
 
         decisions: list[PolicyDecision] = []
@@ -101,18 +94,10 @@ class PolicyEngine(IPolicyEngine):
             if decision is not None:
                 decisions.append(decision)
 
-        timer_result = self._performance_monitor.stop_timer(
-            f"policy.evaluate.{event_type}"
-        )
+        self._performance_monitor.stop_timer(f"policy.evaluate.{event_type}")
 
         # Publish aggregate evaluation event
         try:
-            eval_event = PolicyEvaluatedEvent(
-                event_type_evaluated=event_type,
-                result=f"{len(decisions)} policies evaluated",
-                execution_time_ms=timer_result.duration_ms,
-                correlation_id=correlation_id,
-            )
             await self._event_bus.publish(
                 DomainEvent(
                     event_type=EventType.POLICY_EVALUATED,
@@ -138,19 +123,18 @@ class PolicyEngine(IPolicyEngine):
         event_type: str,
         context: dict[str, Any],
         correlation_id: str,
-    ) -> Optional[PolicyDecision]:
+    ) -> PolicyDecision | None:
         """Evaluate a single policy, catching all exceptions."""
         start = time.perf_counter()
 
         try:
-            config = policy.configuration
             result = self._compute_decision(policy, event_type, context)
             elapsed_ms = (time.perf_counter() - start) * 1000
 
             decision = PolicyDecision(
                 decision_id=str(uuid.uuid4()),
                 policy_id=policy.policy_id,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 result=result,
                 reason=f"Policy '{policy.name}' evaluated '{event_type}'",
                 severity=self._severity_for_result(result),
@@ -164,9 +148,7 @@ class PolicyEngine(IPolicyEngine):
             )
 
             # Record metrics
-            self._registry.record_evaluation(
-                policy.policy_id, result.value, elapsed_ms
-            )
+            self._registry.record_evaluation(policy.policy_id, result.value, elapsed_ms)
             self._performance_monitor.record_metric(
                 f"policy.{policy.policy_id}.evaluate",
                 elapsed_ms,
@@ -208,7 +190,7 @@ class PolicyEngine(IPolicyEngine):
             return PolicyDecision(
                 decision_id=str(uuid.uuid4()),
                 policy_id=policy.policy_id,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 result=PolicyDecisionResult.UNKNOWN,
                 reason=f"Policy evaluation failed: {exc}",
                 severity="error",
@@ -219,7 +201,7 @@ class PolicyEngine(IPolicyEngine):
     def _compute_decision(
         self,
         policy: SecurityPolicy,
-        event_type: str,
+        _event_type: str,
         context: dict[str, Any],
     ) -> PolicyDecisionResult:
         """Compute the decision for a policy based on its configuration.
@@ -246,11 +228,12 @@ class PolicyEngine(IPolicyEngine):
             if context_value is not None and timing_value:
                 try:
                     from datetime import datetime as dt_type
+
                     event_time = dt_type.fromisoformat(str(context_value))
                     max_seconds = float(timing_value)
-                    now = datetime.now(timezone.utc)
-                    if hasattr(event_time, 'tzinfo') and event_time.tzinfo is None:
-                        event_time = event_time.replace(tzinfo=timezone.utc)
+                    now = datetime.now(UTC)
+                    if hasattr(event_time, "tzinfo") and event_time.tzinfo is None:
+                        event_time = event_time.replace(tzinfo=UTC)
                     elapsed = (now - event_time).total_seconds()
                     if elapsed > max_seconds:
                         return PolicyDecisionResult.WARN
@@ -304,14 +287,14 @@ class PolicyEngine(IPolicyEngine):
             self._performance_monitor.increment_counter("policy.disabled")
         return success
 
-    async def get_policy(self, policy_id: str) -> Optional[SecurityPolicy]:
+    async def get_policy(self, policy_id: str) -> SecurityPolicy | None:
         """Return a policy by ID."""
         return await self._registry.get(policy_id)
 
     async def list_policies(
         self,
-        category: Optional[PolicyCategory] = None,
-        status: Optional[PolicyStatus] = None,
+        category: PolicyCategory | None = None,
+        status: PolicyStatus | None = None,
     ) -> list[SecurityPolicy]:
         """Return policies, optionally filtered."""
         all_policies = await self._registry.get_all()
@@ -324,22 +307,20 @@ class PolicyEngine(IPolicyEngine):
 
         return result
 
-    async def update_policy(
-        self, policy_id: str, data: dict[str, Any]
-    ) -> Optional[SecurityPolicy]:
+    async def update_policy(self, policy_id: str, data: dict[str, Any]) -> SecurityPolicy | None:
         """Update a policy's fields."""
         policy = await self._registry.get(policy_id)
         if policy is None:
             return None
 
-        from ..domain.entities.policy_entity import PolicyCategory as PC, PolicyConfiguration
+        from ..domain.entities.policy_entity import PolicyConfiguration
 
         if "name" in data:
             policy.name = data["name"]
         if "description" in data:
             policy.description = data["description"]
         if "category" in data:
-            policy.category = PC(data["category"])
+            policy.category = PolicyCategory(data["category"])
         if "priority" in data:
             policy.priority = data["priority"]
         if "configuration" in data:
@@ -353,7 +334,7 @@ class PolicyEngine(IPolicyEngine):
         if "metadata" in data:
             policy.metadata = data["metadata"]
 
-        policy.updated_at = datetime.now(timezone.utc)
+        policy.updated_at = datetime.now(UTC)
         policy.version += 1
 
         return policy

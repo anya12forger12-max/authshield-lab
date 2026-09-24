@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import String, JSON, Boolean
+from sqlalchemy import JSON, Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..base_model import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -16,19 +16,13 @@ class ApplicationSettings(TimestampMixin, UUIDPrimaryKeyMixin, Base):
 
     __tablename__ = "application_settings"
 
-    key: Mapped[str] = mapped_column(
-        String(128), unique=True, nullable=False, index=True
-    )
+    key: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
     value: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     value_type: Mapped[str] = mapped_column(String(32), nullable=False, default="json")
     description: Mapped[str | None] = mapped_column(nullable=True)
-    category: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="general"
-    )
+    category: Mapped[str] = mapped_column(String(32), nullable=False, default="general")
     is_sensitive: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    environment: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="all"
-    )
+    environment: Mapped[str] = mapped_column(String(32), nullable=False, default="all")
 
     def to_dict(self, include_sensitive: bool = False) -> dict:
         """Serialize the setting to a dictionary.

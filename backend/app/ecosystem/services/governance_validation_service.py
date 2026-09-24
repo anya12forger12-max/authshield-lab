@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.marketplace import LocalPackage
     from domain.entities.content_distribution import DistributionPackage
+    from domain.entities.marketplace import LocalPackage
 
 
 class GovernanceValidationService:
@@ -32,7 +32,7 @@ class GovernanceValidationService:
 
     def validate_accessibility(self, package: LocalPackage) -> bool:
         a11y_tags = {"a11y", "accessibility", "wcag", "aria", "screen-reader"}
-        tags_set = set(t.lower() for t in package.tags)
+        tags_set = {t.lower() for t in package.tags}
         return bool(tags_set & a11y_tags) or "a11y" in package.name.lower()
 
     def validate_documentation(self, package: LocalPackage) -> bool:
@@ -43,7 +43,15 @@ class GovernanceValidationService:
     def validate_licensing(self, package: LocalPackage) -> bool:
         if not package.license:
             return False
-        valid_licenses = {"mit", "apache-2.0", "gpl-3.0", "bsd-3-clause", "cc-by-4.0", "cc-by-sa-4.0", "unlicense"}
+        valid_licenses = {
+            "mit",
+            "apache-2.0",
+            "gpl-3.0",
+            "bsd-3-clause",
+            "cc-by-4.0",
+            "cc-by-sa-4.0",
+            "unlicense",
+        }
         return package.license.lower() in valid_licenses
 
     def validate_distribution_package(self, pkg: DistributionPackage) -> dict[str, bool]:

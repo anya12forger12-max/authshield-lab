@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,18 +18,6 @@ class LmsEventHandler:
         """Register all LMS event handlers on the provided event bus."""
         if self._handlers_registered:
             return
-
-        from ..domain.events.lms_events import (
-            ClassroomCreated,
-            ClassroomUpdated,
-            EnrollmentCreated,
-            EnrollmentCompleted,
-            GradeSubmitted,
-            CompetencyAchieved,
-            AssessmentAttempted,
-            PortfolioItemAdded,
-            CalendarEventCreated,
-        )
 
         event_bus.subscribe_classroom_created(self._on_classroom_created)
         event_bus.subscribe_classroom_updated(self._on_classroom_updated)

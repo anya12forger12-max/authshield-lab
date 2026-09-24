@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from ..domain.events.certification_events import (
     CertificationCompleted,
@@ -115,9 +116,7 @@ class EventBus:
             try:
                 handler(event)
             except Exception:
-                logger.exception(
-                    "Handler %s failed for event %s", handler.__qualname__, event_type
-                )
+                logger.exception("Handler %s failed for event %s", handler.__qualname__, event_type)
 
 
 _default_bus = EventBus()

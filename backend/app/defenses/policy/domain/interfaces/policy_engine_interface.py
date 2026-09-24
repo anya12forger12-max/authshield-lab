@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 from ..entities.policy_entity import PolicyCategory, PolicyDecision, PolicyStatus, SecurityPolicy
 from ..entities.rule_entity import SecurityRule
@@ -50,23 +50,21 @@ class IPolicyEngine(ABC):
         ...
 
     @abstractmethod
-    async def get_policy(self, policy_id: str) -> Optional[SecurityPolicy]:
+    async def get_policy(self, policy_id: str) -> SecurityPolicy | None:
         """Return a policy by ID, or ``None``."""
         ...
 
     @abstractmethod
     async def list_policies(
         self,
-        category: Optional[PolicyCategory] = None,
-        status: Optional[PolicyStatus] = None,
+        category: PolicyCategory | None = None,
+        status: PolicyStatus | None = None,
     ) -> list[SecurityPolicy]:
         """Return all policies, optionally filtered."""
         ...
 
     @abstractmethod
-    async def update_policy(
-        self, policy_id: str, data: dict[str, Any]
-    ) -> Optional[SecurityPolicy]:
+    async def update_policy(self, policy_id: str, data: dict[str, Any]) -> SecurityPolicy | None:
         """Update a policy's configuration."""
         ...
 
@@ -101,7 +99,7 @@ class IRuleEngine(ABC):
         ...
 
     @abstractmethod
-    async def get_rule(self, rule_id: str) -> Optional[SecurityRule]:
+    async def get_rule(self, rule_id: str) -> SecurityRule | None:
         """Return a rule by ID, or ``None``."""
         ...
 
@@ -125,7 +123,7 @@ class IPolicyRegistry(ABC):
         ...
 
     @abstractmethod
-    async def get(self, policy_id: str) -> Optional[SecurityPolicy]:
+    async def get(self, policy_id: str) -> SecurityPolicy | None:
         """Return a policy by ID, or ``None``."""
         ...
 
@@ -138,7 +136,7 @@ class IPolicyRegistry(ABC):
     async def search(
         self,
         query: str,
-        category: Optional[PolicyCategory] = None,
+        category: PolicyCategory | None = None,
     ) -> list[SecurityPolicy]:
         """Search policies by name/description with optional category filter."""
         ...

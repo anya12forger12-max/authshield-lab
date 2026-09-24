@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import (
     Boolean,
@@ -34,7 +34,9 @@ class ScenarioModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="draft")
     tags_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
-    scenario_type: Mapped[str] = mapped_column(String(64), nullable=False, default="AuthenticationReview")
+    scenario_type: Mapped[str] = mapped_column(
+        String(64), nullable=False, default="AuthenticationReview"
+    )
     scenario_metadata_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_by: Mapped[str | None] = mapped_column(String(36), nullable=True, default=None)
 
@@ -59,16 +61,14 @@ class DatasetArtifactModel(Base, UUIDPrimaryKeyMixin):
 
     __tablename__ = "simulation_dataset_artifacts"
 
-    dataset_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    dataset_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     artifact_type: Mapped[str] = mapped_column(String(32), nullable=False, default="auth_log")
     name: Mapped[str] = mapped_column(String(256), nullable=False, default="")
     content_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     metadata_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -79,9 +79,7 @@ class TimelineModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     __tablename__ = "simulation_timelines"
 
     name: Mapped[str] = mapped_column(String(256), nullable=False, default="")
-    scenario_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    scenario_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     total_duration_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
@@ -90,9 +88,7 @@ class TimelineEventModel(Base, UUIDPrimaryKeyMixin):
 
     __tablename__ = "simulation_timeline_events"
 
-    timeline_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    timeline_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     event_type: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     timestamp_offset_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     data_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
@@ -103,7 +99,7 @@ class TimelineEventModel(Base, UUIDPrimaryKeyMixin):
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -113,15 +109,13 @@ class TimelineBranchModel(Base, UUIDPrimaryKeyMixin):
 
     __tablename__ = "simulation_timeline_branches"
 
-    timeline_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    timeline_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     source_event_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     target_event_id: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     condition: Mapped[str] = mapped_column(Text, nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -133,9 +127,7 @@ class ExerciseModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
 
     title: Mapped[str] = mapped_column(String(256), nullable=False, default="")
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    scenario_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    scenario_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     category: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     tags_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     difficulty: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
@@ -152,9 +144,7 @@ class InstructorSessionModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     __tablename__ = "simulation_instructor_sessions"
 
     instructor_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
-    exercise_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    exercise_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="not_started")
     started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
@@ -174,9 +164,7 @@ class LearnerSessionModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     __tablename__ = "simulation_learner_sessions"
 
     learner_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
-    exercise_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    exercise_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="not_started")
     started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
@@ -193,20 +181,18 @@ class SubmissionModel(Base, UUIDPrimaryKeyMixin):
 
     __tablename__ = "simulation_submissions"
 
-    session_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    session_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     content: Mapped[str] = mapped_column(Text, nullable=False, default="")
     submitted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
     feedback: Mapped[str] = mapped_column(Text, nullable=False, default="")
     grade: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -216,12 +202,8 @@ class ExerciseResultModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
 
     __tablename__ = "simulation_exercise_results"
 
-    session_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
-    exercise_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    session_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    exercise_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     completion_status: Mapped[str] = mapped_column(String(20), nullable=False, default="incomplete")
     assessment_scores_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     competency_progress_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
@@ -230,7 +212,9 @@ class ExerciseResultModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     rubric_results_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     accessibility_usage_json: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
     time_on_task_seconds: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    improvement_recommendations_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
+    improvement_recommendations_json: Mapped[str] = mapped_column(
+        Text, nullable=False, default="[]"
+    )
     completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
     )

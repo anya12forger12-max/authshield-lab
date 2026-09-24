@@ -8,20 +8,24 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from domain.entities.academic_hub import InstitutionalProject, SharedCurriculumPackage
     from domain.entities.curriculum_exchange import ExchangePackage
-    from domain.entities.peer_review import PeerReview
     from domain.entities.knowledge_base import KnowledgeArticle
+    from domain.entities.peer_review import PeerReview
 
 
 class CollaborationValidator:
     _NAME_PATTERN = re.compile(r"^[a-zA-Z0-9\s_\-\.]{1,255}$")
-    _SEMVER_PATTERN = re.compile(
-        r"^\d+\.\d+\.\d+(-[a-z0-9]+(\.[a-z0-9]+)*)?(\+[a-z0-9]+)?$"
-    )
+    _SEMVER_PATTERN = re.compile(r"^\d+\.\d+\.\d+(-[a-z0-9]+(\.[a-z0-9]+)*)?(\+[a-z0-9]+)?$")
     _VALID_PROJECT_STATUSES = {"active", "paused", "completed"}
     _VALID_REVIEW_STATUSES = {"draft", "in_review", "approved", "rejected"}
     _VALID_CONTENT_TYPES = {
-        "course", "lesson", "module", "assessment", "simulation",
-        "documentation", "template", "learning_path",
+        "course",
+        "lesson",
+        "module",
+        "assessment",
+        "simulation",
+        "documentation",
+        "template",
+        "learning_path",
     }
 
     def validate_project_name(self, name: str) -> bool:

@@ -127,7 +127,8 @@ class ContentValidator:
         if media_type not in valid_types:
             result.add_error(
                 "media_type",
-                f"Invalid media_type '{media_type}'. Must be one of: {', '.join(sorted(valid_types))}",
+                f"Invalid media_type '{media_type}'. "
+                f"Must be one of: {', '.join(sorted(valid_types))}",
                 "INVALID_TYPE",
             )
         uri = asset.get("uri", "")

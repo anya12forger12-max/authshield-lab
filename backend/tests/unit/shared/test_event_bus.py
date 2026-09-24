@@ -1,13 +1,13 @@
 """Tests for EventBus: subscribe, publish, unsubscribe, event log."""
 
-import pytest
 from unittest.mock import AsyncMock
 
+import pytest
+
 from app.shared.events.event_bus import (
+    DomainEvent,
     EventBus,
     EventType,
-    EventSeverity,
-    DomainEvent,
     get_event_bus,
     reset_event_bus,
 )
@@ -84,7 +84,7 @@ class TestPublish:
 
     @pytest.mark.asyncio
     async def test_publish_handler_exception_does_not_propagate(self, bus):
-        async def failing_handler(event):
+        async def failing_handler(_event):
             raise RuntimeError("oops")
 
         bus.subscribe(EventType.AUTHENTICATION_SUCCEEDED, failing_handler)
@@ -93,7 +93,7 @@ class TestPublish:
 
     @pytest.mark.asyncio
     async def test_publish_other_handlers_still_run_after_failure(self, bus):
-        async def failing_handler(event):
+        async def failing_handler(_event):
             raise RuntimeError("oops")
 
         good_handler = AsyncMock()

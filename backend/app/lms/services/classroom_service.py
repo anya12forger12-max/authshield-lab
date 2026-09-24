@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
-from ..domain.entities.classroom import Classroom, ClassroomRole, ClassroomSession, SessionStatus
 from ..domain.events.lms_events import ClassroomCreated, ClassroomUpdated
 from ..domain.interfaces.lms_interfaces import IClassroomRepository
 from ..validators.lms_validator import validate_classroom_capacity, validate_classroom_data
@@ -31,18 +29,20 @@ class ClassroomService:
             classroom_name=classroom.get("name", ""),
             instructor_id=classroom.get("instructor_id", ""),
         )
-        logger.info("classroom_created", extra={"classroom_id": classroom["id"], "event_id": event.event_id})
+        logger.info(
+            "classroom_created", extra={"classroom_id": classroom["id"], "event_id": event.event_id}
+        )
         return classroom
 
-    def get_classroom(self, classroom_id: str) -> Optional[dict[str, Any]]:
+    def get_classroom(self, classroom_id: str) -> dict[str, Any] | None:
         return self._repo.get_by_id(classroom_id)
 
     def list_classrooms(
-        self, page: int = 1, per_page: int = 20, status: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, status: str | None = None
     ) -> dict[str, Any]:
         return self._repo.get_all(page=page, per_page=per_page, status=status)
 
-    def update_classroom(self, classroom_id: str, data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def update_classroom(self, classroom_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         existing = self._repo.get_by_id(classroom_id)
         if not existing:
             raise ValueError(f"Classroom '{classroom_id}' not found.")
@@ -59,7 +59,10 @@ class ClassroomService:
                 classroom_name=updated.get("name", ""),
                 changes=data,
             )
-            logger.info("classroom_updated", extra={"classroom_id": classroom_id, "event_id": event.event_id})
+            logger.info(
+                "classroom_updated",
+                extra={"classroom_id": classroom_id, "event_id": event.event_id},
+            )
         return updated
 
     def delete_classroom(self, classroom_id: str) -> bool:
@@ -67,9 +70,7 @@ class ClassroomService:
             raise ValueError(f"Classroom '{classroom_id}' not found.")
         return self._repo.delete(classroom_id)
 
-    def search_classrooms(
-        self, query: str, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    def search_classrooms(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         return self._repo.search(query, page=page, per_page=per_page)
 
     def add_member(
@@ -83,7 +84,9 @@ class ClassroomService:
             raise ValueError(f"Classroom '{classroom_id}' not found.")
 
         if classroom.get("status") != "active":
-            raise ValueError(f"Cannot add member to a classroom in '{classroom.get('status')}' status.")
+            raise ValueError(
+                f"Cannot add member to a classroom in '{classroom.get('status')}' status."
+            )
 
         existing_members = self._repo.get_members(classroom_id)
         member_user_ids = [m["user_id"] for m in existing_members if m["status"] == "active"]
@@ -96,12 +99,18 @@ class ClassroomService:
         if not capacity_validation.is_valid:
             raise ValueError(f"Capacity validation failed: {capacity_validation.to_dict()}")
 
-        member = self._repo.add_member(classroom_id, {
-            "user_id": user_id,
-            "role": role,
-            "status": "active",
-        })
-        logger.info("classroom_member_added", extra={"classroom_id": classroom_id, "user_id": user_id, "role": role})
+        member = self._repo.add_member(
+            classroom_id,
+            {
+                "user_id": user_id,
+                "role": role,
+                "status": "active",
+            },
+        )
+        logger.info(
+            "classroom_member_added",
+            extra={"classroom_id": classroom_id, "user_id": user_id, "role": role},
+        )
         return member
 
     def remove_member(self, classroom_id: str, user_id: str) -> bool:
@@ -110,7 +119,9 @@ class ClassroomService:
             raise ValueError(f"Classroom '{classroom_id}' not found.")
         result = self._repo.remove_member(classroom_id, user_id)
         if result:
-            logger.info("classroom_member_removed", extra={"classroom_id": classroom_id, "user_id": user_id})
+            logger.info(
+                "classroom_member_removed", extra={"classroom_id": classroom_id, "user_id": user_id}
+            )
         return result
 
     def get_members(self, classroom_id: str) -> list[dict[str, Any]]:
@@ -126,7 +137,7 @@ class ClassroomService:
     def _get_members(self, classroom_id: str) -> list[dict[str, Any]]:
         return self._repo.get_members(classroom_id)
 
-    def update_classroom_status(self, classroom_id: str, status: str) -> Optional[dict[str, Any]]:
+    def update_classroom_status(self, classroom_id: str, status: str) -> dict[str, Any] | None:
         valid_statuses = {"active", "inactive", "archived"}
         if status not in valid_statuses:
             raise ValueError(f"Invalid status '{status}'. Must be one of: {valid_statuses}")

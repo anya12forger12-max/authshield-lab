@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -34,8 +34,8 @@ class KnowledgeArticle:
         self.author = author
         self.version = version
         self.status = status
-        self.created_at = created_at or datetime.now(timezone.utc)
-        self.updated_at = updated_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
+        self.updated_at = updated_at or datetime.now(UTC)
 
 
 class KnowledgeCategory:
@@ -66,7 +66,7 @@ class ArticleVersion:
         self.version = version
         self.content = content
         self.author = author
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
 
 
 class ArticleCitation:

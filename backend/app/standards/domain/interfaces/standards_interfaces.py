@@ -6,8 +6,6 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from datetime import datetime
-
     from app.standards.domain.entities.evidence import EvidenceCollection, EvidenceItem
     from app.standards.domain.entities.framework import (
         CompetencyFramework,

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class _BaseEvent:
@@ -12,7 +12,7 @@ class _BaseEvent:
     def __init__(self, name: str, payload: dict | None = None) -> None:
         self.event_id: str = str(uuid.uuid4())
         self.name: str = name
-        self.timestamp: datetime = datetime.now(timezone.utc)
+        self.timestamp: datetime = datetime.now(UTC)
         self.payload: dict = payload if payload is not None else {}
 
     def to_dict(self) -> dict:

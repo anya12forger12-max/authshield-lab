@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 from sqlalchemy import (
-    String,
-    Boolean,
-    Text,
     JSON,
-    Table,
+    Boolean,
     Column,
     ForeignKey,
-    Index,
+    String,
+    Table,
+    Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -45,9 +42,7 @@ class Role(TimestampMixin, UUIDPrimaryKeyMixin, Base):
 
     __tablename__ = "roles"
 
-    name: Mapped[str] = mapped_column(
-        String(32), unique=True, nullable=False, index=True
-    )
+    name: Mapped[str] = mapped_column(String(32), unique=True, nullable=False, index=True)
     display_name: Mapped[str] = mapped_column(String(64), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_builtin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
@@ -84,9 +79,7 @@ class Permission(TimestampMixin, UUIDPrimaryKeyMixin, Base):
 
     __tablename__ = "permissions"
 
-    name: Mapped[str] = mapped_column(
-        String(64), unique=True, nullable=False, index=True
-    )
+    name: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
     display_name: Mapped[str] = mapped_column(String(128), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     category: Mapped[str] = mapped_column(String(32), nullable=False, index=True)

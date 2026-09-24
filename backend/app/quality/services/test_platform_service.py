@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.quality.domain.entities.testing import (
     CoverageReport,
@@ -56,7 +56,7 @@ class TestPlatformService:
         suite.failed = failed
         suite.skipped = skipped
         suite.total = len(suite.test_cases)
-        suite.run_at = datetime.now(timezone.utc)
+        suite.run_at = datetime.now(UTC)
         return self._suite_repo.save(suite)
 
     def create_suite(self, suite: TestSuite) -> TestSuite:
@@ -71,7 +71,7 @@ class TestPlatformService:
     def track_coverage(self, report: CoverageReport) -> CoverageReport:
         if report.total_statements > 0:
             report.percentage = (report.covered_statements / report.total_statements) * 100.0
-        report.generated_at = datetime.now(timezone.utc)
+        report.generated_at = datetime.now(UTC)
         return self._coverage_repo.save(report)
 
     def get_latest_coverage(self) -> CoverageReport | None:

@@ -7,7 +7,6 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.base_model import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
-
 # ---------------------------------------------------------------------------
 # Framework Models
 # ---------------------------------------------------------------------------

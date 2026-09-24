@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 
 class GradingCategory(str, Enum):
@@ -30,7 +29,7 @@ class GradeItem:
     category: GradingCategory = GradingCategory.ASSIGNMENT
     points_possible: float = 100.0
     weight: float = 1.0
-    due_date: Optional[datetime] = None
+    due_date: datetime | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -52,9 +51,9 @@ class GradeEntry:
     grade_item_id: str = ""
     learner_id: str = ""
     score: float = 0.0
-    graded_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    feedback: Optional[str] = None
-    graded_by: Optional[str] = None
+    graded_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    feedback: str | None = None
+    graded_by: str | None = None
 
     @property
     def percentage(self) -> float:
@@ -116,7 +115,7 @@ class GradebookEntry:
         item.gradebook_id = self.id
         self.items.append(item)
 
-    def get_item(self, item_id: str) -> Optional[GradeItem]:
+    def get_item(self, item_id: str) -> GradeItem | None:
         for item in self.items:
             if item.id == item_id:
                 return item

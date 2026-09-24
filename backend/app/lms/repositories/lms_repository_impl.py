@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.interfaces.lms_interfaces import (
     IAssessmentRepository,
@@ -30,7 +29,7 @@ class InMemoryClassroomRepository(IClassroomRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         classroom_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         classroom = {
             "id": classroom_id,
             "name": data.get("name", ""),
@@ -53,7 +52,7 @@ class InMemoryClassroomRepository(IClassroomRepository):
         return classroom
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, status: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, status: str | None = None
     ) -> dict[str, Any]:
         items = list(self._classrooms.values())
         if status:
@@ -65,7 +64,13 @@ class InMemoryClassroomRepository(IClassroomRepository):
         page_items = items[offset : offset + per_page]
         for item in page_items:
             item["members"] = self._members.get(item["id"], [])
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, classroom_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         classroom = self._classrooms.get(classroom_id)
@@ -74,7 +79,7 @@ class InMemoryClassroomRepository(IClassroomRepository):
         for key in ("name", "description", "capacity", "instructor_id", "status"):
             if key in data:
                 classroom[key] = data[key]
-        classroom["updated_at"] = datetime.now(timezone.utc).isoformat()
+        classroom["updated_at"] = datetime.now(UTC).isoformat()
         return classroom
 
     def delete(self, classroom_id: str) -> bool:
@@ -87,7 +92,8 @@ class InMemoryClassroomRepository(IClassroomRepository):
     def search(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         query_lower = query.lower()
         items = [
-            c for c in self._classrooms.values()
+            c
+            for c in self._classrooms.values()
             if query_lower in c.get("name", "").lower()
             or query_lower in c.get("description", "").lower()
         ]
@@ -96,14 +102,20 @@ class InMemoryClassroomRepository(IClassroomRepository):
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
         page_items = items[offset : offset + per_page]
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def add_member(self, classroom_id: str, member_data: dict[str, Any]) -> dict[str, Any]:
         members = self._members.setdefault(classroom_id, [])
         member = {
             "user_id": member_data.get("user_id", ""),
             "role": member_data.get("role", "learner"),
-            "joined_at": datetime.now(timezone.utc).isoformat(),
+            "joined_at": datetime.now(UTC).isoformat(),
             "status": member_data.get("status", "active"),
         }
         members.append(member)
@@ -118,10 +130,7 @@ class InMemoryClassroomRepository(IClassroomRepository):
         return False
 
     def get_members(self, classroom_id: str) -> list[dict[str, Any]]:
-        return [
-            m for m in self._members.get(classroom_id, [])
-            if m["status"] == "active"
-        ]
+        return [m for m in self._members.get(classroom_id, []) if m["status"] == "active"]
 
 
 class InMemoryEnrollmentRepository(IEnrollmentRepository):
@@ -133,7 +142,7 @@ class InMemoryEnrollmentRepository(IEnrollmentRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         enrollment_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         enrollment = {
             "id": enrollment_id,
             "learner_id": data.get("learner_id", ""),
@@ -153,9 +162,9 @@ class InMemoryEnrollmentRepository(IEnrollmentRepository):
         self,
         page: int = 1,
         per_page: int = 20,
-        status: Optional[str] = None,
-        course_id: Optional[str] = None,
-        learner_id: Optional[str] = None,
+        status: str | None = None,
+        course_id: str | None = None,
+        learner_id: str | None = None,
     ) -> dict[str, Any]:
         items = list(self._enrollments.values())
         if status:
@@ -169,7 +178,13 @@ class InMemoryEnrollmentRepository(IEnrollmentRepository):
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
         page_items = items[offset : offset + per_page]
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, enrollment_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         enrollment = self._enrollments.get(enrollment_id)
@@ -190,10 +205,13 @@ class InMemoryEnrollmentRepository(IEnrollmentRepository):
         return [e for e in self._enrollments.values() if e["course_id"] == course_id]
 
     def count_by_course(self, course_id: str) -> int:
-        return len([
-            e for e in self._enrollments.values()
-            if e["course_id"] == course_id and e["status"] == "active"
-        ])
+        return len(
+            [
+                e
+                for e in self._enrollments.values()
+                if e["course_id"] == course_id and e["status"] == "active"
+            ]
+        )
 
 
 class InMemoryGradebookRepository(IGradebookRepository):
@@ -206,7 +224,7 @@ class InMemoryGradebookRepository(IGradebookRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         entry_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         entry = {
             "id": entry_id,
             "course_id": data.get("course_id", ""),
@@ -247,7 +265,7 @@ class InMemoryGradebookRepository(IGradebookRepository):
 
     def add_grade_entry(self, item_id: str, entry_data: dict[str, Any]) -> dict[str, Any]:
         entry_id = entry_data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         entry = {
             "id": entry_id,
             "grade_item_id": item_id,
@@ -261,7 +279,7 @@ class InMemoryGradebookRepository(IGradebookRepository):
         return entry
 
     def get_grade_entries(
-        self, item_id: Optional[str] = None, learner_id: Optional[str] = None
+        self, item_id: str | None = None, learner_id: str | None = None
     ) -> list[dict[str, Any]]:
         entries: list[dict[str, Any]] = []
         if item_id:
@@ -279,7 +297,7 @@ class InMemoryGradebookRepository(IGradebookRepository):
             return None
         if "course_id" in data:
             entry["course_id"] = data["course_id"]
-        entry["updated_at"] = datetime.now(timezone.utc).isoformat()
+        entry["updated_at"] = datetime.now(UTC).isoformat()
         return entry
 
     def delete(self, entry_id: str) -> bool:
@@ -302,7 +320,7 @@ class InMemoryCompetencyRepository(ICompetencyRepository):
 
     def create_framework(self, data: dict[str, Any]) -> dict[str, Any]:
         fw_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         framework = {
             "id": fw_id,
             "name": data.get("name", ""),
@@ -323,7 +341,7 @@ class InMemoryCompetencyRepository(ICompetencyRepository):
 
     def create_competency(self, data: dict[str, Any]) -> dict[str, Any]:
         comp_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         competency = {
             "id": comp_id,
             "name": data.get("name", ""),
@@ -353,7 +371,7 @@ class InMemoryCompetencyRepository(ICompetencyRepository):
         for key in ("name", "description", "domain", "level"):
             if key in data:
                 competency[key] = data[key]
-        competency["updated_at"] = datetime.now(timezone.utc).isoformat()
+        competency["updated_at"] = datetime.now(UTC).isoformat()
         return competency
 
     def delete(self, competency_id: str) -> bool:
@@ -364,18 +382,17 @@ class InMemoryCompetencyRepository(ICompetencyRepository):
         if fw_id and fw_id in self._frameworks:
             fw = self._frameworks[fw_id]
             fw["competencies"] = [c for c in fw["competencies"] if c != competency_id]
-        to_delete = [pid for pid, p in self._progress.items() if p["competency_id"] == competency_id]
+        to_delete = [
+            pid for pid, p in self._progress.items() if p["competency_id"] == competency_id
+        ]
         for pid in to_delete:
             del self._progress[pid]
         return True
 
     def get_progress(
-        self, learner_id: str, competency_id: Optional[str] = None
+        self, learner_id: str, competency_id: str | None = None
     ) -> list[dict[str, Any]]:
-        results = [
-            p for p in self._progress.values()
-            if p["learner_id"] == learner_id
-        ]
+        results = [p for p in self._progress.values() if p["learner_id"] == learner_id]
         if competency_id:
             results = [p for p in results if p["competency_id"] == competency_id]
         return results
@@ -401,7 +418,7 @@ class InMemoryAssessmentRepository(IAssessmentRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         assessment_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         assessment = {
             "id": assessment_id,
             "title": data.get("title", ""),
@@ -433,10 +450,17 @@ class InMemoryAssessmentRepository(IAssessmentRepository):
         assessment = self._assessments.get(assessment_id)
         if not assessment:
             return None
-        for key in ("title", "assessment_type", "passing_score", "time_limit_minutes", "attempts_allowed", "status"):
+        for key in (
+            "title",
+            "assessment_type",
+            "passing_score",
+            "time_limit_minutes",
+            "attempts_allowed",
+            "status",
+        ):
             if key in data:
                 assessment[key] = data[key]
-        assessment["updated_at"] = datetime.now(timezone.utc).isoformat()
+        assessment["updated_at"] = datetime.now(UTC).isoformat()
         return assessment
 
     def delete(self, assessment_id: str) -> bool:
@@ -449,7 +473,7 @@ class InMemoryAssessmentRepository(IAssessmentRepository):
 
     def create_attempt(self, attempt_data: dict[str, Any]) -> dict[str, Any]:
         attempt_id = attempt_data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         attempt = {
             "id": attempt_id,
             "assessment_id": attempt_data.get("assessment_id", ""),
@@ -466,7 +490,7 @@ class InMemoryAssessmentRepository(IAssessmentRepository):
         return attempt
 
     def get_attempts(
-        self, assessment_id: str, learner_id: Optional[str] = None
+        self, assessment_id: str, learner_id: str | None = None
     ) -> list[dict[str, Any]]:
         attempts = self._attempts.get(assessment_id, [])
         if learner_id:
@@ -485,7 +509,7 @@ class InMemoryAssessmentRepository(IAssessmentRepository):
 
     def create_submission(self, submission_data: dict[str, Any]) -> dict[str, Any]:
         sub_id = submission_data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         submission = {
             "id": sub_id,
             "attempt_id": submission_data.get("attempt_id", ""),
@@ -502,7 +526,7 @@ class InMemoryAssessmentRepository(IAssessmentRepository):
 
     def create_question_group(self, group_data: dict[str, Any]) -> dict[str, Any]:
         group_id = group_data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         group = {
             "id": group_id,
             "assessment_id": group_data.get("assessment_id", ""),
@@ -530,11 +554,11 @@ class InMemoryCalendarRepository(ICalendarRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         cal_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         calendar = {
             "id": cal_id,
             "name": data.get("name", ""),
-            "year": data.get("year", datetime.now(timezone.utc).year),
+            "year": data.get("year", datetime.now(UTC).year),
             "created_at": now,
             "updated_at": now,
         }
@@ -558,7 +582,7 @@ class InMemoryCalendarRepository(ICalendarRepository):
         for key in ("name", "year"):
             if key in data:
                 calendar[key] = data[key]
-        calendar["updated_at"] = datetime.now(timezone.utc).isoformat()
+        calendar["updated_at"] = datetime.now(UTC).isoformat()
         return calendar
 
     def delete(self, calendar_id: str) -> bool:
@@ -570,7 +594,7 @@ class InMemoryCalendarRepository(ICalendarRepository):
 
     def add_event(self, calendar_id: str, event_data: dict[str, Any]) -> dict[str, Any]:
         event_id = event_data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         event = {
             "id": event_id,
             "calendar_id": calendar_id,
@@ -600,7 +624,7 @@ class InMemoryCalendarRepository(ICalendarRepository):
 
     def create_term(self, term_data: dict[str, Any]) -> dict[str, Any]:
         term_id = term_data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         term = {
             "id": term_id,
             "name": term_data.get("name", ""),
@@ -617,7 +641,7 @@ class InMemoryCalendarRepository(ICalendarRepository):
 
     def create_important_date(self, data: dict[str, Any]) -> dict[str, Any]:
         date_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         important_date = {
             "id": date_id,
             "title": data.get("title", ""),
@@ -643,7 +667,7 @@ class InMemoryPortfolioRepository(IPortfolioRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         portfolio_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         portfolio = {
             "id": portfolio_id,
             "learner_id": data.get("learner_id", ""),
@@ -679,7 +703,7 @@ class InMemoryPortfolioRepository(IPortfolioRepository):
         for key in ("title", "description"):
             if key in data:
                 portfolio[key] = data[key]
-        portfolio["updated_at"] = datetime.now(timezone.utc).isoformat()
+        portfolio["updated_at"] = datetime.now(UTC).isoformat()
         return portfolio
 
     def delete(self, portfolio_id: str) -> bool:
@@ -693,7 +717,7 @@ class InMemoryPortfolioRepository(IPortfolioRepository):
 
     def add_item(self, portfolio_id: str, item_data: dict[str, Any]) -> dict[str, Any]:
         item_id = item_data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "portfolio_id": portfolio_id,
@@ -721,7 +745,7 @@ class InMemoryPortfolioRepository(IPortfolioRepository):
 
     def add_evidence(self, item_id: str, evidence_data: dict[str, Any]) -> dict[str, Any]:
         ev_id = evidence_data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         evidence = {
             "id": ev_id,
             "item_id": item_id,

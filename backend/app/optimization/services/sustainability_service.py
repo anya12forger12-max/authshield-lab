@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.entities.sustainability import (
     DependencyHealth,
@@ -41,13 +41,13 @@ class SustainabilityService:
         )
         return self._repo.create_metric(metric.to_dict())
 
-    def get_metric(self, metric_id: str) -> Optional[dict[str, Any]]:
+    def get_metric(self, metric_id: str) -> dict[str, Any] | None:
         return self._repo.get_metric_by_id(metric_id)
 
     def list_metrics(self) -> list[dict[str, Any]]:
         return self._repo.get_all_metrics()
 
-    def update_metric(self, metric_id: str, data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def update_metric(self, metric_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         return self._repo.update_metric(metric_id, data)
 
     def delete_metric(self, metric_id: str) -> bool:
@@ -66,29 +66,35 @@ class SustainabilityService:
         )
         return self._repo.create_debt_item(item.to_dict())
 
-    def get_debt_item(self, item_id: str) -> Optional[dict[str, Any]]:
+    def get_debt_item(self, item_id: str) -> dict[str, Any] | None:
         return self._repo.get_debt_item_by_id(item_id)
 
-    def list_debt_items(self, resolved: Optional[bool] = None) -> list[dict[str, Any]]:
+    def list_debt_items(self, resolved: bool | None = None) -> list[dict[str, Any]]:
         return self._repo.get_all_debt_items(resolved=resolved)
 
-    def resolve_debt_item(self, item_id: str) -> Optional[dict[str, Any]]:
+    def resolve_debt_item(self, item_id: str) -> dict[str, Any] | None:
         item = self._repo.get_debt_item_by_id(item_id)
         if not item:
             return None
-        return self._repo.update_debt_item(item_id, {
-            "resolved": True,
-            "resolved_at": datetime.now(timezone.utc).isoformat(),
-        })
+        return self._repo.update_debt_item(
+            item_id,
+            {
+                "resolved": True,
+                "resolved_at": datetime.now(UTC).isoformat(),
+            },
+        )
 
-    def reopen_debt_item(self, item_id: str) -> Optional[dict[str, Any]]:
+    def reopen_debt_item(self, item_id: str) -> dict[str, Any] | None:
         item = self._repo.get_debt_item_by_id(item_id)
         if not item:
             return None
-        return self._repo.update_debt_item(item_id, {
-            "resolved": False,
-            "resolved_at": None,
-        })
+        return self._repo.update_debt_item(
+            item_id,
+            {
+                "resolved": False,
+                "resolved_at": None,
+            },
+        )
 
     def delete_debt_item(self, item_id: str) -> bool:
         return self._repo.delete_debt_item(item_id)

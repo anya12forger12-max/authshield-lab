@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from app.quality.domain.entities.accessibility_a11y import (
     A11yAudit,
     A11yProfile,

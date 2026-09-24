@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
-from sqlalchemy import select, func, desc, or_
+from sqlalchemy import desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.user import User
 from ..logging_config import get_logger
+from ..models.user import User
 from .base_repository import BaseRepository
 
 logger = get_logger(__name__)
@@ -24,13 +24,13 @@ class UserRepository(BaseRepository[User]):
     # Lookups
     # ------------------------------------------------------------------
 
-    async def get_by_username(self, username: str) -> Optional[User]:
+    async def get_by_username(self, username: str) -> User | None:
         """Return the user matching *username*, or ``None``."""
         stmt = select(User).where(User.username == username)
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_email(self, email: str) -> Optional[User]:
+    async def get_by_email(self, email: str) -> User | None:
         """Return the user matching *email*, or ``None``."""
         stmt = select(User).where(User.email == email)
         result = await self._session.execute(stmt)
@@ -77,7 +77,7 @@ class UserRepository(BaseRepository[User]):
     async def search(
         self,
         query: str,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         page: int = 1,
         per_page: int = 20,
     ) -> dict:

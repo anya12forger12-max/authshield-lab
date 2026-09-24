@@ -2,22 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
 from ..repositories.content_repository_impl import (
     InMemoryCourseRepository,
-    InMemoryLessonRepository,
-    InMemoryQuizRepository,
-    InMemoryMediaRepository,
     InMemoryKnowledgeNodeRepository,
+    InMemoryLessonRepository,
+    InMemoryMediaRepository,
+    InMemoryQuizRepository,
 )
 from ..services.course_service import CourseService
-from ..services.lesson_service import LessonService
-from ..services.quiz_service import QuizService
-from ..services.media_service import MediaService
 from ..services.knowledge_service import KnowledgeService
+from ..services.lesson_service import LessonService
+from ..services.media_service import MediaService
+from ..services.quiz_service import QuizService
 from ..validators.content_validator import ContentValidator
 
 router = APIRouter(prefix="/api/v1/content", tags=["content-studio"])
@@ -121,7 +121,11 @@ async def publish_course(course_id: str) -> dict[str, Any]:
     """Publish a course."""
     try:
         course = await _course_service.publish_course(course_id)
-        return {"status": "success", "message": f"Course '{course.title}' published.", "data": course.__dict__}
+        return {
+            "status": "success",
+            "message": f"Course '{course.title}' published.",
+            "data": course.__dict__,
+        }
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e))
     except Exception as e:

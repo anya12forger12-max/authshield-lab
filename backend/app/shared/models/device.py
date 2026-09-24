@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import String, Boolean, Integer, Index
+from sqlalchemy import Boolean, Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..base_model import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -19,9 +19,7 @@ class Device(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     __tablename__ = "devices"
 
     user_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
-    device_id: Mapped[str] = mapped_column(
-        String(128), unique=True, nullable=False, index=True
-    )
+    device_id: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
     friendly_name: Mapped[str] = mapped_column(String(128), nullable=False)
     platform: Mapped[str] = mapped_column(String(64), nullable=False)
     operating_system: Mapped[str] = mapped_column(String(128), nullable=False)
@@ -29,18 +27,12 @@ class Device(TimestampMixin, UUIDPrimaryKeyMixin, Base):
 
     is_trusted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    risk_level: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="low"
-    )
+    risk_level: Mapped[str] = mapped_column(String(16), nullable=False, default="low")
 
-    last_seen: Mapped[datetime] = mapped_column(
-        nullable=False, default=lambda: datetime.now(timezone.utc)
-    )
+    last_seen: Mapped[datetime] = mapped_column(nullable=False, default=lambda: datetime.now(UTC))
     session_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
-    __table_args__ = (
-        Index("ix_devices_user_active", "user_id", "is_active"),
-    )
+    __table_args__ = (Index("ix_devices_user_active", "user_id", "is_active"),)
 
     def to_dict(self) -> dict:
         """Serialize the device record to a dictionary."""
@@ -62,7 +54,4 @@ class Device(TimestampMixin, UUIDPrimaryKeyMixin, Base):
         }
 
     def __repr__(self) -> str:
-        return (
-            f"<Device id={self.id!r} device_id={self.device_id!r} "
-            f"platform={self.platform!r}>"
-        )
+        return f"<Device id={self.id!r} device_id={self.device_id!r} platform={self.platform!r}>"

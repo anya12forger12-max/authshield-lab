@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -30,7 +30,7 @@ class ContentTemplate:
     structure: dict = field(default_factory=dict)
     version: int = 1
     author: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     inherit_from: str | None = None
 
     def update_structure(self, updates: dict) -> None:
@@ -75,7 +75,7 @@ class TemplateVersion:
     template_id: str = ""
     version: int = 1
     changes: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_change(self, change_description: str) -> None:
         self.changes.append(change_description)
@@ -101,7 +101,7 @@ class TemplateInstance:
     template_id: str = ""
     customizations: dict = field(default_factory=dict)
     created_by: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def apply_customization(self, key: str, value: object) -> None:
         self.customizations[key] = value

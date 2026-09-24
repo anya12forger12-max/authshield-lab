@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.quality.domain.entities.quality import ModuleHealth, QualityDashboard, QualityScore
 from app.quality.domain.interfaces.repositories import (
@@ -50,7 +50,7 @@ class QualityDashboardService:
                 dash.localization_coverage = s.score
             elif "release" in cat:
                 dash.release_readiness = s.score >= 80.0
-        dash.generated_at = datetime.now(timezone.utc)
+        dash.generated_at = datetime.now(UTC)
         return self._dashboard_repo.save(dash)
 
     def get_module_health(self) -> list[ModuleHealth]:

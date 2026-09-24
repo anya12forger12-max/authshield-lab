@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -31,72 +31,80 @@ _dashboard_service: Any = None
 
 
 def _get_classroom_service() -> Any:
-    global _classroom_service  # noqa: PLW0603
+    global _classroom_service
     if _classroom_service is None:
         from ..repositories.lms_repository_impl import InMemoryClassroomRepository
         from ..services.classroom_service import ClassroomService
+
         _classroom_service = ClassroomService(InMemoryClassroomRepository())
     return _classroom_service
 
 
 def _get_enrollment_service() -> Any:
-    global _enrollment_service  # noqa: PLW0603
+    global _enrollment_service
     if _enrollment_service is None:
         from ..repositories.lms_repository_impl import InMemoryEnrollmentRepository
         from ..services.enrollment_service import EnrollmentService
+
         _enrollment_service = EnrollmentService(InMemoryEnrollmentRepository())
     return _enrollment_service
 
 
 def _get_gradebook_service() -> Any:
-    global _gradebook_service  # noqa: PLW0603
+    global _gradebook_service
     if _gradebook_service is None:
         from ..repositories.lms_repository_impl import InMemoryGradebookRepository
         from ..services.gradebook_service import GradebookService
+
         _gradebook_service = GradebookService(InMemoryGradebookRepository())
     return _gradebook_service
 
 
 def _get_competency_service() -> Any:
-    global _competency_service  # noqa: PLW0603
+    global _competency_service
     if _competency_service is None:
         from ..repositories.lms_repository_impl import InMemoryCompetencyRepository
         from ..services.competency_service import CompetencyService
+
         _competency_service = CompetencyService(InMemoryCompetencyRepository())
     return _competency_service
 
 
 def _get_assessment_service() -> Any:
-    global _assessment_service  # noqa: PLW0603
+    global _assessment_service
     if _assessment_service is None:
         from ..repositories.lms_repository_impl import InMemoryAssessmentRepository
         from ..services.assessment_service import AssessmentLmsService
+
         _assessment_service = AssessmentLmsService(InMemoryAssessmentRepository())
     return _assessment_service
 
 
 def _get_calendar_service() -> Any:
-    global _calendar_service  # noqa: PLW0603
+    global _calendar_service
     if _calendar_service is None:
         from ..repositories.lms_repository_impl import InMemoryCalendarRepository
         from ..services.calendar_service import CalendarService
+
         _calendar_service = CalendarService(InMemoryCalendarRepository())
     return _calendar_service
 
 
 def _get_portfolio_service() -> Any:
-    global _portfolio_service  # noqa: PLW0603
+    global _portfolio_service
     if _portfolio_service is None:
         from ..repositories.lms_repository_impl import InMemoryPortfolioRepository
         from ..services.portfolio_service import PortfolioService
+
         _portfolio_service = PortfolioService(InMemoryPortfolioRepository())
     return _portfolio_service
 
 
 def _get_instructor_service() -> Any:
-    global _instructor_service  # noqa: PLW0603
+    global _instructor_service
     if _instructor_service is None:
         from ..services.instructor_service import InstructorService
+
         _instructor_service = InstructorService(
             classroom_service=_get_classroom_service(),
             enrollment_service=_get_enrollment_service(),
@@ -108,9 +116,10 @@ def _get_instructor_service() -> Any:
 
 
 def _get_analytics_service() -> Any:
-    global _analytics_service  # noqa: PLW0603
+    global _analytics_service
     if _analytics_service is None:
         from ..services.analytics_service import AnalyticsService
+
         _analytics_service = AnalyticsService(
             classroom_service=_get_classroom_service(),
             enrollment_service=_get_enrollment_service(),
@@ -122,9 +131,10 @@ def _get_analytics_service() -> Any:
 
 
 def _get_dashboard_service() -> Any:
-    global _dashboard_service  # noqa: PLW0603
+    global _dashboard_service
     if _dashboard_service is None:
         from ..services.lms_dashboard_service import LmsDashboardService
+
         _dashboard_service = LmsDashboardService(
             classroom_service=_get_classroom_service(),
             enrollment_service=_get_enrollment_service(),
@@ -141,6 +151,7 @@ def _get_dashboard_service() -> Any:
 # Request / Response models
 # ---------------------------------------------------------------------------
 
+
 class ClassroomRequest(BaseModel):
     name: str
     description: str = ""
@@ -150,11 +161,11 @@ class ClassroomRequest(BaseModel):
 
 
 class ClassroomUpdateRequest(BaseModel):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    capacity: Optional[int] = None
-    instructor_id: Optional[str] = None
-    status: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
+    capacity: int | None = None
+    instructor_id: str | None = None
+    status: str | None = None
 
 
 class MemberRequest(BaseModel):
@@ -177,14 +188,14 @@ class GradeItemRequest(BaseModel):
     category: str = "assignment"
     points_possible: float = 100.0
     weight: float = 1.0
-    due_date: Optional[str] = None
+    due_date: str | None = None
 
 
 class GradeEntryRequest(BaseModel):
     learner_id: str
     score: float
-    feedback: Optional[str] = None
-    graded_by: Optional[str] = None
+    feedback: str | None = None
+    graded_by: str | None = None
 
 
 class CompetencyRequest(BaseModel):
@@ -192,7 +203,7 @@ class CompetencyRequest(BaseModel):
     description: str = ""
     domain: str = ""
     level: str = "beginner"
-    framework_id: Optional[str] = None
+    framework_id: str | None = None
 
 
 class FrameworkRequest(BaseModel):
@@ -206,13 +217,13 @@ class AssessmentRequest(BaseModel):
     assessment_type: str = "quiz"
     course_id: str
     passing_score: float = 70.0
-    time_limit_minutes: Optional[int] = None
+    time_limit_minutes: int | None = None
     attempts_allowed: int = 1
 
 
 class AttemptSubmitRequest(BaseModel):
     score: float
-    feedback: Optional[str] = None
+    feedback: str | None = None
 
 
 class SubmissionRequest(BaseModel):
@@ -228,7 +239,7 @@ class QuestionGroupRequest(BaseModel):
 
 class CalendarRequest(BaseModel):
     name: str
-    year: Optional[int] = None
+    year: int | None = None
 
 
 class CalendarEventRequest(BaseModel):
@@ -237,8 +248,8 @@ class CalendarEventRequest(BaseModel):
     start_time: str
     end_time: str
     recurring: bool = False
-    recurrence_rule: Optional[str] = None
-    description: Optional[str] = None
+    recurrence_rule: str | None = None
+    description: str | None = None
     color: str = "#3B82F6"
 
 
@@ -252,7 +263,7 @@ class ImportantDateRequest(BaseModel):
     title: str
     date: str
     date_type: str = "enrollment_deadline"
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class PortfolioRequest(BaseModel):
@@ -276,6 +287,7 @@ class EvidenceRequest(BaseModel):
 # ===================================================================
 # Dashboard endpoints
 # ===================================================================
+
 
 @router.get("/dashboard/summary")
 async def get_dashboard_summary() -> dict[str, Any]:
@@ -305,6 +317,7 @@ async def get_recent_activity(limit: int = Query(20, ge=1, le=100)) -> dict[str,
 # Classroom endpoints
 # ===================================================================
 
+
 @router.post("/classrooms", status_code=201)
 async def create_classroom(request: ClassroomRequest) -> dict[str, Any]:
     service = _get_classroom_service()
@@ -318,7 +331,7 @@ async def create_classroom(request: ClassroomRequest) -> dict[str, Any]:
 async def list_classrooms(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    status: Optional[str] = Query(None),
+    status: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_classroom_service()
     return service.list_classrooms(page=page, per_page=per_page, status=status)
@@ -401,6 +414,7 @@ async def get_classroom_members(classroom_id: str) -> dict[str, Any]:
 # Enrollment endpoints
 # ===================================================================
 
+
 @router.post("/enrollments", status_code=201)
 async def create_enrollment(request: EnrollmentRequest) -> dict[str, Any]:
     service = _get_enrollment_service()
@@ -414,9 +428,9 @@ async def create_enrollment(request: EnrollmentRequest) -> dict[str, Any]:
 async def list_enrollments(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    status: Optional[str] = Query(None),
-    course_id: Optional[str] = Query(None),
-    learner_id: Optional[str] = Query(None),
+    status: str | None = Query(None),
+    course_id: str | None = Query(None),
+    learner_id: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_enrollment_service()
     return service.list_enrollments(
@@ -444,7 +458,7 @@ async def activate_enrollment(enrollment_id: str) -> dict[str, Any]:
 
 @router.put("/enrollments/{enrollment_id}/complete")
 async def complete_enrollment(
-    enrollment_id: str, grade: Optional[str] = Query(None)
+    enrollment_id: str, grade: str | None = Query(None)
 ) -> dict[str, Any]:
     service = _get_enrollment_service()
     try:
@@ -489,6 +503,7 @@ async def get_course_enrollments(course_id: str) -> dict[str, Any]:
 # ===================================================================
 # Gradebook endpoints
 # ===================================================================
+
 
 @router.post("/gradebooks", status_code=201)
 async def create_gradebook(request: GradebookCreateRequest) -> dict[str, Any]:
@@ -575,6 +590,7 @@ async def delete_gradebook(entry_id: str) -> SuccessResponse:
 # Competency endpoints
 # ===================================================================
 
+
 @router.post("/competencies/frameworks", status_code=201)
 async def create_framework(request: FrameworkRequest) -> dict[str, Any]:
     service = _get_competency_service()
@@ -647,7 +663,7 @@ async def delete_competency(competency_id: str) -> SuccessResponse:
 
 @router.get("/competencies/progress/{learner_id}")
 async def get_learner_competency_progress(
-    learner_id: str, competency_id: Optional[str] = Query(None)
+    learner_id: str, competency_id: str | None = Query(None)
 ) -> dict[str, Any]:
     service = _get_competency_service()
     progress = service.get_learner_progress(learner_id, competency_id)
@@ -667,12 +683,14 @@ async def start_competency(learner_id: str, competency_id: str) -> dict[str, Any
 async def achieve_competency(
     learner_id: str,
     competency_id: str,
-    assessor_id: Optional[str] = Query(None),
-    evidence: Optional[str] = Query(None),
+    assessor_id: str | None = Query(None),
+    evidence: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_competency_service()
     try:
-        return service.achieve_competency(learner_id, competency_id, assessor_id=assessor_id, evidence=evidence)
+        return service.achieve_competency(
+            learner_id, competency_id, assessor_id=assessor_id, evidence=evidence
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -681,12 +699,14 @@ async def achieve_competency(
 async def master_competency(
     learner_id: str,
     competency_id: str,
-    assessor_id: Optional[str] = Query(None),
-    evidence: Optional[str] = Query(None),
+    assessor_id: str | None = Query(None),
+    evidence: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_competency_service()
     try:
-        return service.master_competency(learner_id, competency_id, assessor_id=assessor_id, evidence=evidence)
+        return service.master_competency(
+            learner_id, competency_id, assessor_id=assessor_id, evidence=evidence
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -700,6 +720,7 @@ async def get_learner_competency_summary(learner_id: str) -> dict[str, Any]:
 # ===================================================================
 # Assessment endpoints
 # ===================================================================
+
 
 @router.post("/assessments", status_code=201)
 async def create_assessment(request: AssessmentRequest) -> dict[str, Any]:
@@ -785,9 +806,7 @@ async def submit_attempt(attempt_id: str, request: AttemptSubmitRequest) -> dict
 
 
 @router.get("/assessments/{assessment_id}/attempts")
-async def get_attempts(
-    assessment_id: str, learner_id: Optional[str] = Query(None)
-) -> dict[str, Any]:
+async def get_attempts(assessment_id: str, learner_id: str | None = Query(None)) -> dict[str, Any]:
     service = _get_assessment_service()
     attempts = service.get_attempts(assessment_id, learner_id)
     return {"assessment_id": assessment_id, "attempts": attempts}
@@ -797,13 +816,17 @@ async def get_attempts(
 async def create_submission(attempt_id: str, request: SubmissionRequest) -> dict[str, Any]:
     service = _get_assessment_service()
     try:
-        return service.create_submission(attempt_id, request.content, attachments=request.attachments)
+        return service.create_submission(
+            attempt_id, request.content, attachments=request.attachments
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
 
 @router.post("/assessments/{assessment_id}/question-groups", status_code=201)
-async def create_question_group(assessment_id: str, request: QuestionGroupRequest) -> dict[str, Any]:
+async def create_question_group(
+    assessment_id: str, request: QuestionGroupRequest
+) -> dict[str, Any]:
     service = _get_assessment_service()
     try:
         return service.create_question_group(assessment_id, request.model_dump())
@@ -830,6 +853,7 @@ async def get_assessment_statistics(assessment_id: str) -> dict[str, Any]:
 # ===================================================================
 # Calendar endpoints
 # ===================================================================
+
 
 @router.post("/calendars", status_code=201)
 async def create_calendar(request: CalendarRequest) -> dict[str, Any]:
@@ -939,6 +963,7 @@ async def list_important_dates() -> list[dict[str, Any]]:
 # ===================================================================
 # Portfolio endpoints
 # ===================================================================
+
 
 @router.post("/portfolios", status_code=201)
 async def create_portfolio(request: PortfolioRequest) -> dict[str, Any]:
@@ -1055,6 +1080,7 @@ async def get_portfolio_summary(portfolio_id: str) -> dict[str, Any]:
 # Instructor endpoints
 # ===================================================================
 
+
 @router.post("/instructor/create-course")
 async def instructor_create_course(
     instructor_id: str = Query(...),
@@ -1064,7 +1090,9 @@ async def instructor_create_course(
 ) -> dict[str, Any]:
     service = _get_instructor_service()
     try:
-        return service.create_course_classroom(instructor_id, name, description=description, capacity=capacity)
+        return service.create_course_classroom(
+            instructor_id, name, description=description, capacity=capacity
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -1088,11 +1116,13 @@ async def instructor_record_grade(
     grade_item_id: str,
     learner_id: str = Query(...),
     score: float = Query(...),
-    feedback: Optional[str] = Query(None),
+    feedback: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_instructor_service()
     try:
-        return service.record_grade(gradebook_id, grade_item_id, learner_id, score, feedback=feedback)
+        return service.record_grade(
+            gradebook_id, grade_item_id, learner_id, score, feedback=feedback
+        )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
 
@@ -1106,6 +1136,7 @@ async def instructor_get_roster(classroom_id: str) -> dict[str, Any]:
 # ===================================================================
 # Analytics endpoints
 # ===================================================================
+
 
 @router.get("/analytics/learner/{learner_id}")
 async def get_learner_analytics(learner_id: str) -> dict[str, Any]:
@@ -1130,7 +1161,10 @@ async def get_top_performers(
     course_id: str, limit: int = Query(10, ge=1, le=100)
 ) -> dict[str, Any]:
     service = _get_analytics_service()
-    return {"course_id": course_id, "top_performers": service.get_top_performers(course_id, limit=limit)}
+    return {
+        "course_id": course_id,
+        "top_performers": service.get_top_performers(course_id, limit=limit),
+    }
 
 
 @router.get("/analytics/learner/{learner_id}/competency-heatmap")

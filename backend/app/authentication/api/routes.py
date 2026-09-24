@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 
-from ...shared.exceptions import AuthShieldException, ValidationError
-from ...shared.logging_config import get_logger
-from ...shared.responses import ErrorResponse, SuccessResponse
 from ...config.constants import MODULE_AUTH
-from ..domain.entities.authentication_result import AuthenticationOutcome
+from ...shared.logging_config import get_logger
+from ...shared.responses import SuccessResponse
 from ..domain.models.request_models import (
     LoginRequest,
     LogoutRequest,
@@ -51,7 +49,7 @@ def configure_dependencies(
 
     Called once during application startup with fully constructed services.
     """
-    global _authentication_service, _registration_service, _password_policy_service  # noqa: PLW0603
+    global _authentication_service, _registration_service, _password_policy_service
     _authentication_service = authentication_service
     _registration_service = registration_service
     _password_policy_service = password_policy_service
@@ -113,9 +111,7 @@ async def register(
 
     if not result.is_success:
         status_code = status.HTTP_400_BAD_REQUEST
-        if result.error_code == "USERNAME_TAKEN":
-            status_code = status.HTTP_409_CONFLICT
-        elif result.error_code == "EMAIL_TAKEN":
+        if result.error_code in {"USERNAME_TAKEN", "EMAIL_TAKEN"}:
             status_code = status.HTTP_409_CONFLICT
         elif result.error_code == "PASSWORD_POLICY_VIOLATION":
             status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -203,9 +199,7 @@ async def login(
         status_code = status.HTTP_401_UNAUTHORIZED
         if result.failure_reason.value == "account_locked":
             status_code = status.HTTP_423_LOCKED
-        elif result.failure_reason.value == "account_disabled":
-            status_code = status.HTTP_403_FORBIDDEN
-        elif result.failure_reason.value == "account_suspended":
+        elif result.failure_reason.value in {"account_disabled", "account_suspended"}:
             status_code = status.HTTP_403_FORBIDDEN
 
         raise HTTPException(
@@ -375,7 +369,7 @@ async def change_password(
     request: PasswordChangeRequest,
     correlation_id: str = Depends(_get_correlation_id),
     x_user_id: str | None = Header(None, alias="X-User-ID"),
-    service: Any = Depends(_get_auth_service),
+    _service: Any = Depends(_get_auth_service),
 ) -> SuccessResponse[AuthenticationResponse]:
     """Change the authenticated user's password.
 
@@ -405,8 +399,7 @@ async def change_password(
     if not policy_result.get("is_valid", True):
         errors = policy_result.get("errors", [])
         error_messages = [
-            e.get("message", str(e)) if isinstance(e, dict) else str(e)
-            for e in errors
+            e.get("message", str(e)) if isinstance(e, dict) else str(e) for e in errors
         ]
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -421,7 +414,7 @@ async def change_password(
     response_data = AuthenticationResponse(
         success=True,
         message="Password change accepted. Implementation pending user repository integration.",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         correlation_id=correlation_id,
     )
 

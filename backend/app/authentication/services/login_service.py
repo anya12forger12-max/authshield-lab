@@ -4,13 +4,8 @@ from __future__ import annotations
 
 import time
 
-from ...shared.exceptions import (
-    AccountLockedError,
-    AuthenticationError,
-    ValidationError,
-)
-from ...shared.logging_config import get_logger, log_audit_event, log_security_event
 from ...config.constants import MODULE_AUTH
+from ...shared.logging_config import get_logger, log_audit_event, log_security_event
 from ..domain.entities.account_status import AccountStatus
 from ..domain.entities.authentication_result import (
     AuthenticationOutcome,
@@ -82,9 +77,7 @@ class LoginService:
         start_time = time.monotonic()
         username = request.username
 
-        await self._event_publisher.publish_authentication_requested(
-            username, correlation_id
-        )
+        await self._event_publisher.publish_authentication_requested(username, correlation_id)
 
         logger.info(
             "login_attempt",
@@ -116,7 +109,9 @@ class LoginService:
         hashed_password = getattr(user, "hashed_password", None) or user.get("hashed_password", "")
 
         # Check account status
-        status_check = self._check_account_status(user_status, username, user_id, correlation_id, start_time)
+        status_check = self._check_account_status(
+            user_status, username, user_id, correlation_id, start_time
+        )
         if status_check is not None:
             return status_check
 
@@ -142,9 +137,7 @@ class LoginService:
             )
 
         if not password_valid:
-            await self._handle_failed_password(
-                user, user_id, username, correlation_id, start_time
-            )
+            await self._handle_failed_password(user, user_id, username, correlation_id, start_time)
             return self._build_failure(
                 FailureReason.INVALID_CREDENTIALS,
                 "Invalid username or password.",
@@ -182,9 +175,7 @@ class LoginService:
                 error_code="SESSION_ERROR",
             )
 
-        await self._event_publisher.publish_session_created(
-            session_id, user_id, correlation_id
-        )
+        await self._event_publisher.publish_session_created(session_id, user_id, correlation_id)
 
         duration_ms = (time.monotonic() - start_time) * 1000
 

@@ -5,15 +5,14 @@ from __future__ import annotations
 import csv
 import io
 import json
-import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from ..domain.entities.scenario import Scenario
-from ..domain.entities.exercise import Exercise
 from ..domain.entities.dataset import SyntheticDataset
-from ..domain.entities.timeline import Timeline
+from ..domain.entities.exercise import Exercise
 from ..domain.entities.results import ExerciseResult
+from ..domain.entities.scenario import Scenario
+from ..domain.entities.timeline import Timeline
 
 
 class ExportService:
@@ -74,7 +73,9 @@ class ExportService:
 
         lines.append(f"**Target Audience:** {scenario.target_audience}")
         lines.append("")
-        lines.append(f"*Created: {scenario.created_at.isoformat() if scenario.created_at else 'N/A'}*")
+        lines.append(
+            f"*Created: {scenario.created_at.isoformat() if scenario.created_at else 'N/A'}*"
+        )
         return "\n".join(lines)
 
     def export_exercise_json(self, exercise: Exercise) -> str:
@@ -108,7 +109,9 @@ class ExportService:
             lines.append(f"**Tags:** {', '.join(exercise.tags)}")
             lines.append("")
 
-        lines.append(f"*Created: {exercise.created_at.isoformat() if exercise.created_at else 'N/A'}*")
+        lines.append(
+            f"*Created: {exercise.created_at.isoformat() if exercise.created_at else 'N/A'}*"
+        )
         return "\n".join(lines)
 
     def export_dataset_json(self, dataset: SyntheticDataset) -> str:
@@ -240,7 +243,9 @@ class ExportService:
             lines.append("## Improvement Recommendations")
             lines.append("")
             for rec in result.improvement_recommendations:
-                priority_marker = "!" if rec.priority == "high" else "-" if rec.priority == "medium" else " "
+                priority_marker = (
+                    "!" if rec.priority == "high" else "-" if rec.priority == "medium" else " "
+                )
                 lines.append(f"- [{priority_marker}] **{rec.category}:** {rec.recommendation}")
                 lines.append(f"  Rationale: {rec.rationale}")
             lines.append("")
@@ -254,24 +259,17 @@ class ExportService:
 
         return "\n".join(lines)
 
-    def export_batch_json(
-        self, items: list[Any], item_type: str
-    ) -> str:
+    def export_batch_json(self, items: list[Any], item_type: str) -> str:
         """Export a batch of items to JSON."""
         data = {
             "type": item_type,
             "count": len(items),
-            "exported_at": datetime.now(timezone.utc).isoformat(),
-            "items": [
-                item.to_dict() if hasattr(item, "to_dict") else str(item)
-                for item in items
-            ],
+            "exported_at": datetime.now(UTC).isoformat(),
+            "items": [item.to_dict() if hasattr(item, "to_dict") else str(item) for item in items],
         }
         return json.dumps(data, indent=2, default=str)
 
-    def export_batch_csv(
-        self, items: list[Any], item_type: str
-    ) -> str:
+    def export_batch_csv(self, items: list[Any], _item_type: str) -> str:
         """Export a batch of items to CSV."""
         if not items:
             return ""

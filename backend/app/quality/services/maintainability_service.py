@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 import math
-from datetime import timezone
 
 from app.quality.domain.entities.maintainability import (
     BuildHealth,
-    ComplexityMetric,
     DependencyInfo,
     MaintainabilityIndex,
     TechnicalDebtItem,
@@ -25,7 +23,9 @@ class MaintainabilityService:
         self._debt_repo = debt_repo
         self._build_repo = build_repo
 
-    def calculate_index(self, halstead_volume: float, cyclomatic: int, loc: int) -> MaintainabilityIndex:
+    def calculate_index(
+        self, halstead_volume: float, cyclomatic: int, loc: int
+    ) -> MaintainabilityIndex:
         if loc <= 0:
             return MaintainabilityIndex(score=100.0, grade="A")
         raw = 171 - 5.2 * math.log(halstead_volume + 1) - 0.23 * cyclomatic - 16.2 * math.log(loc)

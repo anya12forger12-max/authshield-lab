@@ -1,5 +1,5 @@
 """Authentication API package."""
 
-from .routes import router, configure_dependencies
+from .routes import configure_dependencies, router
 
-__all__ = ["router", "configure_dependencies"]
+__all__ = ["configure_dependencies", "router"]

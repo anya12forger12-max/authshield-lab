@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.interfaces import CurriculumExchangeRepository
     from domain.entities.curriculum_exchange import ExchangePackage, PackageValidationReport
+    from domain.interfaces import CurriculumExchangeRepository
 
 
 class PackageValidationService:
@@ -81,31 +80,29 @@ class PackageValidationService:
             return False
         return self._validate_compatibility(pkg)
 
-    def _validate_integrity(self, pkg: "ExchangePackage") -> bool:
+    def _validate_integrity(self, pkg: ExchangePackage) -> bool:
         if not pkg.checksum:
             return False
         if len(pkg.checksum) < 32:
             return False
         if not pkg.signature:
             return False
-        if len(pkg.signature) < 16:
-            return False
-        return True
+        return not len(pkg.signature) < 16
 
-    def _validate_compatibility(self, pkg: "ExchangePackage") -> bool:
+    def _validate_compatibility(self, pkg: ExchangePackage) -> bool:
         if not pkg.compatibility:
             return False
         valid_operators = [">=", "<=", "~=", "==", "^"]
         return any(op in pkg.compatibility for op in valid_operators) or len(pkg.compatibility) >= 3
 
-    def _validate_accessibility(self, pkg: "ExchangePackage") -> bool:
+    def _validate_accessibility(self, pkg: ExchangePackage) -> bool:
         if "a11y" in pkg.metadata:
             return bool(pkg.metadata["a11y"])
         if "accessibility" in pkg.metadata:
             return bool(pkg.metadata["accessibility"])
         return True
 
-    def _validate_localization(self, pkg: "ExchangePackage") -> bool:
+    def _validate_localization(self, pkg: ExchangePackage) -> bool:
         if "localization" in pkg.metadata:
             return bool(pkg.metadata["localization"])
         if "locales" in pkg.metadata:
@@ -113,7 +110,7 @@ class PackageValidationService:
             return isinstance(locales, (list, dict)) and len(locales) > 0
         return True
 
-    def _validate_documentation(self, pkg: "ExchangePackage") -> bool:
+    def _validate_documentation(self, pkg: ExchangePackage) -> bool:
         if "docs" in pkg.metadata:
             return bool(pkg.metadata["docs"])
         if "documentation" in pkg.metadata:
@@ -122,27 +119,35 @@ class PackageValidationService:
             return bool(pkg.metadata["readme"])
         return True
 
-    def _validate_dependencies(self, pkg: "ExchangePackage") -> bool:
+    def _validate_dependencies(self, pkg: ExchangePackage) -> bool:
         if not isinstance(pkg.dependencies, list):
             return False
         if len(pkg.dependencies) > self._MAX_DEPENDENCIES:
             return False
-        for dep in pkg.dependencies:
-            if not isinstance(dep, str) or not dep.strip():
-                return False
-        return True
+        return all(isinstance(dep, str) and dep.strip() for dep in pkg.dependencies)
 
-    def _validate_licensing(self, pkg: "ExchangePackage") -> bool:
+    def _validate_licensing(self, pkg: ExchangePackage) -> bool:
         if not pkg.license:
             return False
         known_licenses = [
-            "MIT", "Apache-2.0", "GPL-3.0", "BSD-2-Clause", "BSD-3-Clause",
-            "ISC", "LGPL-3.0", "MPL-2.0", "Unlicense", "CC-BY-4.0",
-            "CC-BY-SA-4.0", "CC0-1.0", "proprietary", "custom",
+            "MIT",
+            "Apache-2.0",
+            "GPL-3.0",
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "ISC",
+            "LGPL-3.0",
+            "MPL-2.0",
+            "Unlicense",
+            "CC-BY-4.0",
+            "CC-BY-SA-4.0",
+            "CC0-1.0",
+            "proprietary",
+            "custom",
         ]
         return pkg.license in known_licenses or len(pkg.license) >= 3
 
-    def _collect_issues(self, pkg: "ExchangePackage", checks: dict[str, bool]) -> list[str]:
+    def _collect_issues(self, pkg: ExchangePackage, checks: dict[str, bool]) -> list[str]:
         issues: list[str] = []
         if not checks["integrity"]:
             issues.append("Invalid or missing checksum/signature")

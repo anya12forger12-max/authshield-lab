@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.content import KnowledgeNode
 from ..domain.interfaces.content_repository import KnowledgeNodeRepository
@@ -139,7 +139,7 @@ class KnowledgeService:
                 continue
             for neighbor in adjacency.get(current, set()):
                 if neighbor not in path:
-                    queue.append((neighbor, path + [neighbor]))
+                    queue.append((neighbor, [*path, neighbor]))
         return paths
 
     async def search_by_tag(self, tag: str) -> list[KnowledgeNode]:
@@ -168,9 +168,7 @@ class KnowledgeService:
                 missing.append(prereq_id)
             else:
                 found.append(prereq_id)
-                if prereq_id == node_id:
-                    circular.append(prereq_id)
-                elif node_id in prereq.prerequisites:
+                if prereq_id == node_id or node_id in prereq.prerequisites:
                     circular.append(prereq_id)
         return {
             "node_id": node_id,
@@ -184,7 +182,7 @@ class KnowledgeService:
     async def get_uncovered_topics(self) -> dict[str, Any]:
         """Find knowledge nodes that have no related nodes (disconnected)."""
         all_nodes = await self._repo.find_all()
-        node_ids = {n.id for n in all_nodes}
+
         referenced: set[str] = set()
         for n in all_nodes:
             referenced.update(n.related_nodes)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.sqlite import JSON
@@ -33,13 +33,17 @@ class LocalPackageModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     review_count: Mapped[int] = mapped_column(Integer, default=0)
     installed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    installations = relationship("InstallationRecordModel", back_populates="package", cascade="all, delete-orphan")
+    installations = relationship(
+        "InstallationRecordModel", back_populates="package", cascade="all, delete-orphan"
+    )
 
 
 class InstallationRecordModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_installation_records"
 
-    package_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_packages.id"), nullable=False)
+    package_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_packages.id"), nullable=False
+    )
     installed_by: Mapped[str] = mapped_column(String(255), nullable=False)
     version: Mapped[str] = mapped_column(String(50), nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="installed")
@@ -64,15 +68,29 @@ class LibraryItemModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     accessed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     bookmarks = relationship("BookmarkModel", back_populates="item", cascade="all, delete-orphan")
-    annotations = relationship("AnnotationModel", back_populates="item", cascade="all, delete-orphan")
-    citations_as_source = relationship("CitationModel", foreign_keys="CitationModel.source_item_id", back_populates="source_item", cascade="all, delete-orphan")
-    citations_as_target = relationship("CitationModel", foreign_keys="CitationModel.target_item_id", back_populates="target_item", cascade="all, delete-orphan")
+    annotations = relationship(
+        "AnnotationModel", back_populates="item", cascade="all, delete-orphan"
+    )
+    citations_as_source = relationship(
+        "CitationModel",
+        foreign_keys="CitationModel.source_item_id",
+        back_populates="source_item",
+        cascade="all, delete-orphan",
+    )
+    citations_as_target = relationship(
+        "CitationModel",
+        foreign_keys="CitationModel.target_item_id",
+        back_populates="target_item",
+        cascade="all, delete-orphan",
+    )
 
 
 class BookmarkModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_bookmarks"
 
-    item_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_library_items.id"), nullable=False)
+    item_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_library_items.id"), nullable=False
+    )
     user_id: Mapped[str] = mapped_column(String(255), nullable=False)
     note: Mapped[str] = mapped_column(Text, default="")
     page: Mapped[int] = mapped_column(Integer, default=0)
@@ -83,7 +101,9 @@ class BookmarkModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
 class AnnotationModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_annotations"
 
-    item_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_library_items.id"), nullable=False)
+    item_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_library_items.id"), nullable=False
+    )
     user_id: Mapped[str] = mapped_column(String(255), nullable=False)
     text: Mapped[str] = mapped_column(Text, nullable=False)
     highlight: Mapped[str] = mapped_column(Text, default="")
@@ -95,14 +115,22 @@ class AnnotationModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
 class CitationModel(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_citations"
 
-    source_item_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_library_items.id"), nullable=False)
-    target_item_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_library_items.id"), nullable=False)
+    source_item_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_library_items.id"), nullable=False
+    )
+    target_item_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_library_items.id"), nullable=False
+    )
     citation_type: Mapped[str] = mapped_column(String(50), nullable=False)
     page: Mapped[int] = mapped_column(Integer, default=0)
     note: Mapped[str] = mapped_column(Text, default="")
 
-    source_item = relationship("LibraryItemModel", foreign_keys=[source_item_id], back_populates="citations_as_source")
-    target_item = relationship("LibraryItemModel", foreign_keys=[target_item_id], back_populates="citations_as_target")
+    source_item = relationship(
+        "LibraryItemModel", foreign_keys=[source_item_id], back_populates="citations_as_source"
+    )
+    target_item = relationship(
+        "LibraryItemModel", foreign_keys=[target_item_id], back_populates="citations_as_target"
+    )
 
 
 class ResearchProjectModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
@@ -112,16 +140,26 @@ class ResearchProjectModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     description: Mapped[str] = mapped_column(Text, default="")
     status: Mapped[str] = mapped_column(String(20), default="active")
 
-    literature = relationship("LiteratureEntryModel", back_populates="project", cascade="all, delete-orphan")
-    knowledge_maps = relationship("KnowledgeMapModel", back_populates="project", cascade="all, delete-orphan")
-    reading_lists = relationship("ReadingListModel", back_populates="project", cascade="all, delete-orphan")
-    bibliographies = relationship("BibliographyModel", back_populates="project", cascade="all, delete-orphan")
+    literature = relationship(
+        "LiteratureEntryModel", back_populates="project", cascade="all, delete-orphan"
+    )
+    knowledge_maps = relationship(
+        "KnowledgeMapModel", back_populates="project", cascade="all, delete-orphan"
+    )
+    reading_lists = relationship(
+        "ReadingListModel", back_populates="project", cascade="all, delete-orphan"
+    )
+    bibliographies = relationship(
+        "BibliographyModel", back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class LiteratureEntryModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_literature_entries"
 
-    project_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_research_projects.id"), nullable=False)
+    project_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_research_projects.id"), nullable=False
+    )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     author: Mapped[str] = mapped_column(String(255), default="")
     year: Mapped[int] = mapped_column(Integer, default=0)
@@ -130,16 +168,22 @@ class LiteratureEntryModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     keywords: Mapped[str] = mapped_column(JSON, default=list)
     notes: Mapped[str] = mapped_column(Text, default="")
     read_status: Mapped[str] = mapped_column(String(20), default="unread")
-    added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    added_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
     project = relationship("ResearchProjectModel", back_populates="literature")
-    noterefs = relationship("ResearchNoteModel", back_populates="entry", cascade="all, delete-orphan")
+    noterefs = relationship(
+        "ResearchNoteModel", back_populates="entry", cascade="all, delete-orphan"
+    )
 
 
 class ResearchNoteModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_research_notes"
 
-    entry_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_literature_entries.id"), nullable=False)
+    entry_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_literature_entries.id"), nullable=False
+    )
     content: Mapped[str] = mapped_column(Text, nullable=False)
 
     entry = relationship("LiteratureEntryModel", back_populates="noterefs")
@@ -148,7 +192,9 @@ class ResearchNoteModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
 class KnowledgeMapModel(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_knowledge_maps"
 
-    project_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_research_projects.id"), nullable=False)
+    project_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_research_projects.id"), nullable=False
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     concepts: Mapped[str] = mapped_column(JSON, default=list)
     links: Mapped[str] = mapped_column(JSON, default=list)
@@ -159,10 +205,14 @@ class KnowledgeMapModel(Base, UUIDPrimaryKeyMixin):
 class ReadingListModel(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_reading_lists"
 
-    project_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_research_projects.id"), nullable=False)
+    project_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_research_projects.id"), nullable=False
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     entries: Mapped[str] = mapped_column(JSON, default=list)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
     project = relationship("ResearchProjectModel", back_populates="reading_lists")
 
@@ -170,11 +220,15 @@ class ReadingListModel(Base, UUIDPrimaryKeyMixin):
 class BibliographyModel(Base, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_bibliographies"
 
-    project_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_research_projects.id"), nullable=False)
+    project_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_research_projects.id"), nullable=False
+    )
     name: Mapped[str] = mapped_column(String(255), default="default")
     entries: Mapped[str] = mapped_column(JSON, default=list)
     format: Mapped[str] = mapped_column(String(20), default="apa")
-    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    generated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
+    )
 
     project = relationship("ResearchProjectModel", back_populates="bibliographies")
 
@@ -191,7 +245,9 @@ class OrganizationModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
 class DepartmentModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_departments"
 
-    org_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_organizations.id"), nullable=False)
+    org_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_organizations.id"), nullable=False
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, default="")
     instructors: Mapped[str] = mapped_column(JSON, default=list)
@@ -202,7 +258,9 @@ class DepartmentModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
 class AcademicProgramModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_academic_programs"
 
-    department_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_departments.id"), nullable=False)
+    department_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_departments.id"), nullable=False
+    )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, default="")
     duration_months: Mapped[int] = mapped_column(Integer, default=0)
@@ -227,7 +285,9 @@ class DistributionPackageModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
 class ImportRecordModel(Base, TimestampMixin, UUIDPrimaryKeyMixin):
     __tablename__ = "ecosystem_import_records"
 
-    package_id: Mapped[str] = mapped_column(String(36), ForeignKey("ecosystem_distribution_packages.id"), nullable=False)
+    package_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("ecosystem_distribution_packages.id"), nullable=False
+    )
     imported_by: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(50), default="pending")
     conflicts: Mapped[str] = mapped_column(JSON, default=list)

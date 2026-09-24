@@ -1,14 +1,12 @@
 """Tests for session entity properties."""
 
-import pytest
-from datetime import datetime, timezone, timedelta
-from unittest.mock import MagicMock
+from datetime import UTC, datetime, timedelta
 
 from app.shared.models.session import Session
 
 
 def _make_session(**overrides):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     defaults = {
         "id": "sess-001",
         "session_id": "abc-123",
@@ -38,51 +36,51 @@ def _make_session(**overrides):
 
 class TestSessionIsExpired:
     def test_not_expired_when_future(self):
-        s = _make_session(expires_at=datetime.now(timezone.utc) + timedelta(hours=1))
+        s = _make_session(expires_at=datetime.now(UTC) + timedelta(hours=1))
         assert s.is_expired is False
 
     def test_expired_when_past(self):
-        s = _make_session(expires_at=datetime.now(timezone.utc) - timedelta(minutes=1))
+        s = _make_session(expires_at=datetime.now(UTC) - timedelta(minutes=1))
         assert s.is_expired is True
 
     def test_not_expired_at_boundary(self):
-        future = datetime.now(timezone.utc) + timedelta(seconds=5)
+        future = datetime.now(UTC) + timedelta(seconds=5)
         s = _make_session(expires_at=future)
         assert s.is_expired is False
 
 
 class TestSessionIsActive:
     def test_active_when_status_active_and_not_expired(self):
-        s = _make_session(status="active", expires_at=datetime.now(timezone.utc) + timedelta(hours=1))
+        s = _make_session(status="active", expires_at=datetime.now(UTC) + timedelta(hours=1))
         assert s.is_active is True
 
     def test_not_active_when_expired(self):
-        s = _make_session(status="active", expires_at=datetime.now(timezone.utc) - timedelta(minutes=1))
+        s = _make_session(status="active", expires_at=datetime.now(UTC) - timedelta(minutes=1))
         assert s.is_active is False
 
     def test_not_active_when_status_not_active(self):
-        s = _make_session(status="revoked", expires_at=datetime.now(timezone.utc) + timedelta(hours=1))
+        s = _make_session(status="revoked", expires_at=datetime.now(UTC) + timedelta(hours=1))
         assert s.is_active is False
 
 
 class TestSessionIsIdle:
     def test_not_idle_when_recent_activity(self):
         s = _make_session(
-            last_activity=datetime.now(timezone.utc),
+            last_activity=datetime.now(UTC),
             idle_timeout_minutes=30,
         )
         assert s.is_idle is False
 
     def test_idle_when_old_activity(self):
         s = _make_session(
-            last_activity=datetime.now(timezone.utc) - timedelta(minutes=45),
+            last_activity=datetime.now(UTC) - timedelta(minutes=45),
             idle_timeout_minutes=30,
         )
         assert s.is_idle is True
 
     def test_idle_at_boundary(self):
         s = _make_session(
-            last_activity=datetime.now(timezone.utc) - timedelta(minutes=31),
+            last_activity=datetime.now(UTC) - timedelta(minutes=31),
             idle_timeout_minutes=30,
         )
         assert s.is_idle is True
@@ -90,12 +88,12 @@ class TestSessionIsIdle:
 
 class TestSessionIdleTimeMinutes:
     def test_recent_activity(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         s = _make_session(last_activity=now)
         assert s.idle_time_minutes < 1.0
 
     def test_old_activity(self):
-        past = datetime.now(timezone.utc) - timedelta(minutes=45)
+        past = datetime.now(UTC) - timedelta(minutes=45)
         s = _make_session(last_activity=past)
         assert 44 < s.idle_time_minutes < 46
 

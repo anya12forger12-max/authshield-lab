@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 
+from ...shared.responses import SuccessResponse
 from ..policy.domain.entities.policy_entity import PolicyCategory, PolicyStatus
 from ..policy.domain.models.request_models import (
     CreatePolicyRequest,
     EvaluatePolicyRequest,
-    PolicySearchRequest,
     UpdatePolicyRequest,
 )
 from ..policy.domain.models.response_models import (
@@ -24,7 +24,6 @@ from ..policy.validators.policy_validator import (
     validate_policy_data,
     validate_status_transition,
 )
-from ...shared.responses import SuccessResponse
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +39,12 @@ _registry: Any = None
 
 def _get_engine() -> Any:
     """Lazy-load the policy engine."""
-    global _engine  # noqa: PLW0603
+    global _engine
     if _engine is None:
-        from ..policy.services.policy_engine import PolicyEngine
-        from ..policy.registry.policy_registry import PolicyRegistry
         from ...shared.events.event_bus import get_event_bus
         from ...shared.monitoring.performance import get_performance_monitor
+        from ..policy.registry.policy_registry import PolicyRegistry
+        from ..policy.services.policy_engine import PolicyEngine
 
         registry = PolicyRegistry()
         _engine = PolicyEngine(
@@ -58,9 +57,10 @@ def _get_engine() -> Any:
 
 def _get_registry() -> Any:
     """Lazy-load the policy registry."""
-    global _registry  # noqa: PLW0603
+    global _registry
     if _registry is None:
         from ..policy.registry.policy_registry import PolicyRegistry
+
         _registry = PolicyRegistry()
     return _registry
 
@@ -91,10 +91,11 @@ def _policy_to_response(policy: Any) -> PolicyResponse:
 # List policies
 # ------------------------------------------------------------------
 
+
 @router.get("", response_model=PolicyListResponse)
 async def list_policies(
-    category: Optional[str] = Query(None, description="Filter by category"),
-    status: Optional[str] = Query(None, description="Filter by status"),
+    category: str | None = Query(None, description="Filter by category"),
+    status: str | None = Query(None, description="Filter by status"),
     page: int = Query(1, ge=1, description="Page number"),
     per_page: int = Query(20, ge=1, le=100, description="Items per page"),
 ) -> PolicyListResponse:
@@ -124,6 +125,7 @@ async def list_policies(
 # Create policy
 # ------------------------------------------------------------------
 
+
 @router.post("", response_model=PolicyResponse, status_code=201)
 async def create_policy(request: CreatePolicyRequest) -> PolicyResponse:
     """Create a new security policy."""
@@ -139,10 +141,8 @@ async def create_policy(request: CreatePolicyRequest) -> PolicyResponse:
 
     from ..policy.domain.entities.policy_entity import (
         PolicyConfiguration,
-        PolicyStatus,
         SecurityPolicy,
     )
-    from ..policy.domain.entities.policy_entity import PolicyCategory as PC
 
     config_data = data.pop("configuration", {})
     configuration = PolicyConfiguration.from_dict(config_data)
@@ -150,7 +150,7 @@ async def create_policy(request: CreatePolicyRequest) -> PolicyResponse:
     policy = SecurityPolicy(
         name=data["name"],
         description=data.get("description", ""),
-        category=PC(data.get("category", "authentication")),
+        category=PolicyCategory(data.get("category", "authentication")),
         priority=data.get("priority", 100),
         author=data.get("author", "system"),
         configuration=configuration,
@@ -171,6 +171,7 @@ async def create_policy(request: CreatePolicyRequest) -> PolicyResponse:
 # Get policy
 # ------------------------------------------------------------------
 
+
 @router.get("/{policy_id}", response_model=PolicyResponse)
 async def get_policy(policy_id: str) -> PolicyResponse:
     """Retrieve a single policy by ID."""
@@ -187,10 +188,9 @@ async def get_policy(policy_id: str) -> PolicyResponse:
 # Update policy
 # ------------------------------------------------------------------
 
+
 @router.put("/{policy_id}", response_model=PolicyResponse)
-async def update_policy(
-    policy_id: str, request: UpdatePolicyRequest
-) -> PolicyResponse:
+async def update_policy(policy_id: str, request: UpdatePolicyRequest) -> PolicyResponse:
     """Update an existing policy's configuration."""
     engine = _get_engine()
 
@@ -214,6 +214,7 @@ async def update_policy(
 # Delete policy
 # ------------------------------------------------------------------
 
+
 @router.delete("/{policy_id}")
 async def delete_policy(policy_id: str) -> SuccessResponse:
     """Delete a policy."""
@@ -232,6 +233,7 @@ async def delete_policy(policy_id: str) -> SuccessResponse:
 # ------------------------------------------------------------------
 # Enable / disable
 # ------------------------------------------------------------------
+
 
 @router.post("/{policy_id}/enable", response_model=PolicyResponse)
 async def enable_policy(policy_id: str) -> PolicyResponse:
@@ -285,6 +287,7 @@ async def disable_policy(policy_id: str) -> PolicyResponse:
 # Evaluate
 # ------------------------------------------------------------------
 
+
 @router.post("/evaluate", response_model=list[PolicyDecisionResponse])
 async def evaluate_policies(request: EvaluatePolicyRequest) -> list[PolicyDecisionResponse]:
     """Evaluate an event against all applicable policies."""
@@ -318,6 +321,7 @@ async def evaluate_policies(request: EvaluatePolicyRequest) -> list[PolicyDecisi
 # Metrics
 # ------------------------------------------------------------------
 
+
 @router.get("/metrics", response_model=PolicyMetricsResponse)
 async def get_metrics() -> PolicyMetricsResponse:
     """Return policy engine metrics."""
@@ -338,6 +342,7 @@ async def get_metrics() -> PolicyMetricsResponse:
 # ------------------------------------------------------------------
 # Export / import
 # ------------------------------------------------------------------
+
 
 @router.post("/export")
 async def export_policies() -> SuccessResponse:

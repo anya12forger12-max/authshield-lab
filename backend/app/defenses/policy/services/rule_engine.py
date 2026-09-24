@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.rule_entity import (
     RuleAction,
@@ -114,7 +114,7 @@ class RuleEngine(IRuleEngine):
         logger.info("rule_removed", rule_id=rule_id)
         return True
 
-    async def get_rule(self, rule_id: str) -> Optional[SecurityRule]:
+    async def get_rule(self, rule_id: str) -> SecurityRule | None:
         """Return a rule by ID, or ``None``."""
         return self._rules.get(rule_id)
 

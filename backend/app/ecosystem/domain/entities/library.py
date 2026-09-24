@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -45,7 +45,7 @@ class LibraryItem:
         self.file_path = file_path
         self.page_count = page_count
         self.bookmarked = bookmarked
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
         self.accessed_at = None
 
 
@@ -62,7 +62,7 @@ class Bookmark:
         self.user_id = user_id
         self.note = note
         self.page = page
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
 
 
 class Annotation:
@@ -80,7 +80,7 @@ class Annotation:
         self.text = text
         self.highlight = highlight
         self.page = page
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
 
 
 class Citation:

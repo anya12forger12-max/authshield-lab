@@ -1,9 +1,9 @@
 """Session domain models."""
 
 from .request_models import (
-    TerminateSessionRequest,
-    SessionSearchRequest,
     SessionFilters,
+    SessionSearchRequest,
+    TerminateSessionRequest,
 )
 from .response_models import (
     SessionDetailResponse,
@@ -12,10 +12,10 @@ from .response_models import (
 )
 
 __all__ = [
-    "TerminateSessionRequest",
-    "SessionSearchRequest",
-    "SessionFilters",
     "SessionDetailResponse",
+    "SessionFilters",
     "SessionListResponse",
+    "SessionSearchRequest",
     "SessionStatsResponse",
+    "TerminateSessionRequest",
 ]

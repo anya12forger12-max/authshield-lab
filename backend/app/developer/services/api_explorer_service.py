@@ -188,9 +188,7 @@ class ApiExplorerService:
                 return doc
         return None
 
-    def add_example(
-        self, doc_id: str, title: str, request: dict, response: dict
-    ) -> bool:
+    def add_example(self, doc_id: str, title: str, request: dict, response: dict) -> bool:
         """Add an example to an existing documentation record."""
         doc = self._docs.get(doc_id)
         if doc is None:

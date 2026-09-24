@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -82,7 +82,7 @@ class AutomationWorkflow:
         self.last_run: datetime | None = last_run
         self.next_run: datetime | None = next_run
         self.status: WorkflowStatus = status
-        self.created_at: datetime = created_at or datetime.now(timezone.utc)
+        self.created_at: datetime = created_at or datetime.now(UTC)
 
     def add_step(self, step: WorkflowStep) -> None:
         """Append a step and re-order the list."""
@@ -111,12 +111,12 @@ class AutomationWorkflow:
     def mark_completed(self) -> None:
         """Transition the workflow to the completed state."""
         self.status = WorkflowStatus.COMPLETED
-        self.last_run = datetime.now(timezone.utc)
+        self.last_run = datetime.now(UTC)
 
     def mark_failed(self) -> None:
         """Transition the workflow to the failed state."""
         self.status = WorkflowStatus.FAILED
-        self.last_run = datetime.now(timezone.utc)
+        self.last_run = datetime.now(UTC)
 
     def enable(self) -> None:
         """Enable this workflow."""
@@ -158,7 +158,7 @@ class WorkflowRun:
     ) -> None:
         self.id: str = id or str(uuid.uuid4())
         self.workflow_id: str = workflow_id
-        self.started_at: datetime = started_at or datetime.now(timezone.utc)
+        self.started_at: datetime = started_at or datetime.now(UTC)
         self.ended_at: datetime | None = ended_at
         self.status: str = status
         self.results: list[dict] = results if results is not None else []
@@ -167,7 +167,7 @@ class WorkflowRun:
     def finish(self, status: str = "completed") -> None:
         """Mark the run as finished."""
         self.status = status
-        self.ended_at = datetime.now(timezone.utc)
+        self.ended_at = datetime.now(UTC)
 
     def add_result(self, result: dict) -> None:
         """Append a step result."""

@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.release_engineering import (
     PackagingResult,
     RegressionResult,
     ReleaseHistoryEntry,
-    ReleasePhase,
     ReleasePlan,
     ReleaseValidation,
 )
@@ -54,11 +53,11 @@ class ReleaseEngineeringService:
         )
         return self._plan_repo.save(plan)
 
-    async def get_plan(self, plan_id: str) -> Optional[ReleasePlan]:
+    async def get_plan(self, plan_id: str) -> ReleasePlan | None:
         """Retrieve a release plan by ID."""
         return self._plan_repo.find_by_id(plan_id)
 
-    async def get_plan_by_version(self, version: str) -> Optional[ReleasePlan]:
+    async def get_plan_by_version(self, version: str) -> ReleasePlan | None:
         """Retrieve a release plan by version string."""
         return self._plan_repo.find_by_version(version)
 
@@ -66,11 +65,11 @@ class ReleaseEngineeringService:
         """Return all release plans."""
         return self._plan_repo.find_all()
 
-    async def update_plan(self, plan_id: str, data: dict[str, Any]) -> Optional[ReleasePlan]:
+    async def update_plan(self, plan_id: str, data: dict[str, Any]) -> ReleasePlan | None:
         """Update arbitrary fields on a release plan."""
         return self._plan_repo.update(plan_id, data)
 
-    async def advance_plan(self, plan_id: str) -> Optional[ReleasePlan]:
+    async def advance_plan(self, plan_id: str) -> ReleasePlan | None:
         """Move a release plan to the next lifecycle phase."""
         plan = self._plan_repo.find_by_id(plan_id)
         if plan is None:
@@ -96,7 +95,7 @@ class ReleaseEngineeringService:
         )
         return self._validation_repo.save(val)
 
-    async def pass_validation(self, val_id: str, details: str = "") -> Optional[ReleaseValidation]:
+    async def pass_validation(self, val_id: str, details: str = "") -> ReleaseValidation | None:
         """Mark a validation as passed."""
         val = self._validation_repo.find_by_id(val_id)
         if val is None:
@@ -104,7 +103,7 @@ class ReleaseEngineeringService:
         val.mark_passed(details)
         return self._validation_repo.save(val)
 
-    async def fail_validation(self, val_id: str, details: str = "") -> Optional[ReleaseValidation]:
+    async def fail_validation(self, val_id: str, details: str = "") -> ReleaseValidation | None:
         """Mark a validation as failed."""
         val = self._validation_repo.find_by_id(val_id)
         if val is None:
@@ -140,7 +139,7 @@ class ReleaseEngineeringService:
         """Return all packages built for a release."""
         return self._packaging_repo.find_by_release_id(release_id)
 
-    async def get_package(self, pkg_id: str) -> Optional[PackagingResult]:
+    async def get_package(self, pkg_id: str) -> PackagingResult | None:
         """Retrieve a package result by ID."""
         return self._packaging_repo.find_by_id(pkg_id)
 
@@ -170,7 +169,7 @@ class ReleaseEngineeringService:
         """Return all regression results for a release."""
         return self._regression_repo.find_by_release_id(release_id)
 
-    async def get_regression(self, result_id: str) -> Optional[RegressionResult]:
+    async def get_regression(self, result_id: str) -> RegressionResult | None:
         """Retrieve a regression result by ID."""
         return self._regression_repo.find_by_id(result_id)
 
@@ -192,11 +191,11 @@ class ReleaseEngineeringService:
         )
         return self._history_repo.save(entry)
 
-    async def get_history(self, entry_id: str) -> Optional[ReleaseHistoryEntry]:
+    async def get_history(self, entry_id: str) -> ReleaseHistoryEntry | None:
         """Retrieve a history entry by ID."""
         return self._history_repo.find_by_id(entry_id)
 
-    async def get_history_by_version(self, version: str) -> Optional[ReleaseHistoryEntry]:
+    async def get_history_by_version(self, version: str) -> ReleaseHistoryEntry | None:
         """Retrieve a history entry by version."""
         return self._history_repo.find_by_version(version)
 
@@ -204,7 +203,7 @@ class ReleaseEngineeringService:
         """Return all release history entries."""
         return self._history_repo.find_all()
 
-    async def add_highlight(self, entry_id: str, text: str) -> Optional[ReleaseHistoryEntry]:
+    async def add_highlight(self, entry_id: str, text: str) -> ReleaseHistoryEntry | None:
         """Add a highlight to a history entry."""
         entry = self._history_repo.find_by_id(entry_id)
         if entry is None:
@@ -212,7 +211,7 @@ class ReleaseEngineeringService:
         entry.add_highlight(text)
         return self._history_repo.save(entry)
 
-    async def add_known_issue(self, entry_id: str, text: str) -> Optional[ReleaseHistoryEntry]:
+    async def add_known_issue(self, entry_id: str, text: str) -> ReleaseHistoryEntry | None:
         """Add a known issue to a history entry."""
         entry = self._history_repo.find_by_id(entry_id)
         if entry is None:

@@ -2,14 +2,14 @@
 
 from .audit_events import (
     AuditDomainEvent,
-    AuditEventRecordedEvent,
     AuditEventQueriedEvent,
+    AuditEventRecordedEvent,
     AuditExportedEvent,
 )
 
 __all__ = [
     "AuditDomainEvent",
-    "AuditEventRecordedEvent",
     "AuditEventQueriedEvent",
+    "AuditEventRecordedEvent",
     "AuditExportedEvent",
 ]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 ReleaseStatus = Literal["in_development", "rc", "stable", "deprecated"]
@@ -35,7 +35,7 @@ class ReleaseReadiness:
     extension_compatibility: bool = False
     sdk_stability: bool = False
     overall_ready: bool = False
-    checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    checked_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass

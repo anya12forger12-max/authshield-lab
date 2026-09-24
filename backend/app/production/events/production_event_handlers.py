@@ -6,15 +6,6 @@ import logging
 from typing import Any
 
 from ...shared.events.event_bus import DomainEvent, EventBus, EventType
-from ..domain.events.production_events import (
-    CertificationCompletedEvent,
-    GovernanceReviewCompletedEvent,
-    KnowledgeEntryCreatedEvent,
-    MigrationCompletedEvent,
-    ProductionDomainEvent,
-    ReleaseCreatedEvent,
-    ReleasePublishedEvent,
-)
 
 logger = logging.getLogger("production.event_handlers")
 

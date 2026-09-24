@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 
 class AcademicEventType(str, Enum):
@@ -39,11 +38,11 @@ class AcademicEvent:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     title: str = ""
     event_type: AcademicEventType = AcademicEventType.CLASS
-    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    end_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    start_time: datetime = field(default_factory=lambda: datetime.now(UTC))
+    end_time: datetime = field(default_factory=lambda: datetime.now(UTC))
     recurring: bool = False
-    recurrence_rule: Optional[str] = None
-    description: Optional[str] = None
+    recurrence_rule: str | None = None
+    description: str | None = None
     color: str = "#3B82F6"
 
     @property
@@ -55,9 +54,7 @@ class AcademicEvent:
         """Return ``True`` if this event overlaps with another."""
         if self.end_time <= other.start_time:
             return False
-        if self.start_time >= other.end_time:
-            return False
-        return True
+        return not self.start_time >= other.end_time
 
     def to_dict(self) -> dict:
         return {
@@ -80,7 +77,7 @@ class AcademicCalendar:
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
-    year: int = datetime.now(timezone.utc).year
+    year: int = datetime.now(UTC).year
     events: list[AcademicEvent] = field(default_factory=list)
 
     def add_event(self, event: AcademicEvent) -> None:
@@ -99,7 +96,7 @@ class AcademicCalendar:
                 return True
         return False
 
-    def get_event(self, event_id: str) -> Optional[AcademicEvent]:
+    def get_event(self, event_id: str) -> AcademicEvent | None:
         for e in self.events:
             if e.id == event_id:
                 return e
@@ -108,9 +105,7 @@ class AcademicCalendar:
     def get_events_by_type(self, event_type: AcademicEventType) -> list[AcademicEvent]:
         return [e for e in self.events if e.event_type == event_type]
 
-    def get_events_in_range(
-        self, start: datetime, end: datetime
-    ) -> list[AcademicEvent]:
+    def get_events_in_range(self, start: datetime, end: datetime) -> list[AcademicEvent]:
         result: list[AcademicEvent] = []
         for e in self.events:
             if e.start_time >= start and e.start_time <= end:
@@ -135,8 +130,8 @@ class Term:
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
-    start_date: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    end_date: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    start_date: datetime = field(default_factory=lambda: datetime.now(UTC))
+    end_date: datetime = field(default_factory=lambda: datetime.now(UTC))
     breaks: list[AcademicEvent] = field(default_factory=list)
 
     @property
@@ -150,10 +145,7 @@ class Term:
         self.breaks.append(break_event)
 
     def is_during_break(self, date: datetime) -> bool:
-        for b in self.breaks:
-            if b.start_time <= date <= b.end_time:
-                return True
-        return False
+        return any(b.start_time <= date <= b.end_time for b in self.breaks)
 
     def to_dict(self) -> dict:
         return {
@@ -172,9 +164,9 @@ class ImportantDate:
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     title: str = ""
-    date: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    date: datetime = field(default_factory=lambda: datetime.now(UTC))
     date_type: ImportantDateType = ImportantDateType.ENROLLMENT_DEADLINE
-    description: Optional[str] = None
+    description: str | None = None
 
     def to_dict(self) -> dict:
         return {

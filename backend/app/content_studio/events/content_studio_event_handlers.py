@@ -19,17 +19,6 @@ class ContentStudioEventHandler:
         if self._handlers_registered:
             return
 
-        from ..domain.events.content_studio_events import (
-            A11yValidationCompleted,
-            ContentPublished,
-            CourseDesigned,
-            LessonCreated,
-            PublishRequested,
-            ReviewAdvanced,
-            TemplateCreated,
-            VirtualLabCreated,
-        )
-
         event_bus.subscribe_course_designed(self._on_course_designed)
         event_bus.subscribe_lesson_created(self._on_lesson_created)
         event_bus.subscribe_virtual_lab_created(self._on_virtual_lab_created)

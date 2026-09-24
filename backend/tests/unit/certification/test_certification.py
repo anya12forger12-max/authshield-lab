@@ -1,8 +1,9 @@
-"""Tests for certification entities and services — PlatformCertification, ValidationCheck, DependencyLifecycle, SustainabilityDashboard, CertificationService, PlatformValidationService, SustainabilityService."""
+"Tests for certification entities and services — PlatformCertification, ValidationCheck, DependencyLifecycle, SustainabilityDashboard, CertificationService, PlatformValidationService, SustainabilityService."
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock
+from datetime import UTC
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -23,9 +24,7 @@ from app.certification.domain.entities.sustainability import (
     DependencyLifecycle,
     DependencyStatus,
     DocumentationFreshness,
-    MaintenanceRoadmap,
     ModuleOwnership,
-    RoadmapItem,
     SustainabilityDashboard,
 )
 
@@ -198,9 +197,11 @@ class TestAPIStabilityReport:
 
 class TestModuleOwnership:
     def test_needs_review(self):
-        from datetime import datetime, timezone, timedelta
-        m = ModuleOwnership(module="auth", owner="alice",
-                            last_reviewed=datetime.now(timezone.utc) - timedelta(days=60))
+        from datetime import datetime, timedelta
+
+        m = ModuleOwnership(
+            module="auth", owner="alice", last_reviewed=datetime.now(UTC) - timedelta(days=60)
+        )
         assert m.needs_review(30) is True
 
     def test_recent_review(self):
@@ -210,25 +211,28 @@ class TestModuleOwnership:
 
 class TestDocumentationFreshness:
     def test_recalculate_fresh(self):
-        from datetime import datetime, timezone
-        d = DocumentationFreshness(component="api", last_updated=datetime.now(timezone.utc))
+        from datetime import datetime
+
+        d = DocumentationFreshness(component="api", last_updated=datetime.now(UTC))
         d.recalculate()
         assert d.status == "fresh"
 
     def test_recalculate_stale(self):
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
+
         d = DocumentationFreshness(
             component="api",
-            last_updated=datetime.now(timezone.utc) - timedelta(days=60),
+            last_updated=datetime.now(UTC) - timedelta(days=60),
         )
         d.recalculate()
         assert d.status == "stale"
 
     def test_recalculate_critical(self):
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timedelta
+
         d = DocumentationFreshness(
             component="api",
-            last_updated=datetime.now(timezone.utc) - timedelta(days=200),
+            last_updated=datetime.now(UTC) - timedelta(days=200),
         )
         d.recalculate()
         assert d.status == "critical"
@@ -249,8 +253,12 @@ class TestSustainabilityDashboard:
         assert 0 <= score <= 100
 
     def test_deprecated_dependencies(self):
-        dep_supported = DependencyLifecycle(name="pkg1", version="1.0", status=DependencyStatus.SUPPORTED)
-        dep_eol = DependencyLifecycle(name="pkg2", version="1.0", status=DependencyStatus.END_OF_LIFE)
+        dep_supported = DependencyLifecycle(
+            name="pkg1", version="1.0", status=DependencyStatus.SUPPORTED
+        )
+        dep_eol = DependencyLifecycle(
+            name="pkg2", version="1.0", status=DependencyStatus.END_OF_LIFE
+        )
         d = SustainabilityDashboard(dependencies=[dep_supported, dep_eol])
         assert len(d.deprecated_dependencies()) == 1
 
@@ -259,6 +267,7 @@ class TestCertificationService:
     @pytest.mark.asyncio
     async def test_create_certification(self):
         from app.certification.services.certification_service import CertificationService
+
         cert_repo = MagicMock()
         cert_repo.save = MagicMock(side_effect=lambda x: x)
         service = CertificationService(cert_repo, MagicMock(), MagicMock())
@@ -268,6 +277,7 @@ class TestCertificationService:
     @pytest.mark.asyncio
     async def test_get_certification(self):
         from app.certification.services.certification_service import CertificationService
+
         cert_repo = MagicMock()
         c = PlatformCertification(id="c1")
         cert_repo.find_by_id = MagicMock(return_value=c)
@@ -278,6 +288,7 @@ class TestCertificationService:
     @pytest.mark.asyncio
     async def test_add_requirement(self):
         from app.certification.services.certification_service import CertificationService
+
         cert_repo = MagicMock()
         cert_repo.find_by_id = MagicMock(return_value=PlatformCertification(id="c1"))
         req_repo = MagicMock()
@@ -289,6 +300,7 @@ class TestCertificationService:
     @pytest.mark.asyncio
     async def test_issue_certification(self):
         from app.certification.services.certification_service import CertificationService
+
         cert_repo = MagicMock()
         c = PlatformCertification(id="c1")
         cert_repo.find_by_id = MagicMock(return_value=c)
@@ -300,6 +312,7 @@ class TestCertificationService:
     @pytest.mark.asyncio
     async def test_revoke_certification(self):
         from app.certification.services.certification_service import CertificationService
+
         cert_repo = MagicMock()
         c = PlatformCertification(id="c1")
         cert_repo.find_by_id = MagicMock(return_value=c)
@@ -313,6 +326,7 @@ class TestPlatformValidationService:
     @pytest.mark.asyncio
     async def test_run_check_passed(self):
         from app.certification.services.platform_validation_service import PlatformValidationService
+
         check_repo = MagicMock()
         check_repo.save = MagicMock(side_effect=lambda x: x)
         service = PlatformValidationService(check_repo, MagicMock(), MagicMock(), MagicMock())
@@ -322,6 +336,7 @@ class TestPlatformValidationService:
     @pytest.mark.asyncio
     async def test_run_check_failed(self):
         from app.certification.services.platform_validation_service import PlatformValidationService
+
         check_repo = MagicMock()
         check_repo.save = MagicMock(side_effect=lambda x: x)
         service = PlatformValidationService(check_repo, MagicMock(), MagicMock(), MagicMock())
@@ -331,6 +346,7 @@ class TestPlatformValidationService:
     @pytest.mark.asyncio
     async def test_validate_subsystem(self):
         from app.certification.services.platform_validation_service import PlatformValidationService
+
         check_repo = MagicMock()
         check_repo.save = MagicMock(side_effect=lambda x: x)
         sub_repo = MagicMock()
@@ -344,6 +360,7 @@ class TestPlatformValidationService:
     @pytest.mark.asyncio
     async def test_run_acceptance_test(self):
         from app.certification.services.platform_validation_service import PlatformValidationService
+
         check_repo = MagicMock()
         check_repo.save = MagicMock(side_effect=lambda x: x)
         sub_repo = MagicMock()
@@ -367,19 +384,25 @@ class TestSustainabilityService:
     @pytest.mark.asyncio
     async def test_register_dependency(self):
         from app.certification.services.sustainability_service import SustainabilityService
+
         dep_repo = MagicMock()
         dep_repo.find_by_name = MagicMock(return_value=None)
         dep_repo.save = MagicMock(side_effect=lambda x: x)
-        service = SustainabilityService(dep_repo, MagicMock(), MagicMock(), MagicMock(), MagicMock(), MagicMock())
+        service = SustainabilityService(
+            dep_repo, MagicMock(), MagicMock(), MagicMock(), MagicMock(), MagicMock()
+        )
         dep = await service.register_dependency("pkg", "1.0")
         assert dep.name == "pkg"
 
     @pytest.mark.asyncio
     async def test_record_api_stability(self):
         from app.certification.services.sustainability_service import SustainabilityService
+
         api_repo = MagicMock()
         api_repo.save = MagicMock(side_effect=lambda x: x)
-        service = SustainabilityService(MagicMock(), api_repo, MagicMock(), MagicMock(), MagicMock(), MagicMock())
+        service = SustainabilityService(
+            MagicMock(), api_repo, MagicMock(), MagicMock(), MagicMock(), MagicMock()
+        )
         report = await service.record_api_stability("1.0", endpoints=100, deprecated=5)
         assert report.version == "1.0"
         assert report.stability_score < 100.0
@@ -387,6 +410,7 @@ class TestSustainabilityService:
     @pytest.mark.asyncio
     async def test_generate_dashboard(self):
         from app.certification.services.sustainability_service import SustainabilityService
+
         dep_repo = MagicMock()
         dep_repo.find_all = MagicMock(return_value=[])
         api_repo = MagicMock()
@@ -397,6 +421,8 @@ class TestSustainabilityService:
         doc_repo.find_all = MagicMock(return_value=[])
         dashboard_repo = MagicMock()
         dashboard_repo.save = MagicMock(side_effect=lambda x: x)
-        service = SustainabilityService(dep_repo, api_repo, own_repo, doc_repo, dashboard_repo, MagicMock())
+        service = SustainabilityService(
+            dep_repo, api_repo, own_repo, doc_repo, dashboard_repo, MagicMock()
+        )
         dashboard = await service.generate_dashboard()
         assert isinstance(dashboard, SustainabilityDashboard)

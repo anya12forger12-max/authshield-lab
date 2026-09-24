@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
 import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -13,7 +13,7 @@ class SessionEvent:
 
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     event_type: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     correlation_id: str = ""
     module: str = "sessions"
     severity: str = "info"

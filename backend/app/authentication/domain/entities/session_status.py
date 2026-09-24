@@ -18,9 +18,7 @@ class SessionStatus(str, Enum):
     UNKNOWN = "unknown"
 
 
-_USABLE_STATUSES: frozenset[SessionStatus] = frozenset(
-    {SessionStatus.ACTIVE, SessionStatus.IDLE}
-)
+_USABLE_STATUSES: frozenset[SessionStatus] = frozenset({SessionStatus.ACTIVE, SessionStatus.IDLE})
 
 _TERMINAL_STATUSES: frozenset[SessionStatus] = frozenset(
     {SessionStatus.EXPIRED, SessionStatus.REVOKED, SessionStatus.TERMINATED, SessionStatus.INVALID}

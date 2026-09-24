@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -42,7 +42,7 @@ class PlatformCertification:
             return False
         if self.expires_at is None:
             return True
-        return datetime.now(timezone.utc) < self.expires_at
+        return datetime.now(UTC) < self.expires_at
 
     def add_evidence(self, item: str) -> None:
         """Append an evidence item if not already recorded."""
@@ -61,7 +61,7 @@ class PlatformCertification:
         """Transition to certified state."""
         self.status = CertificationStatus.CERTIFIED
         self.approved_by = approver
-        self.approved_at = datetime.now(timezone.utc)
+        self.approved_at = datetime.now(UTC)
         self.certified_at = self.approved_at
 
     def revoke(self) -> None:
@@ -143,16 +143,14 @@ class PlatformCertificationReport:
     certifications: list[PlatformCertification] = field(default_factory=list)
     overall_status: str = "pending"
     score: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def compute_score(self) -> float:
         """Derive ``score`` from the proportion of certified items."""
         if not self.certifications:
             self.score = 0.0
             return self.score
-        certified = sum(
-            1 for c in self.certifications if c.status == CertificationStatus.CERTIFIED
-        )
+        certified = sum(1 for c in self.certifications if c.status == CertificationStatus.CERTIFIED)
         self.score = (certified / len(self.certifications)) * 100.0
         return self.score
 

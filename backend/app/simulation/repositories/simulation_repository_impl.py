@@ -3,22 +3,22 @@
 from __future__ import annotations
 
 import copy
-from typing import Any, Optional
+from typing import Any
 
-from ..domain.entities.scenario import Scenario
-from ..domain.entities.dataset import SyntheticDataset
-from ..domain.entities.timeline import Timeline
-from ..domain.entities.exercise import Exercise
 from ..domain.entities.console import InstructorSession, LearnerSession
+from ..domain.entities.dataset import SyntheticDataset
+from ..domain.entities.exercise import Exercise
 from ..domain.entities.results import ExerciseResult
+from ..domain.entities.scenario import Scenario
+from ..domain.entities.timeline import Timeline
 from ..domain.interfaces import (
-    ScenarioRepositoryInterface,
     DatasetRepositoryInterface,
-    TimelineRepositoryInterface,
     ExerciseRepositoryInterface,
     InstructorSessionRepositoryInterface,
     LearnerSessionRepositoryInterface,
     ResultsRepositoryInterface,
+    ScenarioRepositoryInterface,
+    TimelineRepositoryInterface,
 )
 
 
@@ -28,13 +28,11 @@ class InMemoryScenarioRepository(ScenarioRepositoryInterface):
     def __init__(self) -> None:
         self._store: dict[str, Scenario] = {}
 
-    async def get_by_id(self, scenario_id: str) -> Optional[Scenario]:
+    async def get_by_id(self, scenario_id: str) -> Scenario | None:
         scenario = self._store.get(scenario_id)
         return copy.deepcopy(scenario) if scenario else None
 
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         items = list(self._store.values())
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
@@ -52,9 +50,7 @@ class InMemoryScenarioRepository(ScenarioRepositoryInterface):
         self._store[scenario.id] = copy.deepcopy(scenario)
         return copy.deepcopy(scenario)
 
-    async def update(
-        self, scenario_id: str, data: dict[str, Any]
-    ) -> Optional[Scenario]:
+    async def update(self, scenario_id: str, data: dict[str, Any]) -> Scenario | None:
         scenario = self._store.get(scenario_id)
         if scenario is None:
             return None
@@ -70,15 +66,12 @@ class InMemoryScenarioRepository(ScenarioRepositoryInterface):
             return True
         return False
 
-    async def search(
-        self, query: str, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def search(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         query_lower = query.lower()
         matched = [
             s
             for s in self._store.values()
-            if query_lower in s.title.lower()
-            or query_lower in s.description.lower()
+            if query_lower in s.title.lower() or query_lower in s.description.lower()
         ]
         total = len(matched)
         pages = max(1, (total + per_page - 1) // per_page) if total > 0 else 1
@@ -93,11 +86,7 @@ class InMemoryScenarioRepository(ScenarioRepositoryInterface):
         }
 
     async def get_by_status(self, status: str) -> list[Scenario]:
-        return [
-            copy.deepcopy(s)
-            for s in self._store.values()
-            if s.status.value == status
-        ]
+        return [copy.deepcopy(s) for s in self._store.values() if s.status.value == status]
 
 
 class InMemoryDatasetRepository(DatasetRepositoryInterface):
@@ -106,13 +95,11 @@ class InMemoryDatasetRepository(DatasetRepositoryInterface):
     def __init__(self) -> None:
         self._store: dict[str, SyntheticDataset] = {}
 
-    async def get_by_id(self, dataset_id: str) -> Optional[SyntheticDataset]:
+    async def get_by_id(self, dataset_id: str) -> SyntheticDataset | None:
         dataset = self._store.get(dataset_id)
         return copy.deepcopy(dataset) if dataset else None
 
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         items = list(self._store.values())
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page) if total > 0 else 1
@@ -143,13 +130,11 @@ class InMemoryTimelineRepository(TimelineRepositoryInterface):
     def __init__(self) -> None:
         self._store: dict[str, Timeline] = {}
 
-    async def get_by_id(self, timeline_id: str) -> Optional[Timeline]:
+    async def get_by_id(self, timeline_id: str) -> Timeline | None:
         timeline = self._store.get(timeline_id)
         return copy.deepcopy(timeline) if timeline else None
 
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         items = list(self._store.values())
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page) if total > 0 else 1
@@ -167,9 +152,7 @@ class InMemoryTimelineRepository(TimelineRepositoryInterface):
         self._store[timeline.id] = copy.deepcopy(timeline)
         return copy.deepcopy(timeline)
 
-    async def update(
-        self, timeline_id: str, data: dict[str, Any]
-    ) -> Optional[Timeline]:
+    async def update(self, timeline_id: str, data: dict[str, Any]) -> Timeline | None:
         timeline = self._store.get(timeline_id)
         if timeline is None:
             return None
@@ -186,11 +169,7 @@ class InMemoryTimelineRepository(TimelineRepositoryInterface):
         return False
 
     async def get_by_scenario_id(self, scenario_id: str) -> list[Timeline]:
-        return [
-            copy.deepcopy(t)
-            for t in self._store.values()
-            if t.scenario_id == scenario_id
-        ]
+        return [copy.deepcopy(t) for t in self._store.values() if t.scenario_id == scenario_id]
 
 
 class InMemoryExerciseRepository(ExerciseRepositoryInterface):
@@ -199,13 +178,11 @@ class InMemoryExerciseRepository(ExerciseRepositoryInterface):
     def __init__(self) -> None:
         self._store: dict[str, Exercise] = {}
 
-    async def get_by_id(self, exercise_id: str) -> Optional[Exercise]:
+    async def get_by_id(self, exercise_id: str) -> Exercise | None:
         exercise = self._store.get(exercise_id)
         return copy.deepcopy(exercise) if exercise else None
 
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         items = list(self._store.values())
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page) if total > 0 else 1
@@ -223,9 +200,7 @@ class InMemoryExerciseRepository(ExerciseRepositoryInterface):
         self._store[exercise.id] = copy.deepcopy(exercise)
         return copy.deepcopy(exercise)
 
-    async def update(
-        self, exercise_id: str, data: dict[str, Any]
-    ) -> Optional[Exercise]:
+    async def update(self, exercise_id: str, data: dict[str, Any]) -> Exercise | None:
         exercise = self._store.get(exercise_id)
         if exercise is None:
             return None
@@ -241,9 +216,7 @@ class InMemoryExerciseRepository(ExerciseRepositoryInterface):
             return True
         return False
 
-    async def search(
-        self, query: str, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def search(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         query_lower = query.lower()
         matched = [
             e
@@ -266,18 +239,10 @@ class InMemoryExerciseRepository(ExerciseRepositoryInterface):
         }
 
     async def get_by_scenario_id(self, scenario_id: str) -> list[Exercise]:
-        return [
-            copy.deepcopy(e)
-            for e in self._store.values()
-            if e.scenario_id == scenario_id
-        ]
+        return [copy.deepcopy(e) for e in self._store.values() if e.scenario_id == scenario_id]
 
     async def get_by_status(self, status: str) -> list[Exercise]:
-        return [
-            copy.deepcopy(e)
-            for e in self._store.values()
-            if e.status.value == status
-        ]
+        return [copy.deepcopy(e) for e in self._store.values() if e.status.value == status]
 
 
 class InMemoryInstructorSessionRepository(InstructorSessionRepositoryInterface):
@@ -286,13 +251,11 @@ class InMemoryInstructorSessionRepository(InstructorSessionRepositoryInterface):
     def __init__(self) -> None:
         self._store: dict[str, InstructorSession] = {}
 
-    async def get_by_id(self, session_id: str) -> Optional[InstructorSession]:
+    async def get_by_id(self, session_id: str) -> InstructorSession | None:
         session = self._store.get(session_id)
         return copy.deepcopy(session) if session else None
 
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         items = list(self._store.values())
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page) if total > 0 else 1
@@ -310,9 +273,7 @@ class InMemoryInstructorSessionRepository(InstructorSessionRepositoryInterface):
         self._store[session.id] = copy.deepcopy(session)
         return copy.deepcopy(session)
 
-    async def update(
-        self, session_id: str, data: dict[str, Any]
-    ) -> Optional[InstructorSession]:
+    async def update(self, session_id: str, data: dict[str, Any]) -> InstructorSession | None:
         session = self._store.get(session_id)
         if session is None:
             return None
@@ -328,23 +289,11 @@ class InMemoryInstructorSessionRepository(InstructorSessionRepositoryInterface):
             return True
         return False
 
-    async def get_by_instructor(
-        self, instructor_id: str
-    ) -> list[InstructorSession]:
-        return [
-            copy.deepcopy(s)
-            for s in self._store.values()
-            if s.instructor_id == instructor_id
-        ]
+    async def get_by_instructor(self, instructor_id: str) -> list[InstructorSession]:
+        return [copy.deepcopy(s) for s in self._store.values() if s.instructor_id == instructor_id]
 
-    async def get_by_exercise(
-        self, exercise_id: str
-    ) -> list[InstructorSession]:
-        return [
-            copy.deepcopy(s)
-            for s in self._store.values()
-            if s.exercise_id == exercise_id
-        ]
+    async def get_by_exercise(self, exercise_id: str) -> list[InstructorSession]:
+        return [copy.deepcopy(s) for s in self._store.values() if s.exercise_id == exercise_id]
 
 
 class InMemoryLearnerSessionRepository(LearnerSessionRepositoryInterface):
@@ -353,13 +302,11 @@ class InMemoryLearnerSessionRepository(LearnerSessionRepositoryInterface):
     def __init__(self) -> None:
         self._store: dict[str, LearnerSession] = {}
 
-    async def get_by_id(self, session_id: str) -> Optional[LearnerSession]:
+    async def get_by_id(self, session_id: str) -> LearnerSession | None:
         session = self._store.get(session_id)
         return copy.deepcopy(session) if session else None
 
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         items = list(self._store.values())
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page) if total > 0 else 1
@@ -377,9 +324,7 @@ class InMemoryLearnerSessionRepository(LearnerSessionRepositoryInterface):
         self._store[session.id] = copy.deepcopy(session)
         return copy.deepcopy(session)
 
-    async def update(
-        self, session_id: str, data: dict[str, Any]
-    ) -> Optional[LearnerSession]:
+    async def update(self, session_id: str, data: dict[str, Any]) -> LearnerSession | None:
         session = self._store.get(session_id)
         if session is None:
             return None
@@ -396,20 +341,10 @@ class InMemoryLearnerSessionRepository(LearnerSessionRepositoryInterface):
         return False
 
     async def get_by_learner(self, learner_id: str) -> list[LearnerSession]:
-        return [
-            copy.deepcopy(s)
-            for s in self._store.values()
-            if s.learner_id == learner_id
-        ]
+        return [copy.deepcopy(s) for s in self._store.values() if s.learner_id == learner_id]
 
-    async def get_by_exercise(
-        self, exercise_id: str
-    ) -> list[LearnerSession]:
-        return [
-            copy.deepcopy(s)
-            for s in self._store.values()
-            if s.exercise_id == exercise_id
-        ]
+    async def get_by_exercise(self, exercise_id: str) -> list[LearnerSession]:
+        return [copy.deepcopy(s) for s in self._store.values() if s.exercise_id == exercise_id]
 
 
 class InMemoryResultsRepository(ResultsRepositoryInterface):
@@ -418,13 +353,11 @@ class InMemoryResultsRepository(ResultsRepositoryInterface):
     def __init__(self) -> None:
         self._store: dict[str, ExerciseResult] = {}
 
-    async def get_by_id(self, result_id: str) -> Optional[ExerciseResult]:
+    async def get_by_id(self, result_id: str) -> ExerciseResult | None:
         result = self._store.get(result_id)
         return copy.deepcopy(result) if result else None
 
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         items = list(self._store.values())
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page) if total > 0 else 1
@@ -442,9 +375,7 @@ class InMemoryResultsRepository(ResultsRepositoryInterface):
         self._store[result.id] = copy.deepcopy(result)
         return copy.deepcopy(result)
 
-    async def update(
-        self, result_id: str, data: dict[str, Any]
-    ) -> Optional[ExerciseResult]:
+    async def update(self, result_id: str, data: dict[str, Any]) -> ExerciseResult | None:
         result = self._store.get(result_id)
         if result is None:
             return None
@@ -460,19 +391,11 @@ class InMemoryResultsRepository(ResultsRepositoryInterface):
             return True
         return False
 
-    async def get_by_session(
-        self, session_id: str
-    ) -> Optional[ExerciseResult]:
+    async def get_by_session(self, session_id: str) -> ExerciseResult | None:
         for result in self._store.values():
             if result.session_id == session_id:
                 return copy.deepcopy(result)
         return None
 
-    async def get_by_exercise(
-        self, exercise_id: str
-    ) -> list[ExerciseResult]:
-        return [
-            copy.deepcopy(r)
-            for r in self._store.values()
-            if r.exercise_id == exercise_id
-        ]
+    async def get_by_exercise(self, exercise_id: str) -> list[ExerciseResult]:
+        return [copy.deepcopy(r) for r in self._store.values() if r.exercise_id == exercise_id]

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.knowledge_preservation import (
     ArchitectureDecisionRecord,
     CodingStandard,
@@ -15,6 +15,7 @@ from ..domain.entities.knowledge_preservation import (
     MigrationHistory,
     ReleaseHistory,
 )
+from ..domain.events.production_events import KnowledgeEntryCreatedEvent
 from ..domain.interfaces import (
     IArchitectureDecisionRecordRepository,
     ICodingStandardRepository,
@@ -22,7 +23,6 @@ from ..domain.interfaces import (
     IMigrationHistoryRepository,
     IReleaseHistoryRepository,
 )
-from ..domain.events.production_events import KnowledgeEntryCreatedEvent
 
 logger = get_logger("production.knowledge_service")
 
@@ -53,7 +53,7 @@ class KnowledgeService:
         coding_standard_repo: ICodingStandardRepository,
         migration_history_repo: IMigrationHistoryRepository,
         release_history_repo: IReleaseHistoryRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._adr_repo = adr_repo
         self._knowledge_repo = knowledge_repo
@@ -87,25 +87,23 @@ class KnowledgeService:
             decision=decision,
             consequences=consequences,
             alternatives=alternatives,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         await self._adr_repo.create(adr)
         logger.info("adr_created", adr_id=adr.id, title=title)
         return adr
 
-    async def get_adr(self, adr_id: str) -> Optional[ArchitectureDecisionRecord]:
+    async def get_adr(self, adr_id: str) -> ArchitectureDecisionRecord | None:
         """Retrieve an ADR by ID."""
         return await self._adr_repo.get_by_id(adr_id)
 
-    async def list_adrs(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_adrs(self, page: int = 1, per_page: int = 20) -> dict:
         """List all ADRs with pagination."""
         return await self._adr_repo.get_all(page=page, per_page=per_page)
 
     async def update_adr_status(
         self, adr_id: str, new_status: str
-    ) -> Optional[ArchitectureDecisionRecord]:
+    ) -> ArchitectureDecisionRecord | None:
         """Transition an ADR to a new status."""
         adr = await self._adr_repo.get_by_id(adr_id)
         if adr is None:
@@ -117,13 +115,13 @@ class KnowledgeService:
 
         data: dict[str, Any] = {"status": new_status}
         if new_status == "accepted":
-            data["reviewed_at"] = datetime.now(timezone.utc)
+            data["reviewed_at"] = datetime.now(UTC)
 
         return await self._adr_repo.update(adr_id, data)
 
     async def update_adr(
         self, adr_id: str, data: dict[str, Any]
-    ) -> Optional[ArchitectureDecisionRecord]:
+    ) -> ArchitectureDecisionRecord | None:
         """Update arbitrary fields on an ADR."""
         return await self._adr_repo.update(adr_id, data)
 
@@ -140,7 +138,7 @@ class KnowledgeService:
         title: str,
         category: str,
         content: str,
-        tags: Optional[list[str]] = None,
+        tags: list[str] | None = None,
         version: str = "",
         author: str = "",
     ) -> KnowledgeEntry:
@@ -153,8 +151,8 @@ class KnowledgeService:
             tags=tags or [],
             version=version,
             author=author,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         await self._knowledge_repo.create(entry)
         await self._publish_event(
@@ -168,15 +166,11 @@ class KnowledgeService:
         logger.info("knowledge_entry_created", entry_id=entry.id, title=title)
         return entry
 
-    async def get_knowledge_entry(
-        self, entry_id: str
-    ) -> Optional[KnowledgeEntry]:
+    async def get_knowledge_entry(self, entry_id: str) -> KnowledgeEntry | None:
         """Retrieve a knowledge entry by ID."""
         return await self._knowledge_repo.get_by_id(entry_id)
 
-    async def list_knowledge_entries(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_knowledge_entries(self, page: int = 1, per_page: int = 20) -> dict:
         """List knowledge entries with pagination."""
         return await self._knowledge_repo.get_all(page=page, per_page=per_page)
 
@@ -186,9 +180,9 @@ class KnowledgeService:
 
     async def update_knowledge_entry(
         self, entry_id: str, data: dict[str, Any]
-    ) -> Optional[KnowledgeEntry]:
+    ) -> KnowledgeEntry | None:
         """Update a knowledge entry."""
-        data["updated_at"] = datetime.now(timezone.utc)
+        data["updated_at"] = datetime.now(UTC)
         return await self._knowledge_repo.update(entry_id, data)
 
     async def delete_knowledge_entry(self, entry_id: str) -> bool:
@@ -204,8 +198,8 @@ class KnowledgeService:
         name: str,
         category: str,
         description: str,
-        examples: Optional[list[str]] = None,
-        references: Optional[list[str]] = None,
+        examples: list[str] | None = None,
+        references: list[str] | None = None,
     ) -> CodingStandard:
         """Register a new coding standard."""
         standard = CodingStandard(
@@ -220,9 +214,7 @@ class KnowledgeService:
         logger.info("coding_standard_created", standard_id=standard.id, name=name)
         return standard
 
-    async def get_coding_standard(
-        self, standard_id: str
-    ) -> Optional[CodingStandard]:
+    async def get_coding_standard(self, standard_id: str) -> CodingStandard | None:
         """Retrieve a coding standard by ID."""
         return await self._coding_standard_repo.get_by_id(standard_id)
 
@@ -232,7 +224,7 @@ class KnowledgeService:
 
     async def update_coding_standard(
         self, standard_id: str, data: dict[str, Any]
-    ) -> Optional[CodingStandard]:
+    ) -> CodingStandard | None:
         """Update a coding standard."""
         return await self._coding_standard_repo.update(standard_id, data)
 
@@ -258,7 +250,7 @@ class KnowledgeService:
             id=str(uuid.uuid4()),
             from_version=from_version,
             to_version=to_version,
-            migration_date=datetime.now(timezone.utc).isoformat(),
+            migration_date=datetime.now(UTC).isoformat(),
             status=status,
             steps_completed=steps_completed,
             total_steps=total_steps,
@@ -292,7 +284,7 @@ class KnowledgeService:
             id=str(uuid.uuid4()),
             release_id=release_id,
             version=version,
-            release_date=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            release_date=datetime.now(UTC).strftime("%Y-%m-%d"),
             summary=summary,
         )
         await self._release_history_repo.create(history)

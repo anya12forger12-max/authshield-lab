@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
 
 
 class ApiParameter:
@@ -175,11 +174,13 @@ class ApiDocumentation:
 
     def add_example(self, title: str, request: dict, response: dict) -> None:
         """Add a request/response example."""
-        self.examples.append({
-            "title": title,
-            "request": request,
-            "response": response,
-        })
+        self.examples.append(
+            {
+                "title": title,
+                "request": request,
+                "response": response,
+            }
+        )
 
     def remove_example(self, title: str) -> None:
         """Remove an example by its title."""

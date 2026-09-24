@@ -7,7 +7,7 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class AuthorizationResult:
 
     decision: AuthorizationDecision = AuthorizationDecision.NOT_APPLICABLE
     reason: str = ""
-    policy_id: Optional[str] = None
+    policy_id: str | None = None
     evaluation_time_ms: float = 0.0
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -161,9 +161,7 @@ class AuthorizationEngine:
         policy_id = policy.get_policy_id()
         for existing in self._policies:
             if existing.get_policy_id() == policy_id:
-                raise ValueError(
-                    f"Policy '{policy_id}' is already registered"
-                )
+                raise ValueError(f"Policy '{policy_id}' is already registered")
 
         self._policies.append(policy)
         logger.info(
@@ -302,12 +300,12 @@ class AuthorizationEngine:
 # Module-level singleton
 # ------------------------------------------------------------------
 
-_authorization_engine: Optional[AuthorizationEngine] = None
+_authorization_engine: AuthorizationEngine | None = None
 
 
 def get_authorization_engine() -> AuthorizationEngine:
     """Return the global :class:`AuthorizationEngine`, creating it lazily."""
-    global _authorization_engine  # noqa: PLW0603
+    global _authorization_engine
     if _authorization_engine is None:
         _authorization_engine = AuthorizationEngine()
     return _authorization_engine

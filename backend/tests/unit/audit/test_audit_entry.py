@@ -1,13 +1,9 @@
 """Tests for AuditEntry entity (AuditEvent model)."""
 
-import pytest
-from datetime import datetime, timezone
-
 from app.shared.models.audit_event import AuditEvent
 
 
 def _make_audit(**overrides):
-    now = datetime.now(timezone.utc)
     defaults = {
         "correlation_id": "corr-001",
         "module": "authentication",
@@ -18,8 +14,7 @@ def _make_audit(**overrides):
         "ip_address": "127.0.0.1",
     }
     defaults.update(overrides)
-    event = AuditEvent(**defaults)
-    return event
+    return AuditEvent(**defaults)
 
 
 class TestAuditEventCreation:

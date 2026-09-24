@@ -5,25 +5,23 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any, Optional
 
-from ..entities.scenario import Scenario
-from ..entities.dataset import SyntheticDataset
-from ..entities.timeline import Timeline
-from ..entities.exercise import Exercise
 from ..entities.console import InstructorSession, LearnerSession
+from ..entities.dataset import SyntheticDataset
+from ..entities.exercise import Exercise
 from ..entities.results import ExerciseResult
+from ..entities.scenario import Scenario
+from ..entities.timeline import Timeline
 
 
 class ScenarioRepositoryInterface(ABC):
     """Abstract repository for Scenario persistence."""
 
     @abstractmethod
-    async def get_by_id(self, scenario_id: str) -> Optional[Scenario]:
+    async def get_by_id(self, scenario_id: str) -> Scenario | None:
         """Return a scenario by its ID, or None if not found."""
 
     @abstractmethod
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """Return a paginated list of all scenarios."""
 
     @abstractmethod
@@ -31,7 +29,7 @@ class ScenarioRepositoryInterface(ABC):
         """Persist a new scenario and return it."""
 
     @abstractmethod
-    async def update(self, scenario_id: str, data: dict[str, Any]) -> Optional[Scenario]:
+    async def update(self, scenario_id: str, data: dict[str, Any]) -> Scenario | None:
         """Update an existing scenario and return it."""
 
     @abstractmethod
@@ -39,9 +37,7 @@ class ScenarioRepositoryInterface(ABC):
         """Delete a scenario by ID. Returns True if found and deleted."""
 
     @abstractmethod
-    async def search(
-        self, query: str, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def search(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """Search scenarios by title or description."""
 
     @abstractmethod
@@ -53,13 +49,11 @@ class DatasetRepositoryInterface(ABC):
     """Abstract repository for SyntheticDataset persistence."""
 
     @abstractmethod
-    async def get_by_id(self, dataset_id: str) -> Optional[SyntheticDataset]:
+    async def get_by_id(self, dataset_id: str) -> SyntheticDataset | None:
         """Return a dataset by its ID, or None if not found."""
 
     @abstractmethod
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """Return a paginated list of all datasets."""
 
     @abstractmethod
@@ -75,13 +69,11 @@ class TimelineRepositoryInterface(ABC):
     """Abstract repository for Timeline persistence."""
 
     @abstractmethod
-    async def get_by_id(self, timeline_id: str) -> Optional[Timeline]:
+    async def get_by_id(self, timeline_id: str) -> Timeline | None:
         """Return a timeline by its ID, or None if not found."""
 
     @abstractmethod
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """Return a paginated list of all timelines."""
 
     @abstractmethod
@@ -89,7 +81,7 @@ class TimelineRepositoryInterface(ABC):
         """Persist a new timeline and return it."""
 
     @abstractmethod
-    async def update(self, timeline_id: str, data: dict[str, Any]) -> Optional[Timeline]:
+    async def update(self, timeline_id: str, data: dict[str, Any]) -> Timeline | None:
         """Update an existing timeline and return it."""
 
     @abstractmethod
@@ -105,13 +97,11 @@ class ExerciseRepositoryInterface(ABC):
     """Abstract repository for Exercise persistence."""
 
     @abstractmethod
-    async def get_by_id(self, exercise_id: str) -> Optional[Exercise]:
+    async def get_by_id(self, exercise_id: str) -> Exercise | None:
         """Return an exercise by its ID, or None if not found."""
 
     @abstractmethod
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """Return a paginated list of all exercises."""
 
     @abstractmethod
@@ -119,7 +109,7 @@ class ExerciseRepositoryInterface(ABC):
         """Persist a new exercise and return it."""
 
     @abstractmethod
-    async def update(self, exercise_id: str, data: dict[str, Any]) -> Optional[Exercise]:
+    async def update(self, exercise_id: str, data: dict[str, Any]) -> Exercise | None:
         """Update an existing exercise and return it."""
 
     @abstractmethod
@@ -127,9 +117,7 @@ class ExerciseRepositoryInterface(ABC):
         """Delete an exercise by ID. Returns True if found and deleted."""
 
     @abstractmethod
-    async def search(
-        self, query: str, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def search(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """Search exercises by title, category, or tags."""
 
     @abstractmethod
@@ -145,13 +133,11 @@ class InstructorSessionRepositoryInterface(ABC):
     """Abstract repository for InstructorSession persistence."""
 
     @abstractmethod
-    async def get_by_id(self, session_id: str) -> Optional[InstructorSession]:
+    async def get_by_id(self, session_id: str) -> InstructorSession | None:
         """Return an instructor session by ID, or None if not found."""
 
     @abstractmethod
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """Return a paginated list of all instructor sessions."""
 
     @abstractmethod
@@ -159,9 +145,7 @@ class InstructorSessionRepositoryInterface(ABC):
         """Persist a new instructor session and return it."""
 
     @abstractmethod
-    async def update(
-        self, session_id: str, data: dict[str, Any]
-    ) -> Optional[InstructorSession]:
+    async def update(self, session_id: str, data: dict[str, Any]) -> InstructorSession | None:
         """Update an existing instructor session and return it."""
 
     @abstractmethod
@@ -181,13 +165,11 @@ class LearnerSessionRepositoryInterface(ABC):
     """Abstract repository for LearnerSession persistence."""
 
     @abstractmethod
-    async def get_by_id(self, session_id: str) -> Optional[LearnerSession]:
+    async def get_by_id(self, session_id: str) -> LearnerSession | None:
         """Return a learner session by ID, or None if not found."""
 
     @abstractmethod
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """Return a paginated list of all learner sessions."""
 
     @abstractmethod
@@ -195,9 +177,7 @@ class LearnerSessionRepositoryInterface(ABC):
         """Persist a new learner session and return it."""
 
     @abstractmethod
-    async def update(
-        self, session_id: str, data: dict[str, Any]
-    ) -> Optional[LearnerSession]:
+    async def update(self, session_id: str, data: dict[str, Any]) -> LearnerSession | None:
         """Update an existing learner session and return it."""
 
     @abstractmethod
@@ -217,13 +197,11 @@ class ResultsRepositoryInterface(ABC):
     """Abstract repository for ExerciseResult persistence."""
 
     @abstractmethod
-    async def get_by_id(self, result_id: str) -> Optional[ExerciseResult]:
+    async def get_by_id(self, result_id: str) -> ExerciseResult | None:
         """Return an exercise result by ID, or None if not found."""
 
     @abstractmethod
-    async def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """Return a paginated list of all exercise results."""
 
     @abstractmethod
@@ -231,9 +209,7 @@ class ResultsRepositoryInterface(ABC):
         """Persist a new exercise result and return it."""
 
     @abstractmethod
-    async def update(
-        self, result_id: str, data: dict[str, Any]
-    ) -> Optional[ExerciseResult]:
+    async def update(self, result_id: str, data: dict[str, Any]) -> ExerciseResult | None:
         """Update an existing exercise result and return it."""
 
     @abstractmethod
@@ -241,7 +217,7 @@ class ResultsRepositoryInterface(ABC):
         """Delete an exercise result by ID."""
 
     @abstractmethod
-    async def get_by_session(self, session_id: str) -> Optional[ExerciseResult]:
+    async def get_by_session(self, session_id: str) -> ExerciseResult | None:
         """Return the result for a given session."""
 
     @abstractmethod

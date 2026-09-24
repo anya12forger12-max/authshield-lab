@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 
 class CompetencyLevel(str, Enum):
@@ -36,7 +35,7 @@ class Competency:
     description: str = ""
     domain: str = ""
     level: CompetencyLevel = CompetencyLevel.BEGINNER
-    framework_id: Optional[str] = None
+    framework_id: str | None = None
 
     @property
     def level_value(self) -> int:
@@ -83,7 +82,7 @@ class CompetencyFramework:
                 return True
         return False
 
-    def get_competency(self, competency_id: str) -> Optional[Competency]:
+    def get_competency(self, competency_id: str) -> Competency | None:
         """Return a competency by ID, or ``None``."""
         for c in self.competencies:
             if c.id == competency_id:
@@ -117,8 +116,8 @@ class LearnerCompetencyProgress:
     competency_id: str = ""
     status: CompetencyStatus = CompetencyStatus.NOT_STARTED
     evidence: list[str] = field(default_factory=list)
-    assessed_at: Optional[datetime] = None
-    assessor_id: Optional[str] = None
+    assessed_at: datetime | None = None
+    assessor_id: str | None = None
 
     def start(self) -> None:
         """Transition to in-progress."""
@@ -126,21 +125,21 @@ class LearnerCompetencyProgress:
             raise ValueError(f"Cannot start competency in '{self.status.value}' status.")
         self.status = CompetencyStatus.IN_PROGRESS
 
-    def achieve(self, assessor_id: Optional[str] = None) -> None:
+    def achieve(self, assessor_id: str | None = None) -> None:
         """Mark the competency as achieved."""
         if self.status not in (CompetencyStatus.NOT_STARTED, CompetencyStatus.IN_PROGRESS):
             raise ValueError(f"Cannot achieve competency in '{self.status.value}' status.")
         self.status = CompetencyStatus.ACHIEVED
-        self.assessed_at = datetime.now(timezone.utc)
+        self.assessed_at = datetime.now(UTC)
         if assessor_id:
             self.assessor_id = assessor_id
 
-    def master(self, assessor_id: Optional[str] = None) -> None:
+    def master(self, assessor_id: str | None = None) -> None:
         """Mark the competency as mastered (highest level)."""
         if self.status not in (CompetencyStatus.ACHIEVED, CompetencyStatus.IN_PROGRESS):
             raise ValueError(f"Cannot master competency in '{self.status.value}' status.")
         self.status = CompetencyStatus.MASTERED
-        self.assessed_at = datetime.now(timezone.utc)
+        self.assessed_at = datetime.now(UTC)
         if assessor_id:
             self.assessor_id = assessor_id
 

@@ -1,4 +1,4 @@
-"""Tests for optimization entities and services — PerformanceMetric, StartupMetrics, FeatureFlag, BenchmarkResult, PerformanceService."""
+"Tests for optimization entities and services — PerformanceMetric, StartupMetrics, FeatureFlag, BenchmarkResult, PerformanceService."
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ class TestStartupMetrics:
 
     def test_slowest_plugin_empty(self):
         m = StartupMetrics()
-        name, val = m.slowest_plugin()
+        name, _val = m.slowest_plugin()
         assert name == ""
 
 
@@ -108,21 +108,34 @@ class TestBenchmarkResult:
 class TestPerformanceService:
     def test_collect_metric(self):
         from app.optimization.services.performance_service import PerformanceService
+
         metric_repo = MagicMock()
-        metric_repo.create = MagicMock(return_value={
-            "id": "m1", "name": "cpu", "category": "system",
-            "value": 45.0, "unit": "%", "threshold": 0.0, "passed": True,
-        })
+        metric_repo.create = MagicMock(
+            return_value={
+                "id": "m1",
+                "name": "cpu",
+                "category": "system",
+                "value": 45.0,
+                "unit": "%",
+                "threshold": 0.0,
+                "passed": True,
+            }
+        )
         benchmark_repo = MagicMock()
         dashboard_repo = MagicMock()
         service = PerformanceService(metric_repo, benchmark_repo, dashboard_repo)
-        result = service.collect_metric({"name": "cpu", "value": 45.0, "unit": "%", "category": "system"})
+        result = service.collect_metric(
+            {"name": "cpu", "value": 45.0, "unit": "%", "category": "system"}
+        )
         assert result["name"] == "cpu"
 
     def test_get_metrics_by_category(self):
         from app.optimization.services.performance_service import PerformanceService
+
         metric_repo = MagicMock()
-        metric_repo.get_by_category = MagicMock(return_value=[{"name": "cpu", "category": "system"}])
+        metric_repo.get_by_category = MagicMock(
+            return_value=[{"name": "cpu", "category": "system"}]
+        )
         benchmark_repo = MagicMock()
         dashboard_repo = MagicMock()
         service = PerformanceService(metric_repo, benchmark_repo, dashboard_repo)
@@ -131,6 +144,7 @@ class TestPerformanceService:
 
     def test_list_metrics(self):
         from app.optimization.services.performance_service import PerformanceService
+
         metric_repo = MagicMock()
         metric_repo.get_all = MagicMock(return_value={"items": [], "total": 0})
         benchmark_repo = MagicMock()
@@ -141,6 +155,7 @@ class TestPerformanceService:
 
     def test_get_metric(self):
         from app.optimization.services.performance_service import PerformanceService
+
         metric_repo = MagicMock()
         metric_repo.get_by_id = MagicMock(return_value={"id": "m1", "name": "memory"})
         benchmark_repo = MagicMock()
@@ -151,6 +166,7 @@ class TestPerformanceService:
 
     def test_get_metric_none(self):
         from app.optimization.services.performance_service import PerformanceService
+
         metric_repo = MagicMock()
         metric_repo.get_by_id = MagicMock(return_value=None)
         benchmark_repo = MagicMock()

@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 
 from app.standards.domain.entities.evidence import (
+    VALID_EVIDENCE_TYPES,
     EvidenceCollection,
     EvidenceItem,
     EvidenceSearchResult,
-    VALID_EVIDENCE_TYPES,
 )
 from app.standards.domain.events.standards_events import EvidenceCollected
 from app.standards.domain.interfaces.standards_interfaces import (
@@ -136,13 +135,15 @@ class EvidenceService:
         items = self._items.search(query)
         results: list[EvidenceSearchResult] = []
         for item in items:
-            results.append(EvidenceSearchResult(
-                item_id=item.id,
-                title=item.description[:80],
-                type=item.evidence_type,
-                snippet=item.description[:200],
-                relevance=1.0,
-            ))
+            results.append(
+                EvidenceSearchResult(
+                    item_id=item.id,
+                    title=item.description[:80],
+                    type=item.evidence_type,
+                    snippet=item.description[:200],
+                    relevance=1.0,
+                )
+            )
         return results
 
     def search_collection(self, collection_id: str, query: str) -> list[EvidenceSearchResult]:

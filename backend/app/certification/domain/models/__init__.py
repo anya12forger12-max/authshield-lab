@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.base_model import Base, TimestampMixin, UUIDPrimaryKeyMixin
-
 
 # ── Operations ──────────────────────────────────────────────────────
 
@@ -20,7 +19,7 @@ class ServiceStatusModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(20), default="healthy")
     last_check: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     response_time_ms: Mapped[float] = mapped_column(Float, default=0.0)
     error_rate: Mapped[float] = mapped_column(Float, default=0.0)
@@ -33,7 +32,7 @@ class PlatformHealthModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     uptime_hours: Mapped[float] = mapped_column(Float, default=0.0)
     services_json: Mapped[str] = mapped_column(Text, default="[]")
     generated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -46,7 +45,7 @@ class ModuleInventoryModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     dependencies_json: Mapped[str] = mapped_column(Text, default="[]")
     last_updated: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -59,7 +58,7 @@ class PackageHealthModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     compatibility: Mapped[bool] = mapped_column(Boolean, default=True)
     health_score: Mapped[float] = mapped_column(Float, default=100.0)
     last_validated: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -75,7 +74,7 @@ class EcosystemDashboardModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     security_score: Mapped[float] = mapped_column(Float, default=0.0)
     performance_score: Mapped[float] = mapped_column(Float, default=0.0)
     generated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -117,7 +116,7 @@ class PlatformCertificationReportModel(TimestampMixin, UUIDPrimaryKeyMixin, Base
     overall_status: Mapped[str] = mapped_column(String(20), default="pending")
     score: Mapped[float] = mapped_column(Float, default=0.0)
     generated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -151,7 +150,7 @@ class ModuleOwnershipModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     module: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
     owner: Mapped[str] = mapped_column(String(200), nullable=False)
     last_reviewed: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     health: Mapped[float] = mapped_column(Float, default=100.0)
 
@@ -161,7 +160,7 @@ class DocumentationFreshnessModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
 
     component: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
     last_updated: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
     days_stale: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(20), default="fresh")
@@ -177,7 +176,7 @@ class SustainabilityDashboardModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     technical_debt_hours: Mapped[float] = mapped_column(Float, default=0.0)
     maintenance_score: Mapped[float] = mapped_column(Float, default=0.0)
     generated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -189,7 +188,7 @@ class MaintenanceRoadmapModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     priority: Mapped[str] = mapped_column(String(20), default="medium")
     estimated_hours: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -204,7 +203,7 @@ class ReleasePlanModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     status: Mapped[str] = mapped_column(String(20), default="planning")
     end_date: Mapped[str] = mapped_column(String(30), default="")
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -216,7 +215,7 @@ class ReleaseValidationModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     status: Mapped[str] = mapped_column(String(20), default="pending")
     details: Mapped[str] = mapped_column(Text, default="")
     validated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -229,7 +228,7 @@ class PackagingResultModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     output_path: Mapped[str] = mapped_column(String(500), default="")
     checksum: Mapped[str] = mapped_column(String(128), default="")
     built_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -243,7 +242,7 @@ class RegressionResultModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     skipped: Mapped[int] = mapped_column(Integer, default=0)
     coverage: Mapped[float] = mapped_column(Float, default=0.0)
     run_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -270,7 +269,7 @@ class BackupValidationModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     integrity: Mapped[bool] = mapped_column(Boolean, default=True)
     restorable: Mapped[bool] = mapped_column(Boolean, default=True)
     validated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -283,7 +282,7 @@ class RestoreTestModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     duration_ms: Mapped[int] = mapped_column(Integer, default=0)
     data_integrity: Mapped[bool] = mapped_column(Boolean, default=True)
     completed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -295,7 +294,7 @@ class ArchiveRecoveryModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     items_recovered: Mapped[int] = mapped_column(Integer, default=0)
     completeness: Mapped[float] = mapped_column(Float, default=0.0)
     completed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -309,7 +308,7 @@ class RecoveryReadinessReportModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     doc_recovery: Mapped[float] = mapped_column(Float, default=0.0)
     overall_readiness: Mapped[float] = mapped_column(Float, default=0.0)
     generated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -325,7 +324,7 @@ class ValidationCheckModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     details: Mapped[str] = mapped_column(Text, default="")
     evidence: Mapped[str] = mapped_column(Text, default="")
     checked_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -339,7 +338,7 @@ class SubsystemValidationModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     skipped: Mapped[int] = mapped_column(Integer, default=0)
     compliance_pct: Mapped[float] = mapped_column(Float, default=0.0)
     validated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -352,7 +351,7 @@ class PlatformValidationReportModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     overall_failed: Mapped[int] = mapped_column(Integer, default=0)
     overall_compliance: Mapped[float] = mapped_column(Float, default=0.0)
     generated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )
 
 
@@ -364,5 +363,5 @@ class FinalAcceptanceTestModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     overall_status: Mapped[str] = mapped_column(String(20), default="pending")
     sign_off_required_json: Mapped[str] = mapped_column(Text, default="[]")
     completed_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

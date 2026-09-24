@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -15,12 +15,18 @@ class CreatePolicyRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=128, description="Policy name")
     description: str = Field(default="", max_length=512, description="Policy description")
     category: str = Field(default="authentication", description="Policy category")
-    priority: int = Field(default=100, ge=1, le=1000, description="Evaluation priority (lower = higher)")
+    priority: int = Field(
+        default=100, ge=1, le=1000, description="Evaluation priority (lower = higher)"
+    )
     author: str = Field(default="system", max_length=64, description="Policy author")
-    configuration: dict[str, Any] = Field(default_factory=dict, description="Policy-specific configuration")
+    configuration: dict[str, Any] = Field(
+        default_factory=dict, description="Policy-specific configuration"
+    )
     dependencies: list[str] = Field(default_factory=list, description="Policy IDs this depends on")
     risk_weight: float = Field(default=1.0, ge=0.0, le=10.0, description="Risk score multiplier")
-    supported_event_types: list[str] = Field(default_factory=list, description="Event types this policy handles")
+    supported_event_types: list[str] = Field(
+        default_factory=list, description="Event types this policy handles"
+    )
     metadata: dict[str, Any] = Field(default_factory=dict, description="Arbitrary metadata")
 
 

@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import datetime
+from typing import Any
 
 from ..domain.entities.certification_center import (
     CertificationRequirement,
-    CertificationStatus,
     PlatformCertification,
     PlatformCertificationReport,
 )
@@ -46,7 +44,7 @@ class CertificationService:
         )
         return self._cert_repo.save(cert)
 
-    async def get_certification(self, cert_id: str) -> Optional[PlatformCertification]:
+    async def get_certification(self, cert_id: str) -> PlatformCertification | None:
         """Retrieve a certification by ID."""
         return self._cert_repo.find_by_id(cert_id)
 
@@ -64,7 +62,7 @@ class CertificationService:
 
     async def update_certification(
         self, cert_id: str, data: dict[str, Any]
-    ) -> Optional[PlatformCertification]:
+    ) -> PlatformCertification | None:
         """Update arbitrary fields on a certification."""
         return self._cert_repo.update(cert_id, data)
 
@@ -72,7 +70,7 @@ class CertificationService:
         """Remove a certification record."""
         return self._cert_repo.delete(cert_id)
 
-    async def start_certification(self, cert_id: str) -> Optional[PlatformCertification]:
+    async def start_certification(self, cert_id: str) -> PlatformCertification | None:
         """Transition certification to in_progress."""
         cert = self._cert_repo.find_by_id(cert_id)
         if cert is None:
@@ -103,7 +101,7 @@ class CertificationService:
 
     async def fulfill_requirement(
         self, requirement_id: str, evidence: str = ""
-    ) -> Optional[CertificationRequirement]:
+    ) -> CertificationRequirement | None:
         """Mark a requirement as fulfilled."""
         req = self._requirement_repo.find_by_id(requirement_id)
         if req is None:
@@ -111,9 +109,7 @@ class CertificationService:
         req.fulfill(evidence)
         return self._requirement_repo.save(req)
 
-    async def unfulfill_requirement(
-        self, requirement_id: str
-    ) -> Optional[CertificationRequirement]:
+    async def unfulfill_requirement(self, requirement_id: str) -> CertificationRequirement | None:
         """Mark a requirement as no longer met."""
         req = self._requirement_repo.find_by_id(requirement_id)
         if req is None:
@@ -125,9 +121,7 @@ class CertificationService:
         """Remove a requirement."""
         return self._requirement_repo.delete(requirement_id)
 
-    async def evaluate_certification(
-        self, certification_id: str
-    ) -> Optional[PlatformCertification]:
+    async def evaluate_certification(self, certification_id: str) -> PlatformCertification | None:
         """Evaluate a certification against its requirements.
 
         When all requirements are met the certification transitions to certified.
@@ -158,7 +152,7 @@ class CertificationService:
         expires_at: datetime | None = None,
         evidence: list[str] | None = None,
         metrics: dict[str, float] | None = None,
-    ) -> Optional[PlatformCertification]:
+    ) -> PlatformCertification | None:
         """Directly issue (approve) a certification."""
         cert = self._cert_repo.find_by_id(cert_id)
         if cert is None:
@@ -173,7 +167,7 @@ class CertificationService:
             cert.metrics.update(metrics)
         return self._cert_repo.save(cert)
 
-    async def revoke_certification(self, cert_id: str) -> Optional[PlatformCertification]:
+    async def revoke_certification(self, cert_id: str) -> PlatformCertification | None:
         """Revoke a previously granted certification."""
         cert = self._cert_repo.find_by_id(cert_id)
         if cert is None:
@@ -181,7 +175,7 @@ class CertificationService:
         cert.revoke()
         return self._cert_repo.save(cert)
 
-    async def expire_certification(self, cert_id: str) -> Optional[PlatformCertification]:
+    async def expire_certification(self, cert_id: str) -> PlatformCertification | None:
         """Mark a certification as expired."""
         cert = self._cert_repo.find_by_id(cert_id)
         if cert is None:
@@ -189,7 +183,7 @@ class CertificationService:
         cert.expire()
         return self._cert_repo.save(cert)
 
-    async def add_finding(self, cert_id: str, finding: str) -> Optional[PlatformCertification]:
+    async def add_finding(self, cert_id: str, finding: str) -> PlatformCertification | None:
         """Add a finding to a certification."""
         cert = self._cert_repo.find_by_id(cert_id)
         if cert is None:
@@ -199,7 +193,7 @@ class CertificationService:
 
     async def add_corrective_action(
         self, cert_id: str, action: str
-    ) -> Optional[PlatformCertification]:
+    ) -> PlatformCertification | None:
         """Add a corrective action to a certification."""
         cert = self._cert_repo.find_by_id(cert_id)
         if cert is None:
@@ -207,7 +201,9 @@ class CertificationService:
         cert.add_corrective_action(action)
         return self._cert_repo.save(cert)
 
-    async def generate_report(self, title: str = "Certification Report") -> PlatformCertificationReport:
+    async def generate_report(
+        self, title: str = "Certification Report"
+    ) -> PlatformCertificationReport:
         """Generate an aggregated certification report."""
         certs = self._cert_repo.find_all()
         report = PlatformCertificationReport(title=title, certifications=certs)
@@ -215,7 +211,7 @@ class CertificationService:
         report.compute_overall_status()
         return self._report_repo.save(report)
 
-    async def get_latest_report(self) -> Optional[PlatformCertificationReport]:
+    async def get_latest_report(self) -> PlatformCertificationReport | None:
         """Return the most recent certification report."""
         return self._report_repo.find_latest()
 

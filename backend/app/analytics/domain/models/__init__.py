@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import JSON, DateTime, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -24,7 +24,7 @@ class LearningProgressModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin
     total_time_hours: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     last_active: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -84,13 +84,15 @@ class ContentUsageModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Ba
     access_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     last_accessed: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
     average_time_minutes: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
 
 
-class EducationalAnalyticsDashboardModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
+class EducationalAnalyticsDashboardModel(
+    UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base
+):
     """ORM model for analytics dashboards."""
 
     __tablename__ = "analytics_dashboards"
@@ -101,7 +103,7 @@ class EducationalAnalyticsDashboardModel(UUIDPrimaryKeyMixin, TimestampMixin, So
     doc_quality: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -112,7 +114,9 @@ class LearningQualityDashboardModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDel
     __tablename__ = "analytics_quality_dashboards"
 
     completion_rates: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
-    learning_objective_achievement: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    learning_objective_achievement: Mapped[float] = mapped_column(
+        Float, default=0.0, nullable=False
+    )
     competency_growth: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     assessment_distribution: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     lab_completion: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
@@ -122,7 +126,7 @@ class LearningQualityDashboardModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDel
     instructor_review_status: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -143,7 +147,7 @@ class CurriculumEvaluationModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteM
     review_frequency_days: Mapped[int] = mapped_column(Integer, default=30, nullable=False)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -160,7 +164,9 @@ class ContentHealthItemModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixi
     broken_refs: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     missing_metadata: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     doc_completeness: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
-    localization_status: Mapped[str] = mapped_column(String(32), default="incomplete", nullable=False)
+    localization_status: Mapped[str] = mapped_column(
+        String(32), default="incomplete", nullable=False
+    )
     a11y_status: Mapped[str] = mapped_column(String(32), default="unknown", nullable=False)
     last_reviewed_days: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     publication_quality: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
@@ -179,7 +185,7 @@ class ContentHealthDashboardModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDelet
     by_type: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -202,7 +208,7 @@ class ProgramEvaluationModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixi
     doc_health: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -257,6 +263,6 @@ class ImprovementReportModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixi
     next_steps: Mapped[list | None] = mapped_column(JSON, nullable=True)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )

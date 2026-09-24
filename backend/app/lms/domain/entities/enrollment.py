@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 
 class EnrollmentStatus(str, Enum):
@@ -27,9 +26,9 @@ class Enrollment:
     learner_id: str = ""
     course_id: str = ""
     status: EnrollmentStatus = EnrollmentStatus.PENDING
-    enrolled_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    completed_at: Optional[datetime] = None
-    grade: Optional[str] = None
+    enrolled_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    completed_at: datetime | None = None
+    grade: str | None = None
 
     def activate(self) -> None:
         """Transition enrollment to active."""
@@ -37,12 +36,12 @@ class Enrollment:
             raise ValueError(f"Cannot activate enrollment in '{self.status.value}' status.")
         self.status = EnrollmentStatus.ACTIVE
 
-    def complete(self, grade: Optional[str] = None) -> None:
+    def complete(self, grade: str | None = None) -> None:
         """Mark the enrollment as completed."""
         if self.status != EnrollmentStatus.ACTIVE:
             raise ValueError(f"Cannot complete enrollment in '{self.status.value}' status.")
         self.status = EnrollmentStatus.COMPLETED
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
         self.grade = grade
 
     def drop(self) -> None:
@@ -71,7 +70,7 @@ class WaitlistEntry:
     learner_id: str = ""
     course_id: str = ""
     position: int = 1
-    added_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    added_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         return {
@@ -88,23 +87,21 @@ class CourseEnrollmentConfig:
     """Enrollment configuration for a course."""
 
     max_learners: int = 30
-    enrollment_start: Optional[datetime] = None
-    enrollment_end: Optional[datetime] = None
+    enrollment_start: datetime | None = None
+    enrollment_end: datetime | None = None
     prerequisites: list[str] = field(default_factory=list)
 
     def is_open(self) -> bool:
         """Return ``True`` if the current time is within the enrollment window."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if self.enrollment_start and now < self.enrollment_start:
             return False
-        if self.enrollment_end and now > self.enrollment_end:
-            return False
-        return True
+        return not (self.enrollment_end and now > self.enrollment_end)
 
     def can_enroll(
         self,
         current_enrollment: int,
-        completed_prerequisites: Optional[list[str]] = None,
+        completed_prerequisites: list[str] | None = None,
     ) -> bool:
         """Return ``True`` if a learner is eligible to enroll."""
         if not self.is_open():
@@ -138,7 +135,9 @@ class CourseEnrollmentConfig:
     def to_dict(self) -> dict:
         return {
             "max_learners": self.max_learners,
-            "enrollment_start": self.enrollment_start.isoformat() if self.enrollment_start else None,
+            "enrollment_start": self.enrollment_start.isoformat()
+            if self.enrollment_start
+            else None,
             "enrollment_end": self.enrollment_end.isoformat() if self.enrollment_end else None,
             "prerequisites": list(self.prerequisites),
         }

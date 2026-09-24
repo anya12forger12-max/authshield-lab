@@ -1,9 +1,8 @@
 """Tests for SecurityPolicy, PolicyDecision, PolicyConfiguration, status transitions."""
 
-import pytest
-from enum import Enum
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from enum import Enum
 
 
 class PolicyStatus(str, Enum):
@@ -41,7 +40,7 @@ class SecurityPolicy:
     decision: PolicyDecision = PolicyDecision.ALLOW
     priority: int = 0
     rules: list = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     enabled: bool = True
 
     def to_dict(self) -> dict:
@@ -159,9 +158,7 @@ class TestPolicyConfiguration:
         assert d["default_decision"] == "allow"
 
     def test_custom_config(self):
-        config = PolicyConfiguration(
-            log_decisions=False, default_decision=PolicyDecision.DENY
-        )
+        config = PolicyConfiguration(log_decisions=False, default_decision=PolicyDecision.DENY)
         d = config.to_dict()
         assert d["log_decisions"] is False
         assert d["default_decision"] == "deny"

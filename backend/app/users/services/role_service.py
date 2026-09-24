@@ -3,20 +3,20 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Optional
+from typing import Any
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ...shared.exceptions import NotFoundError, ConflictError, ValidationError
+from ...config.constants import MAX_PER_PAGE, MODULE_USERS
+from ...shared.events.event_bus import DomainEvent, EventBus
+from ...shared.exceptions import ConflictError, NotFoundError, ValidationError
 from ...shared.logging_config import get_logger, log_audit_event
-from ...shared.events.event_bus import EventBus, DomainEvent
-from ...shared.models.role import Role, Permission, user_roles, role_permissions
+from ...shared.models.role import Permission, Role
 from ...shared.models.user import User
-from ...config.constants import MODULE_USERS, DEFAULT_PER_PAGE, MAX_PER_PAGE
 from ..domain.entities.role import RoleEntity
-from ..domain.interfaces.role_service import IRoleService
 from ..domain.events.identity_events import RoleAssignedEvent, RoleRemovedEvent
+from ..domain.interfaces.role_service import IRoleService
 
 logger = get_logger(MODULE_USERS)
 
@@ -49,7 +49,7 @@ class RoleService(IRoleService):
         In-process event bus for publishing domain events.
     """
 
-    def __init__(self, session_factory: Any, event_bus: Optional[EventBus] = None) -> None:
+    def __init__(self, session_factory: Any, event_bus: EventBus | None = None) -> None:
         self._session_factory = session_factory
         self._event_bus = event_bus
 
@@ -60,7 +60,7 @@ class RoleService(IRoleService):
         if self._event_bus is not None:
             await self._event_bus.publish(event)
 
-    async def get_role(self, role_id: str) -> Optional[RoleEntity]:
+    async def get_role(self, role_id: str) -> RoleEntity | None:
         """Retrieve a role by ID."""
         async with await self._get_session() as session:
             result = await session.execute(select(Role).where(Role.id == role_id))
@@ -69,7 +69,7 @@ class RoleService(IRoleService):
                 return None
             return _build_role_entity(role)
 
-    async def get_role_by_name(self, name: str) -> Optional[RoleEntity]:
+    async def get_role_by_name(self, name: str) -> RoleEntity | None:
         """Retrieve a role by its unique name."""
         async with await self._get_session() as session:
             result = await session.execute(select(Role).where(Role.name == name))
@@ -86,12 +86,7 @@ class RoleService(IRoleService):
             count_result = await session.execute(select(func.count(Role.id)))
             total = count_result.scalar() or 0
 
-            stmt = (
-                select(Role)
-                .order_by(Role.name)
-                .offset((page - 1) * per_page)
-                .limit(per_page)
-            )
+            stmt = select(Role).order_by(Role.name).offset((page - 1) * per_page).limit(per_page)
             result = await session.execute(stmt)
             roles = result.scalars().all()
 
@@ -137,7 +132,7 @@ class RoleService(IRoleService):
 
             return _build_role_entity(role)
 
-    async def update_role(self, role_id: str, data: dict[str, Any]) -> Optional[RoleEntity]:
+    async def update_role(self, role_id: str, data: dict[str, Any]) -> RoleEntity | None:
         """Update an existing role."""
         async with await self._get_session() as session:
             result = await session.execute(select(Role).where(Role.id == role_id))
@@ -264,9 +259,7 @@ class RoleService(IRoleService):
             if user is None:
                 raise NotFoundError(f"User {user_id} not found.")
 
-            role_result = await session.execute(
-                select(Role).where(Role.name == user.role)
-            )
+            role_result = await session.execute(select(Role).where(Role.name == user.role))
             role = role_result.scalar_one_or_none()
             if role is None:
                 return []
@@ -289,7 +282,9 @@ class RoleService(IRoleService):
             if role is None:
                 raise NotFoundError(f"Role '{role_name}' not found.")
 
-            perm_result = await session.execute(select(Permission).where(Permission.name == permission))
+            perm_result = await session.execute(
+                select(Permission).where(Permission.name == permission)
+            )
             perm = perm_result.scalar_one_or_none()
             if perm is None:
                 # Create the permission if it doesn't exist

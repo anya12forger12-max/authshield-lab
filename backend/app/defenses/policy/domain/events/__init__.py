@@ -1,8 +1,8 @@
 """Policy domain events."""
 
 from .policy_events import (
-    PolicyDomainEvent,
     PolicyDisabledEvent,
+    PolicyDomainEvent,
     PolicyEnabledEvent,
     PolicyEvaluatedEvent,
     PolicyRegisteredEvent,

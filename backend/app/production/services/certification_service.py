@@ -3,21 +3,21 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.certification import (
     Certification,
     CertificationRequirement,
     CertificationType,
 )
+from ..domain.events.production_events import CertificationCompletedEvent
 from ..domain.interfaces import (
     ICertificationRepository,
     ICertificationRequirementRepository,
 )
-from ..domain.events.production_events import CertificationCompletedEvent
 
 logger = get_logger("production.certification_service")
 
@@ -39,7 +39,7 @@ class CertificationService:
         self,
         cert_repo: ICertificationRepository,
         requirement_repo: ICertificationRequirementRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._cert_repo = cert_repo
         self._requirement_repo = requirement_repo
@@ -67,19 +67,15 @@ class CertificationService:
         logger.info("certification_created", cert_id=cert.id, name=name)
         return cert
 
-    async def get_certification(self, cert_id: str) -> Optional[Certification]:
+    async def get_certification(self, cert_id: str) -> Certification | None:
         """Retrieve a certification by ID."""
         return await self._cert_repo.get_by_id(cert_id)
 
-    async def list_certifications(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_certifications(self, page: int = 1, per_page: int = 20) -> dict:
         """List all certifications with pagination."""
         return await self._cert_repo.get_all(page=page, per_page=per_page)
 
-    async def get_certifications_by_type(
-        self, cert_type: str
-    ) -> list[Certification]:
+    async def get_certifications_by_type(self, cert_type: str) -> list[Certification]:
         """List certifications filtered by type."""
         return await self._cert_repo.get_by_type(cert_type)
 
@@ -109,9 +105,7 @@ class CertificationService:
         )
         return req
 
-    async def get_requirements(
-        self, certification_id: str
-    ) -> list[CertificationRequirement]:
+    async def get_requirements(self, certification_id: str) -> list[CertificationRequirement]:
         """List all requirements for a certification."""
         return await self._requirement_repo.get_by_certification_id(certification_id)
 
@@ -119,7 +113,7 @@ class CertificationService:
         self,
         requirement_id: str,
         evidence: str = "",
-    ) -> Optional[CertificationRequirement]:
+    ) -> CertificationRequirement | None:
         """Mark a certification requirement as fulfilled."""
         req = await self._requirement_repo.get_by_id(requirement_id)
         if req is None:
@@ -128,9 +122,7 @@ class CertificationService:
             requirement_id, {"met": True, "evidence": evidence}
         )
 
-    async def evaluate_certification(
-        self, certification_id: str
-    ) -> Optional[Certification]:
+    async def evaluate_certification(self, certification_id: str) -> Certification | None:
         """Evaluate a certification based on its requirements."""
         cert = await self._cert_repo.get_by_id(certification_id)
         if cert is None:
@@ -150,7 +142,7 @@ class CertificationService:
         }
 
         if all_met:
-            data["certified_at"] = datetime.now(timezone.utc)
+            data["certified_at"] = datetime.now(UTC)
             await self._publish_event(
                 CertificationCompletedEvent(
                     certification_id=certification_id,
@@ -174,23 +166,19 @@ class CertificationService:
         )
         return updated
 
-    async def revoke_certification(
-        self, certification_id: str
-    ) -> Optional[Certification]:
+    async def revoke_certification(self, certification_id: str) -> Certification | None:
         """Revoke a previously granted certification."""
         cert = await self._cert_repo.get_by_id(certification_id)
         if cert is None:
             return None
 
-        updated = await self._cert_repo.update(
-            certification_id, {"status": "failed"}
-        )
+        updated = await self._cert_repo.update(certification_id, {"status": "failed"})
         logger.info("certification_revoked", cert_id=certification_id)
         return updated
 
     async def update_certification(
         self, certification_id: str, data: dict[str, Any]
-    ) -> Optional[Certification]:
+    ) -> Certification | None:
         """Update arbitrary fields on a certification."""
         return await self._cert_repo.update(certification_id, data)
 

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from ...shared.events.event_bus import EventBus, EventType, DomainEvent, get_event_bus
+from ...shared.events.event_bus import DomainEvent, EventBus, EventType, get_event_bus
 
 logger = logging.getLogger(__name__)
 
@@ -24,9 +24,7 @@ class SimulationEventHandler:
 
     def register(self) -> None:
         """Subscribe all handler methods to their respective event types."""
-        self._event_bus.subscribe(
-            EventType.AUDIT_EVENT, self._handle_simulation_event
-        )
+        self._event_bus.subscribe(EventType.AUDIT_EVENT, self._handle_simulation_event)
         logger.info("Simulation event handlers registered")
 
     async def _handle_simulation_event(self, event: DomainEvent) -> None:
@@ -40,7 +38,7 @@ class SimulationEventHandler:
             "message": event.message,
             "metadata": event.metadata,
             "timestamp": event.timestamp.isoformat(),
-            "processed_at": datetime.now(timezone.utc).isoformat(),
+            "processed_at": datetime.now(UTC).isoformat(),
         }
         self._event_log.append(entry)
 
@@ -59,9 +57,7 @@ class SimulationEventHandler:
         else:
             self._on_generic_event(event, metadata)
 
-    def _on_scenario_event(
-        self, event: DomainEvent, metadata: dict[str, Any]
-    ) -> None:
+    def _on_scenario_event(self, event: DomainEvent, metadata: dict[str, Any]) -> None:
         """Handle scenario-related events."""
         scenario_id = metadata.get("scenario_id", "unknown")
         title = metadata.get("title", "unknown")
@@ -72,9 +68,7 @@ class SimulationEventHandler:
             event.message,
         )
 
-    def _on_timeline_event(
-        self, event: DomainEvent, metadata: dict[str, Any]
-    ) -> None:
+    def _on_timeline_event(self, event: DomainEvent, metadata: dict[str, Any]) -> None:
         """Handle timeline-related events."""
         timeline_id = metadata.get("timeline_id", "unknown")
         scenario_id = metadata.get("scenario_id", "unknown")
@@ -85,9 +79,7 @@ class SimulationEventHandler:
             event.message,
         )
 
-    def _on_exercise_event(
-        self, event: DomainEvent, metadata: dict[str, Any]
-    ) -> None:
+    def _on_exercise_event(self, event: DomainEvent, metadata: dict[str, Any]) -> None:
         """Handle exercise and session events."""
         exercise_id = metadata.get("exercise_id", "unknown")
         session_id = metadata.get("session_id", "unknown")
@@ -98,9 +90,7 @@ class SimulationEventHandler:
             event.message,
         )
 
-    def _on_result_event(
-        self, event: DomainEvent, metadata: dict[str, Any]
-    ) -> None:
+    def _on_result_event(self, event: DomainEvent, metadata: dict[str, Any]) -> None:
         """Handle result calculation events."""
         result_id = metadata.get("result_id", "unknown")
         overall_score = metadata.get("overall_score", 0.0)
@@ -111,9 +101,7 @@ class SimulationEventHandler:
             event.message,
         )
 
-    def _on_dataset_event(
-        self, event: DomainEvent, metadata: dict[str, Any]
-    ) -> None:
+    def _on_dataset_event(self, event: DomainEvent, metadata: dict[str, Any]) -> None:
         """Handle dataset generation events."""
         dataset_id = metadata.get("dataset_id", "unknown")
         logger.info(
@@ -122,9 +110,7 @@ class SimulationEventHandler:
             event.message,
         )
 
-    def _on_generic_event(
-        self, event: DomainEvent, metadata: dict[str, Any]
-    ) -> None:
+    def _on_generic_event(self, event: DomainEvent, metadata: dict[str, Any]) -> None:
         """Handle any unclassified simulation events."""
         logger.info(
             "simulation.generic_event | event_id=%s message=%s metadata=%s",
@@ -151,7 +137,7 @@ _global_handler: SimulationEventHandler | None = None
 
 def get_simulation_event_handler() -> SimulationEventHandler:
     """Return the global SimulationEventHandler instance."""
-    global _global_handler  # noqa: PLW0603
+    global _global_handler
     if _global_handler is None:
         _global_handler = SimulationEventHandler()
         _global_handler.register()
@@ -160,5 +146,5 @@ def get_simulation_event_handler() -> SimulationEventHandler:
 
 def reset_simulation_event_handler() -> None:
     """Reset the global handler (useful in tests)."""
-    global _global_handler  # noqa: PLW0603
+    global _global_handler
     _global_handler = None

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -112,7 +112,7 @@ class TaxonomyVersion:
     taxonomy_id: str = ""
     version: str = ""
     changes: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_change(self, change: str) -> None:
         self.changes.append(change)
@@ -136,8 +136,8 @@ class SkillTaxonomy:
     version: str = ""
     skills: list[TaxonomySkill] = field(default_factory=list)
     relationships: list[SkillRelationship] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_skill(self, skill: TaxonomySkill) -> None:
         skill.taxonomy_id = self.id
@@ -178,22 +178,22 @@ class SkillTaxonomy:
         return False
 
     def get_relationships_for(self, skill_id: str) -> list[SkillRelationship]:
-        return [
-            r for r in self.relationships
-            if r.source_skill_id == skill_id or r.target_skill_id == skill_id
-        ]
+        return [r for r in self.relationships if skill_id in (r.source_skill_id, r.target_skill_id)]
 
     def get_prerequisites(self, skill_id: str) -> list[SkillRelationship]:
         return [
-            r for r in self.relationships
+            r
+            for r in self.relationships
             if r.target_skill_id == skill_id and r.relationship_type == "prerequisite"
         ]
 
     def search_skills(self, query: str) -> list[TaxonomySkill]:
         q = query.lower()
         return [
-            s for s in self.skills
-            if q in s.name.lower() or q in s.description.lower()
+            s
+            for s in self.skills
+            if q in s.name.lower()
+            or q in s.description.lower()
             or any(q in alias.lower() for alias in s.aliases)
         ]
 
@@ -210,7 +210,7 @@ class SkillTaxonomy:
         return len(self.relationships)
 
     def _touch(self) -> None:
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def to_dict(self) -> dict:
         return {

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -36,8 +36,8 @@ class ResearchProject:
         self.status = status
         self.principal_investigator = principal_investigator
         self.team = team or []
-        self.created_at = created_at or datetime.now(timezone.utc)
-        self.updated_at = updated_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
+        self.updated_at = updated_at or datetime.now(UTC)
 
 
 class LiteratureEntry:
@@ -88,7 +88,7 @@ class ResearchNote:
         self.entry_id = entry_id
         self.content = content
         self.created_by = created_by
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
 
 
 class Citation:
@@ -162,7 +162,7 @@ class ReadingList:
         self.project_id = project_id
         self.name = name
         self.item_ids = item_ids or []
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
 
 
 class Bibliography:
@@ -179,4 +179,4 @@ class Bibliography:
         self.name = name
         self.entries = entries or []
         self.format = format
-        self.generated_at = generated_at or datetime.now(timezone.utc)
+        self.generated_at = generated_at or datetime.now(UTC)

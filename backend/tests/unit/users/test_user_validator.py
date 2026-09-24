@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.shared.validation.validator import Validator, ValidationResult
+from app.shared.validation.validator import Validator
 
 
 @pytest.fixture
@@ -91,7 +91,10 @@ class TestValidatePassword:
         assert any(e.code == "SPECIAL" for e in result.errors)
 
     def test_custom_policy_relaxed(self, validator):
-        result = validator.validate_password("short1!", policy={"min_length": 4, "require_special": False, "require_uppercase": False})
+        result = validator.validate_password(
+            "short1!",
+            policy={"min_length": 4, "require_special": False, "require_uppercase": False},
+        )
         assert result.is_valid is True
 
 

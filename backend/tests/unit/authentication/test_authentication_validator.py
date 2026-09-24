@@ -77,15 +77,11 @@ class TestValidateRegistrationRequest:
         assert result.is_valid is False
 
     def test_short_password(self, validator):
-        result = validator.validate_registration_request(
-            "alice", "short", "short", "Alice"
-        )
+        result = validator.validate_registration_request("alice", "short", "short", "Alice")
         assert result.is_valid is False
 
     def test_multiple_errors(self, validator):
-        result = validator.validate_registration_request(
-            "", "", "", ""
-        )
+        result = validator.validate_registration_request("", "", "", "")
         assert result.is_valid is False
         assert len(result.errors) >= 3
 
@@ -98,37 +94,27 @@ class TestValidatePasswordChange:
         assert result.is_valid is True
 
     def test_missing_current(self, validator):
-        result = validator.validate_password_change(
-            "", "NewPass456!", "NewPass456!"
-        )
+        result = validator.validate_password_change("", "NewPass456!", "NewPass456!")
         assert result.is_valid is False
         assert any(e.field_name == "current_password" for e in result.errors)
 
     def test_missing_new(self, validator):
-        result = validator.validate_password_change(
-            "OldPass123!", "", ""
-        )
+        result = validator.validate_password_change("OldPass123!", "", "")
         assert result.is_valid is False
         assert any(e.field_name == "new_password" for e in result.errors)
 
     def test_same_password(self, validator):
-        result = validator.validate_password_change(
-            "SamePass123!", "SamePass123!", "SamePass123!"
-        )
+        result = validator.validate_password_change("SamePass123!", "SamePass123!", "SamePass123!")
         assert result.is_valid is False
         assert any(e.code == "same_password" for e in result.errors)
 
     def test_mismatch_confirmation(self, validator):
-        result = validator.validate_password_change(
-            "OldPass123!", "NewPass456!", "Different789!"
-        )
+        result = validator.validate_password_change("OldPass123!", "NewPass456!", "Different789!")
         assert result.is_valid is False
         assert any(e.code == "mismatch" for e in result.errors)
 
     def test_short_new_password(self, validator):
-        result = validator.validate_password_change(
-            "OldPass123!", "short", "short"
-        )
+        result = validator.validate_password_change("OldPass123!", "short", "short")
         assert result.is_valid is False
 
 

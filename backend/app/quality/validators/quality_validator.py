@@ -28,7 +28,19 @@ class QualityValidator:
     def validate_test_case(data: dict[str, Any]) -> dict[str, Any]:
         if not data.get("name"):
             raise ValidationError("Test case name is required")
-        valid_types = {"unit", "integration", "e2e", "ui", "a11y", "localization", "performance", "regression", "backup_restore", "plugin_compat", "package_validation"}
+        valid_types = {
+            "unit",
+            "integration",
+            "e2e",
+            "ui",
+            "a11y",
+            "localization",
+            "performance",
+            "regression",
+            "backup_restore",
+            "plugin_compat",
+            "package_validation",
+        }
         if data.get("test_type") and data["test_type"] not in valid_types:
             raise ValidationError(f"Invalid test type: {data['test_type']}")
         return data

@@ -1,8 +1,7 @@
 """Tests for SecurityRule and RuleConditionClause evaluation."""
 
-import pytest
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
@@ -17,19 +16,19 @@ class RuleConditionClause:
             return False
         if self.operator == "eq":
             return actual == self.value
-        elif self.operator == "neq":
+        if self.operator == "neq":
             return actual != self.value
-        elif self.operator == "gt":
+        if self.operator == "gt":
             return actual > self.value
-        elif self.operator == "gte":
+        if self.operator == "gte":
             return actual >= self.value
-        elif self.operator == "lt":
+        if self.operator == "lt":
             return actual < self.value
-        elif self.operator == "lte":
+        if self.operator == "lte":
             return actual <= self.value
-        elif self.operator == "contains":
+        if self.operator == "contains":
             return self.value in actual
-        elif self.operator == "in":
+        if self.operator == "in":
             return actual in self.value
         return False
 
@@ -108,7 +107,9 @@ class TestRuleConditionClauseContainsAndIn:
         assert clause.evaluate({"tags": ["user"]}) is False
 
     def test_in_operator(self):
-        clause = RuleConditionClause(field_name="role", operator="in", value=["admin", "superadmin"])
+        clause = RuleConditionClause(
+            field_name="role", operator="in", value=["admin", "superadmin"]
+        )
         assert clause.evaluate({"role": "admin"}) is True
         assert clause.evaluate({"role": "user"}) is False
 

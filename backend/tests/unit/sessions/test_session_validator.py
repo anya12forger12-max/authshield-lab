@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.shared.validation.validator import Validator, ValidationResult
+from app.shared.validation.validator import Validator
 
 
 @pytest.fixture

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 
@@ -14,7 +14,7 @@ class QualityScore:
     max_score: float = 100.0
     grade: str = ""
     meets_threshold: bool = False
-    checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    checked_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -29,7 +29,7 @@ class QualityDashboard:
     security_score: float = 0.0
     localization_coverage: float = 0.0
     release_readiness: bool = False
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from ..domain.entities.operations import (
     EcosystemDashboard,
@@ -50,7 +49,7 @@ class OperationsService:
         existing = self._service_repo.find_by_name(name)
         if existing is not None:
             existing.status = status
-            existing.last_check = datetime.now(timezone.utc)
+            existing.last_check = datetime.now(UTC)
             existing.response_time_ms = response_time_ms
             existing.error_rate = error_rate
             return self._service_repo.save(existing)
@@ -62,7 +61,7 @@ class OperationsService:
         )
         return self._service_repo.save(svc)
 
-    async def get_service_status(self, name: str) -> Optional[ServiceStatus]:
+    async def get_service_status(self, name: str) -> ServiceStatus | None:
         """Retrieve the status for a single service."""
         return self._service_repo.find_by_name(name)
 
@@ -77,7 +76,7 @@ class OperationsService:
         health.recalculate_overall()
         return self._health_repo.save(health)
 
-    async def get_latest_platform_health(self) -> Optional[PlatformHealth]:
+    async def get_latest_platform_health(self) -> PlatformHealth | None:
         """Return the most recent PlatformHealth snapshot."""
         return self._health_repo.find_latest()
 
@@ -96,7 +95,7 @@ class OperationsService:
             existing.status = status
             existing.enabled = enabled
             existing.dependencies = dependencies or []
-            existing.last_updated = datetime.now(timezone.utc)
+            existing.last_updated = datetime.now(UTC)
             return self._module_repo.save(existing)
         mod = ModuleInventory(
             name=name,
@@ -107,7 +106,7 @@ class OperationsService:
         )
         return self._module_repo.save(mod)
 
-    async def get_module(self, name: str) -> Optional[ModuleInventory]:
+    async def get_module(self, name: str) -> ModuleInventory | None:
         """Retrieve a module by name."""
         return self._module_repo.find_by_name(name)
 
@@ -134,7 +133,7 @@ class OperationsService:
             existing.integrity = integrity
             existing.compatibility = compatibility
             existing.health_score = health_score
-            existing.last_validated = datetime.now(timezone.utc)
+            existing.last_validated = datetime.now(UTC)
             return self._package_repo.save(existing)
         pkg = PackageHealth(
             name=name,
@@ -175,6 +174,6 @@ class OperationsService:
         )
         return self._dashboard_repo.save(dashboard)
 
-    async def get_latest_dashboard(self) -> Optional[EcosystemDashboard]:
+    async def get_latest_dashboard(self) -> EcosystemDashboard | None:
         """Return the most recent ecosystem dashboard."""
         return self._dashboard_repo.find_latest()

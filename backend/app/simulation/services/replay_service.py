@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from ..domain.entities.timeline import Timeline, TimelineEvent
+from ...shared.events.event_bus import DomainEvent, EventBus, EventType, get_event_bus
+from ..domain.entities.timeline import TimelineEvent
 from ..domain.interfaces import TimelineRepositoryInterface
-from ...shared.events.event_bus import EventBus, DomainEvent, EventType, get_event_bus
 
 
 class ReplayService:
@@ -59,7 +59,7 @@ class ReplayService:
             "total_duration_ms": timeline.total_duration_ms,
             "speed_multiplier": speed_multiplier,
             "highlighted_events": highlighted_event_ids or [],
-            "started_at": datetime.now(timezone.utc).isoformat(),
+            "started_at": datetime.now(UTC).isoformat(),
         }
 
     async def get_playback_state(
@@ -72,10 +72,7 @@ class ReplayService:
         if timeline is None:
             raise ValueError(f"Timeline {timeline_id} not found")
 
-        visible_events = [
-            e for e in timeline.events
-            if e.timestamp_offset_ms <= current_offset_ms
-        ]
+        visible_events = [e for e in timeline.events if e.timestamp_offset_ms <= current_offset_ms]
 
         milestones_hit = [e for e in visible_events if e.milestone]
         checkpoints_hit = [e for e in visible_events if e.learner_checkpoint]
@@ -106,8 +103,7 @@ class ReplayService:
             raise ValueError(f"Timeline {timeline_id} not found")
 
         return [
-            e for e in timeline.events
-            if abs(e.timestamp_offset_ms - offset_ms) <= tolerance_ms
+            e for e in timeline.events if abs(e.timestamp_offset_ms - offset_ms) <= tolerance_ms
         ]
 
     async def highlight_events(
@@ -185,9 +181,7 @@ class ReplayService:
             },
         }
 
-    async def get_milestone_summary(
-        self, timeline_id: str
-    ) -> dict[str, Any]:
+    async def get_milestone_summary(self, timeline_id: str) -> dict[str, Any]:
         """Return a summary of all milestones in a timeline."""
         timeline = await self._timeline_repo.get_by_id(timeline_id)
         if timeline is None:
@@ -201,9 +195,7 @@ class ReplayService:
             "total_duration_ms": timeline.total_duration_ms,
         }
 
-    async def get_checkpoints_summary(
-        self, timeline_id: str
-    ) -> dict[str, Any]:
+    async def get_checkpoints_summary(self, timeline_id: str) -> dict[str, Any]:
         """Return a summary of all learner checkpoints in a timeline."""
         timeline = await self._timeline_repo.get_by_id(timeline_id)
         if timeline is None:
@@ -216,9 +208,7 @@ class ReplayService:
             "checkpoints": [c.to_dict() for c in checkpoints],
         }
 
-    async def export_replay_data(
-        self, timeline_id: str
-    ) -> dict[str, Any]:
+    async def export_replay_data(self, timeline_id: str) -> dict[str, Any]:
         """Export complete replay data for a timeline."""
         timeline = await self._timeline_repo.get_by_id(timeline_id)
         if timeline is None:
@@ -229,5 +219,5 @@ class ReplayService:
             "milestones": [m.to_dict() for m in timeline.get_milestones()],
             "checkpoints": [c.to_dict() for c in timeline.get_checkpoints()],
             "branches": [b.to_dict() for b in timeline.branches],
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": datetime.now(UTC).isoformat(),
         }

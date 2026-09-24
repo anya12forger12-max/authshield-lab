@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
+from ...shared.validation.validator import ValidationResult
 from ..domain.entities.policy_entity import (
+    VALID_STATUS_TRANSITIONS,
     PolicyCategory,
     PolicyStatus,
-    VALID_STATUS_TRANSITIONS,
 )
 from ..domain.entities.rule_entity import RuleCondition, RuleExecutionMode
-from ...shared.validation.validator import ValidationResult
 
 
 def validate_policy_data(data: dict[str, Any]) -> ValidationResult:
@@ -32,15 +31,11 @@ def validate_policy_data(data: dict[str, Any]) -> ValidationResult:
     if not name or not name.strip():
         result.add_error("name", "Policy name is required", "REQUIRED")
     elif len(name.strip()) > 128:
-        result.add_error(
-            "name", "Policy name must be at most 128 characters", "MAX_LENGTH"
-        )
+        result.add_error("name", "Policy name must be at most 128 characters", "MAX_LENGTH")
 
     description = data.get("description", "")
     if description and len(description) > 512:
-        result.add_error(
-            "description", "Description must be at most 512 characters", "MAX_LENGTH"
-        )
+        result.add_error("description", "Description must be at most 512 characters", "MAX_LENGTH")
 
     category = data.get("category", "")
     if category:
@@ -53,25 +48,23 @@ def validate_policy_data(data: dict[str, Any]) -> ValidationResult:
             )
 
     priority = data.get("priority")
-    if priority is not None:
-        if not isinstance(priority, int) or priority < 1 or priority > 1000:
-            result.add_error(
-                "priority", "Priority must be an integer between 1 and 1000", "INVALID_VALUE"
-            )
+    if (priority is not None and not isinstance(priority, int)) or priority < 1 or priority > 1000:
+        result.add_error(
+            "priority", "Priority must be an integer between 1 and 1000", "INVALID_VALUE"
+        )
 
     risk_weight = data.get("risk_weight")
-    if risk_weight is not None:
-        if not isinstance(risk_weight, (int, float)) or risk_weight < 0.0 or risk_weight > 10.0:
-            result.add_error(
-                "risk_weight", "Risk weight must be between 0.0 and 10.0", "INVALID_VALUE"
-            )
+    if (
+        (risk_weight is not None and not isinstance(risk_weight, (int, float)))
+        or risk_weight < 0.0
+        or risk_weight > 10.0
+    ):
+        result.add_error("risk_weight", "Risk weight must be between 0.0 and 10.0", "INVALID_VALUE")
 
     event_types = data.get("supported_event_types")
     if event_types is not None:
         if not isinstance(event_types, list):
-            result.add_error(
-                "supported_event_types", "Must be a list", "TYPE"
-            )
+            result.add_error("supported_event_types", "Must be a list", "TYPE")
         else:
             for et in event_types:
                 if not isinstance(et, str) or not et.strip():
@@ -126,9 +119,7 @@ def validate_policy_config(config: dict[str, Any]) -> ValidationResult:
     else:
         for key, value in timing.items():
             if not isinstance(key, str) or not key.strip():
-                result.add_error(
-                    "timing", "Timing keys must be non-empty strings", "INVALID"
-                )
+                result.add_error("timing", "Timing keys must be non-empty strings", "INVALID")
             try:
                 float(value)
             except (TypeError, ValueError):
@@ -167,22 +158,17 @@ def validate_rule_data(data: dict[str, Any]) -> ValidationResult:
     if not name or not name.strip():
         result.add_error("name", "Rule name is required", "REQUIRED")
     elif len(name.strip()) > 128:
-        result.add_error(
-            "name", "Rule name must be at most 128 characters", "MAX_LENGTH"
-        )
+        result.add_error("name", "Rule name must be at most 128 characters", "MAX_LENGTH")
 
     description = data.get("description", "")
     if description and len(description) > 512:
-        result.add_error(
-            "description", "Description must be at most 512 characters", "MAX_LENGTH"
-        )
+        result.add_error("description", "Description must be at most 512 characters", "MAX_LENGTH")
 
     priority = data.get("priority")
-    if priority is not None:
-        if not isinstance(priority, int) or priority < 1 or priority > 1000:
-            result.add_error(
-                "priority", "Priority must be an integer between 1 and 1000", "INVALID_VALUE"
-            )
+    if (priority is not None and not isinstance(priority, int)) or priority < 1 or priority > 1000:
+        result.add_error(
+            "priority", "Priority must be an integer between 1 and 1000", "INVALID_VALUE"
+        )
 
     conditions = data.get("conditions", [])
     if not isinstance(conditions, list):
@@ -193,9 +179,7 @@ def validate_rule_data(data: dict[str, Any]) -> ValidationResult:
         valid_operators = {op.value for op in RuleCondition}
         for i, condition in enumerate(conditions):
             if not isinstance(condition, dict):
-                result.add_error(
-                    f"conditions[{i}]", "Each condition must be a dictionary", "TYPE"
-                )
+                result.add_error(f"conditions[{i}]", "Each condition must be a dictionary", "TYPE")
                 continue
             operator = condition.get("operator", "")
             if operator not in valid_operators:
@@ -220,9 +204,7 @@ def validate_rule_data(data: dict[str, Any]) -> ValidationResult:
         valid_action_types = {"block", "allow", "warn", "log", "monitor"}
         for i, action in enumerate(actions):
             if not isinstance(action, dict):
-                result.add_error(
-                    f"actions[{i}]", "Each action must be a dictionary", "TYPE"
-                )
+                result.add_error(f"actions[{i}]", "Each action must be a dictionary", "TYPE")
                 continue
             action_type = action.get("action_type", "")
             if action_type not in valid_action_types:
@@ -244,9 +226,7 @@ def validate_rule_data(data: dict[str, Any]) -> ValidationResult:
     return result
 
 
-def validate_status_transition(
-    current_status: str, target_status: str
-) -> ValidationResult:
+def validate_status_transition(current_status: str, target_status: str) -> ValidationResult:
     """Validate that a status transition is allowed.
 
     Parameters

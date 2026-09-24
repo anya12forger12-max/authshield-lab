@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -30,8 +30,8 @@ class ResearchProject:
         self.title = title
         self.description = description
         self.status = status
-        self.created_at = datetime.now(timezone.utc)
-        self.updated_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
+        self.updated_at = datetime.now(UTC)
 
 
 class LiteratureEntry:
@@ -57,7 +57,7 @@ class LiteratureEntry:
         self.keywords = keywords or []
         self.notes = notes
         self.read_status = read_status
-        self.added_at = datetime.now(timezone.utc)
+        self.added_at = datetime.now(UTC)
 
 
 class ResearchNote:
@@ -69,8 +69,8 @@ class ResearchNote:
         self.id = str(uuid.uuid4())
         self.entry_id = entry_id
         self.content = content
-        self.created_at = datetime.now(timezone.utc)
-        self.updated_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
+        self.updated_at = datetime.now(UTC)
 
 
 class KnowledgeConcept:
@@ -129,7 +129,7 @@ class ReadingList:
         self.project_id = project_id
         self.name = name
         self.entries = entries or []
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
 
 
 class Bibliography:
@@ -145,4 +145,4 @@ class Bibliography:
         self.name = name
         self.entries = entries or []
         self.format = format
-        self.generated_at = datetime.now(timezone.utc)
+        self.generated_at = datetime.now(UTC)

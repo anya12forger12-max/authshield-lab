@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -11,7 +11,7 @@ class QualityCheckCompleted:
     category: str = ""
     score: float = 0.0
     passed: bool = False
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -23,7 +23,7 @@ class TestSuiteRun:
     failed: int = 0
     skipped: int = 0
     duration_ms: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -33,7 +33,7 @@ class AuditCompleted:
     standard: str = ""
     overall_score: float = 0.0
     violations: int = 0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -43,7 +43,7 @@ class PerformanceBenchmarkCompleted:
     value: float = 0.0
     threshold: float = 0.0
     passed: bool = False
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -52,7 +52,7 @@ class ReleaseReadinessChecked:
     release_id: str = ""
     version: str = ""
     overall_ready: bool = False
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -64,4 +64,4 @@ class DiagnosticsCompleted:
     passed: int = 0
     failed: int = 0
     warnings: int = 0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))

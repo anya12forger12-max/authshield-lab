@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -39,7 +39,7 @@ class SdK:
         self.author: str = author
         self.compatibility_version: str = compatibility_version
         self.modules: list[str] = modules if modules is not None else []
-        self.created_at: datetime = created_at or datetime.now(timezone.utc)
+        self.created_at: datetime = created_at or datetime.now(UTC)
         self.deprecated: bool = deprecated
         self.min_platform_version: str = min_platform_version
 

@@ -3,9 +3,9 @@
 import pytest
 
 from app.users.domain.entities.identity_lifecycle import (
-    UserLifecycleState,
     VALID_LIFECYCLE_TRANSITIONS,
     LifecycleTransition,
+    UserLifecycleState,
     can_transition,
     validate_transition,
 )
@@ -76,10 +76,15 @@ class TestInvalidTransitions:
         assert can_transition(UserLifecycleState.LOCKED, UserLifecycleState.AUTHENTICATED) is False
 
     def test_suspended_to_authenticated_invalid(self):
-        assert can_transition(UserLifecycleState.SUSPENDED, UserLifecycleState.AUTHENTICATED) is False
+        assert (
+            can_transition(UserLifecycleState.SUSPENDED, UserLifecycleState.AUTHENTICATED) is False
+        )
 
     def test_logged_out_to_active_session_invalid(self):
-        assert can_transition(UserLifecycleState.LOGGED_OUT, UserLifecycleState.ACTIVE_SESSION) is False
+        assert (
+            can_transition(UserLifecycleState.LOGGED_OUT, UserLifecycleState.ACTIVE_SESSION)
+            is False
+        )
 
 
 class TestValidateTransition:

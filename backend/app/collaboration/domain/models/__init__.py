@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.base_model import Base, TimestampMixin, UUIDPrimaryKeyMixin
-
 
 # ---------------------------------------------------------------------------
 # Academic Hub Models
@@ -47,7 +46,7 @@ class ImportedResourceModel(UUIDPrimaryKeyMixin, Base):
     imported_by: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     imported_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
@@ -75,7 +74,7 @@ class PublicationQueueItemModel(UUIDPrimaryKeyMixin, Base):
     submitted_by: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     submitted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="queued")
@@ -91,7 +90,7 @@ class VersionHistoryModel(UUIDPrimaryKeyMixin, Base):
     author: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -142,7 +141,7 @@ class PackageValidationReportModel(UUIDPrimaryKeyMixin, Base):
     issues: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     validated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -155,7 +154,7 @@ class ExchangeHistoryModel(UUIDPrimaryKeyMixin, Base):
     performed_by: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     performed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
     details: Mapped[str] = mapped_column(Text, nullable=False, default="{}")
@@ -205,7 +204,7 @@ class ResearchNoteModel(UUIDPrimaryKeyMixin, Base):
     created_by: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -237,7 +236,7 @@ class ReadingListModel(UUIDPrimaryKeyMixin, Base):
     item_ids: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -251,7 +250,7 @@ class BibliographyModel(UUIDPrimaryKeyMixin, Base):
     format: Mapped[str] = mapped_column(String(20), nullable=False, default="apa")
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -281,7 +280,7 @@ class ReviewCommentModel(UUIDPrimaryKeyMixin, Base):
     severity: Mapped[str | None] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -296,7 +295,7 @@ class ReviewDecisionModel(UUIDPrimaryKeyMixin, Base):
     comments: Mapped[str] = mapped_column(Text, nullable=False, default="")
     decided_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -310,7 +309,7 @@ class ReviewRevisionModel(UUIDPrimaryKeyMixin, Base):
     author: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 
@@ -357,7 +356,7 @@ class ArticleVersionModel(Base):
     author: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         nullable=False,
     )
 

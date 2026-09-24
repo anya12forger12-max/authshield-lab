@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
+from .assessment_service import AssessmentLmsService
 from .classroom_service import ClassroomService
+from .competency_service import CompetencyService
 from .enrollment_service import EnrollmentService
 from .gradebook_service import GradebookService
-from .competency_service import CompetencyService
-from .assessment_service import AssessmentLmsService
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class AnalyticsService:
     def get_learner_overview(self, learner_id: str) -> dict[str, Any]:
         """Get a comprehensive overview for a single learner."""
         enrollments = self._enrollments.get_learner_enrollments(learner_id)
-        competency_progress = self._competencies.get_learner_progress(learner_id)
+        self._competencies.get_learner_progress(learner_id)
         competency_summary = self._competencies.get_learner_summary(learner_id)
 
         gradebook_averages: dict[str, float] = {}
@@ -84,10 +84,9 @@ class AnalyticsService:
         """Get high-level platform analytics."""
         classrooms = self._classrooms.list_classrooms(per_page=10000)
         total_classrooms = classrooms.get("total", 0)
-        active_classrooms = len([
-            c for c in classrooms.get("items", [])
-            if c.get("status") == "active"
-        ])
+        active_classrooms = len(
+            [c for c in classrooms.get("items", []) if c.get("status") == "active"]
+        )
 
         all_enrollments_result = self._enrollments.list_enrollments(per_page=10000)
         all_enrollments = all_enrollments_result.get("items", [])
@@ -112,9 +111,7 @@ class AnalyticsService:
             ),
         }
 
-    def get_top_performers(
-        self, course_id: str, limit: int = 10
-    ) -> list[dict[str, Any]]:
+    def get_top_performers(self, course_id: str, limit: int = 10) -> list[dict[str, Any]]:
         """Get top performers in a course by gradebook average."""
         gradebook = self._gradebook.get_gradebook_by_course(course_id)
         if not gradebook:
@@ -126,10 +123,12 @@ class AnalyticsService:
         performers: list[dict[str, Any]] = []
         for lid in learner_ids:
             avg = self._gradebook.calculate_learner_average(gradebook["id"], lid)
-            performers.append({
-                "learner_id": lid,
-                "average_score": avg,
-            })
+            performers.append(
+                {
+                    "learner_id": lid,
+                    "average_score": avg,
+                }
+            )
 
         performers.sort(key=lambda p: p["average_score"], reverse=True)
         return performers[:limit]
@@ -147,14 +146,18 @@ class AnalyticsService:
         for comp in all_competencies:
             cid = comp.get("id", "")
             progress = progress_by_competency.get(cid)
-            heatmap.append({
-                "competency_id": cid,
-                "competency_name": comp.get("name", ""),
-                "domain": comp.get("domain", ""),
-                "level": comp.get("level", ""),
-                "status": progress.get("status", "not_started") if progress else "not_started",
-                "evidence_count": len(progress.get("evidence_json", "[]").split(",")) if progress else 0,
-            })
+            heatmap.append(
+                {
+                    "competency_id": cid,
+                    "competency_name": comp.get("name", ""),
+                    "domain": comp.get("domain", ""),
+                    "level": comp.get("level", ""),
+                    "status": progress.get("status", "not_started") if progress else "not_started",
+                    "evidence_count": len(progress.get("evidence_json", "[]").split(","))
+                    if progress
+                    else 0,
+                }
+            )
 
         return {"learner_id": learner_id, "heatmap": heatmap}
 
@@ -169,7 +172,7 @@ class AnalyticsService:
 
         return {
             "learner_id": learner_id,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "enrollment_overview": {
                 "total": overview["total_enrollments"],
                 "statuses": overview["enrollment_statuses"],

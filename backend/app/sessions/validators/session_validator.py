@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ...shared.validation.validator import Validator, ValidationResult
+from ...shared.validation.validator import ValidationResult, Validator
 
 _session_validator = Validator()
 
@@ -44,22 +44,28 @@ def validate_session_data(data: dict[str, Any]) -> ValidationResult:
                     break
 
     idle_timeout = data.get("idle_timeout_minutes")
-    if idle_timeout is not None:
-        if not isinstance(idle_timeout, (int, float)) or idle_timeout < 1 or idle_timeout > 1440:
-            result.add_error(
-                "idle_timeout_minutes",
-                "Idle timeout must be between 1 and 1440 minutes.",
-                "out_of_range",
-            )
+    if (
+        (idle_timeout is not None and not isinstance(idle_timeout, (int, float)))
+        or idle_timeout < 1
+        or idle_timeout > 1440
+    ):
+        result.add_error(
+            "idle_timeout_minutes",
+            "Idle timeout must be between 1 and 1440 minutes.",
+            "out_of_range",
+        )
 
     security_level = data.get("security_level")
-    if security_level is not None:
-        if not isinstance(security_level, int) or security_level < 1 or security_level > 5:
-            result.add_error(
-                "security_level",
-                "Security level must be between 1 and 5.",
-                "out_of_range",
-            )
+    if (
+        (security_level is not None and not isinstance(security_level, int))
+        or security_level < 1
+        or security_level > 5
+    ):
+        result.add_error(
+            "security_level",
+            "Security level must be between 1 and 5.",
+            "out_of_range",
+        )
 
     return result
 
@@ -74,7 +80,8 @@ def validate_session_filters(filters: dict[str, Any]) -> ValidationResult:
         if status not in valid_statuses:
             result.add_error(
                 "status",
-                f"Invalid status filter '{status}'. Must be one of: {', '.join(sorted(valid_statuses))}",
+                f"Invalid status filter '{status}'. "
+                f"Must be one of: {', '.join(sorted(valid_statuses))}",
                 "invalid_value",
             )
 
@@ -83,12 +90,11 @@ def validate_session_filters(filters: dict[str, Any]) -> ValidationResult:
         result.add_error("page", "Page must be a positive integer.", "invalid_value")
 
     per_page = filters.get("per_page", 20)
-    if per_page is not None:
-        if not isinstance(per_page, int) or per_page < 1 or per_page > 100:
-            result.add_error(
-                "per_page",
-                "Per page must be between 1 and 100.",
-                "out_of_range",
-            )
+    if (per_page is not None and not isinstance(per_page, int)) or per_page < 1 or per_page > 100:
+        result.add_error(
+            "per_page",
+            "Per page must be between 1 and 100.",
+            "out_of_range",
+        )
 
     return result

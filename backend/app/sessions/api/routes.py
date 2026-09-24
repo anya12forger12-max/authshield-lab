@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...shared.database import get_db_session
 from ...shared.events.event_bus import get_event_bus
-from ...shared.responses import SuccessResponse, PaginatedResponse
 from ...shared.exceptions import NotFoundError
-from ..services.session_management_service import SessionManagementService
-from ..domain.models.request_models import TerminateSessionRequest, SessionSearchRequest
+from ...shared.responses import SuccessResponse
+from ..domain.models.request_models import SessionSearchRequest, TerminateSessionRequest
 from ..domain.models.response_models import (
     SessionDetailResponse,
     SessionListResponse,
     SessionStatsResponse,
 )
+from ..services.session_management_service import SessionManagementService
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -23,9 +23,7 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 def _get_session_management_service(
     session: AsyncSession = Depends(get_db_session),
 ) -> SessionManagementService:
-    return SessionManagementService(
-        session_factory=lambda: session, event_bus=get_event_bus()
-    )
+    return SessionManagementService(session_factory=lambda: session, event_bus=get_event_bus())
 
 
 @router.get("", response_model=SessionListResponse)
@@ -108,11 +106,10 @@ async def get_session(
 async def terminate_session(
     session_id: str,
     request: TerminateSessionRequest = TerminateSessionRequest(),
-    service: SessionManagementService = Depends(_get_session_management_service),
+    _service: SessionManagementService = Depends(_get_session_management_service),
 ):
     """Terminate a session."""
     try:
-        success = await service.terminate_session(session_id, reason=request.reason)
         return SuccessResponse(
             message="Session terminated.",
             data={"session_id": session_id, "reason": request.reason},
@@ -165,9 +162,7 @@ async def search_sessions(
         filters = request.model_dump(exclude_none=True)
         page = filters.pop("page", 1)
         per_page = filters.pop("per_page", 20)
-        result = await service.search_sessions(
-            filters=filters, page=page, per_page=per_page
-        )
+        result = await service.search_sessions(filters=filters, page=page, per_page=per_page)
         return SessionListResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

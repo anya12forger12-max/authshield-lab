@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import logging
-import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.standards.domain.entities.framework import (
     CompetencyFramework,
@@ -128,7 +126,7 @@ class FrameworkService:
         if status is not None:
             fw.update_status(status)
             changes.append("status")
-        fw.updated_at = datetime.now(timezone.utc)
+        fw.updated_at = datetime.now(UTC)
         self._frameworks.save(fw)
         if changes:
             event = FrameworkUpdated(framework_id=fw.id, changes=changes)
@@ -138,7 +136,9 @@ class FrameworkService:
     def delete_framework(self, framework_id: str) -> bool:
         return self._frameworks.delete(framework_id)
 
-    def bump_framework_version(self, framework_id: str, new_version: str) -> CompetencyFramework | None:
+    def bump_framework_version(
+        self, framework_id: str, new_version: str
+    ) -> CompetencyFramework | None:
         fw = self._frameworks.get_by_id(framework_id)
         if fw is None:
             return None
@@ -435,19 +435,23 @@ class FrameworkService:
             a_comp = next(c for c in fw_a.competencies if c.name == name)
             b_comp = next(c for c in fw_b.competencies if c.name == name)
             if a_comp.description != b_comp.description:
-                changed_rels.append({
-                    "name": name,
-                    "field": "description",
-                    "old": a_comp.description,
-                    "new": b_comp.description,
-                })
+                changed_rels.append(
+                    {
+                        "name": name,
+                        "field": "description",
+                        "old": a_comp.description,
+                        "new": b_comp.description,
+                    }
+                )
             if a_comp.level != b_comp.level:
-                changed_rels.append({
-                    "name": name,
-                    "field": "level",
-                    "old": a_comp.level,
-                    "new": b_comp.level,
-                })
+                changed_rels.append(
+                    {
+                        "name": name,
+                        "field": "level",
+                        "old": a_comp.level,
+                        "new": b_comp.level,
+                    }
+                )
         return {
             "framework_a_id": framework_a_id,
             "framework_b_id": framework_b_id,

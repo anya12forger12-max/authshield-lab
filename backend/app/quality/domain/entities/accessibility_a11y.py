@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 A11yAuditStatus = Literal["pass", "fail", "na"]
@@ -43,7 +43,7 @@ class A11yAudit:
     violations_count: int = 0
     passed_count: int = 0
     na_count: int = 0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass

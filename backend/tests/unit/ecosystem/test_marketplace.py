@@ -1,4 +1,4 @@
-"""Tests for ecosystem entities and services — LocalPackage, LibraryItem, ResearchProject, MarketplaceService, LibraryService."""
+"Tests for ecosystem entities and services — LocalPackage, LibraryItem, ResearchProject, MarketplaceService, LibraryService."
 
 from __future__ import annotations
 
@@ -6,20 +6,26 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from app.ecosystem.domain.entities.library import Bookmark, LibraryItem, LibraryItemType
 from app.ecosystem.domain.entities.marketplace import (
     InstallationRecord,
     LocalPackage,
     PackageCategory,
     PackageSearch,
 )
-from app.ecosystem.domain.entities.library import Bookmark, LibraryItem, LibraryItemType
 from app.ecosystem.domain.entities.research import ResearchProject, ResearchStatus
 from app.ecosystem.services.marketplace_service import MarketplaceService
 
 
 class TestLocalPackage:
     def test_default_values(self):
-        p = LocalPackage(name="Pkg", version="1.0", author="Auth", description="Desc", category=PackageCategory.plugin)
+        p = LocalPackage(
+            name="Pkg",
+            version="1.0",
+            author="Auth",
+            description="Desc",
+            category=PackageCategory.plugin,
+        )
         assert p.name == "Pkg"
         assert p.installed is False
         assert p.favorite is False
@@ -27,8 +33,13 @@ class TestLocalPackage:
 
     def test_custom_package(self):
         p = LocalPackage(
-            name="SecPack", version="2.0", author="Alice", description="Security",
-            category=PackageCategory.course, tags=["security"], file_size=1024
+            name="SecPack",
+            version="2.0",
+            author="Alice",
+            description="Security",
+            category=PackageCategory.course,
+            tags=["security"],
+            file_size=1024,
         )
         assert len(p.tags) == 1
         assert p.file_size == 1024
@@ -54,7 +65,9 @@ class TestInstallationRecord:
         assert rec.status.value == "installed"
 
     def test_custom_config(self):
-        rec = InstallationRecord(package_id="p1", installed_by="user1", version="1.0", config={"key": "val"})
+        rec = InstallationRecord(
+            package_id="p1", installed_by="user1", version="1.0", config={"key": "val"}
+        )
         assert rec.config["key"] == "val"
 
 
@@ -65,7 +78,9 @@ class TestLibraryItem:
         assert item.bookmarked is False
 
     def test_page_count(self):
-        item = LibraryItem(title="Doc", author="A", item_type=LibraryItemType.documentation, page_count=200)
+        item = LibraryItem(
+            title="Doc", author="A", item_type=LibraryItemType.documentation, page_count=200
+        )
         assert item.page_count == 200
 
 
@@ -89,10 +104,24 @@ class TestMarketplaceService:
 
     def test_filter_by_category(self):
         repo = MagicMock()
-        repo.all_packages = MagicMock(return_value=[
-            LocalPackage(name="A", version="1.0", author="X", description="D", category=PackageCategory.course),
-            LocalPackage(name="B", version="1.0", author="X", description="D", category=PackageCategory.plugin),
-        ])
+        repo.all_packages = MagicMock(
+            return_value=[
+                LocalPackage(
+                    name="A",
+                    version="1.0",
+                    author="X",
+                    description="D",
+                    category=PackageCategory.course,
+                ),
+                LocalPackage(
+                    name="B",
+                    version="1.0",
+                    author="X",
+                    description="D",
+                    category=PackageCategory.plugin,
+                ),
+            ]
+        )
         service = MarketplaceService(repo)
         result = service.filter_by_category("course")
         assert len(result) == 1
@@ -107,7 +136,9 @@ class TestMarketplaceService:
 
     def test_rate_package(self):
         repo = MagicMock()
-        p = LocalPackage(name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin)
+        p = LocalPackage(
+            name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin
+        )
         p.rating = 3
         p.review_count = 2
         repo.get_package = MagicMock(return_value=p)
@@ -118,7 +149,9 @@ class TestMarketplaceService:
 
     def test_rate_package_out_of_range(self):
         repo = MagicMock()
-        p = LocalPackage(name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin)
+        p = LocalPackage(
+            name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin
+        )
         repo.get_package = MagicMock(return_value=p)
         service = MarketplaceService(repo)
         with pytest.raises(ValueError, match="Rating"):
@@ -126,7 +159,9 @@ class TestMarketplaceService:
 
     def test_toggle_favorite(self):
         repo = MagicMock()
-        p = LocalPackage(name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin)
+        p = LocalPackage(
+            name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin
+        )
         repo.get_package = MagicMock(return_value=p)
         repo.update_package = MagicMock()
         service = MarketplaceService(repo)
@@ -135,7 +170,9 @@ class TestMarketplaceService:
 
     def test_get_favorites(self):
         repo = MagicMock()
-        p = LocalPackage(name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin)
+        p = LocalPackage(
+            name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin
+        )
         p.favorite = True
         repo.all_packages = MagicMock(return_value=[p])
         service = MarketplaceService(repo)
@@ -144,7 +181,9 @@ class TestMarketplaceService:
 
     def test_validate_package_integrity(self):
         repo = MagicMock()
-        p = LocalPackage(name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin)
+        p = LocalPackage(
+            name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin
+        )
         p.checksum = "a" * 32
         p.signature = "b" * 16
         service = MarketplaceService(repo)
@@ -152,7 +191,9 @@ class TestMarketplaceService:
 
     def test_validate_package_integrity_fails(self):
         repo = MagicMock()
-        p = LocalPackage(name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin)
+        p = LocalPackage(
+            name="P", version="1.0", author="A", description="D", category=PackageCategory.plugin
+        )
         p.checksum = "ab"
         p.signature = "cd"
         service = MarketplaceService(repo)
@@ -162,6 +203,7 @@ class TestMarketplaceService:
 class TestLibraryService:
     def test_add_and_get_item(self):
         from app.ecosystem.services.library_service import LibraryService
+
         repo = MagicMock()
         service = LibraryService(repo)
         item = LibraryItem(title="Book", author="A", item_type=LibraryItemType.book)
@@ -171,6 +213,7 @@ class TestLibraryService:
 
     def test_search_items(self):
         from app.ecosystem.services.library_service import LibraryService
+
         repo = MagicMock()
         repo.search_items = MagicMock(return_value=[])
         service = LibraryService(repo)
@@ -179,8 +222,10 @@ class TestLibraryService:
 
     def test_add_bookmark(self):
         import app.ecosystem.services.library_service as lib_mod
+
         lib_mod.Bookmark = Bookmark
         from app.ecosystem.services.library_service import LibraryService
+
         repo = MagicMock()
         repo.add_bookmark = MagicMock()
         service = LibraryService(repo)
@@ -190,6 +235,7 @@ class TestLibraryService:
 
     def test_generate_bibliography_apa(self):
         from app.ecosystem.services.library_service import LibraryService
+
         repo = MagicMock()
         item = LibraryItem(title="Test", author="Author", item_type=LibraryItemType.book)
         item.created_at = __import__("datetime").datetime(2024, 1, 1)

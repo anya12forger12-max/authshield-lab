@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any
 
 from ..entities.role import RoleEntity
 
@@ -12,12 +12,12 @@ class IRoleService(ABC):
     """Interface for role and permission management operations."""
 
     @abstractmethod
-    async def get_role(self, role_id: str) -> Optional[RoleEntity]:
+    async def get_role(self, role_id: str) -> RoleEntity | None:
         """Retrieve a role by ID."""
         ...
 
     @abstractmethod
-    async def get_role_by_name(self, name: str) -> Optional[RoleEntity]:
+    async def get_role_by_name(self, name: str) -> RoleEntity | None:
         """Retrieve a role by its unique name."""
         ...
 
@@ -32,7 +32,7 @@ class IRoleService(ABC):
         ...
 
     @abstractmethod
-    async def update_role(self, role_id: str, data: dict[str, Any]) -> Optional[RoleEntity]:
+    async def update_role(self, role_id: str, data: dict[str, Any]) -> RoleEntity | None:
         """Update an existing role."""
         ...
 

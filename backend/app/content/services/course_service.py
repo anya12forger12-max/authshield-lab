@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.entities.content import Course
 from ..domain.events.content_events import (
+    CourseArchived,
     CourseCreated,
     CoursePublished,
-    CourseArchived,
-    AccessibilityReviewCompleted,
 )
 from ..domain.interfaces.content_repository import CourseRepository
 from ..validators.content_validator import ContentValidator
@@ -86,7 +84,7 @@ class CourseService:
         self._record_event(event)
         return course
 
-    async def get_course(self, course_id: str) -> Optional[Course]:
+    async def get_course(self, course_id: str) -> Course | None:
         """Retrieve a course by ID."""
         return await self._repo.find_by_id(course_id)
 
@@ -106,6 +104,7 @@ class CourseService:
             total = await self._repo.count()
             paginated = courses
         import math
+
         pages = math.ceil(total / limit) if limit > 0 else 0
         return {
             "items": [c.__dict__ for c in paginated],
@@ -134,7 +133,7 @@ class CourseService:
         for key, value in updates.items():
             if key in allowed_fields:
                 setattr(course, key, value)
-        course.updated_at = datetime.now(timezone.utc)
+        course.updated_at = datetime.now(UTC)
         validation_errors = course.validate()
         if validation_errors:
             raise ValueError(f"Course validation failed: {'; '.join(validation_errors)}")

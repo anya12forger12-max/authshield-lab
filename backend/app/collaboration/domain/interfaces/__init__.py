@@ -7,41 +7,41 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from domain.entities.academic_hub import (
-        InstitutionalProject,
-        SharedCurriculumPackage,
         ImportedResource,
-        ReviewRequest,
+        InstitutionalProject,
         PublicationQueueItem,
+        ReviewRequest,
+        SharedCurriculumPackage,
         VersionHistory,
     )
     from domain.entities.curriculum_exchange import (
-        ExchangePackage,
-        ExchangeManifest,
-        PackageValidationReport,
         ExchangeHistory,
+        ExchangeManifest,
+        ExchangePackage,
+        PackageValidationReport,
     )
-    from domain.entities.research_workspace import (
-        ResearchProject,
-        LiteratureCollection,
-        LiteratureEntry,
-        ResearchNote,
-        Citation,
-        KnowledgeMap,
-        ReadingList,
-        Bibliography,
+    from domain.entities.knowledge_base import (
+        ArticleCitation,
+        ArticleVersion,
+        KnowledgeArticle,
+        KnowledgeCategory,
     )
     from domain.entities.peer_review import (
         PeerReview,
         ReviewComment,
         ReviewDecision,
-        ReviewRevision,
         ReviewHistory,
+        ReviewRevision,
     )
-    from domain.entities.knowledge_base import (
-        KnowledgeArticle,
-        KnowledgeCategory,
-        ArticleVersion,
-        ArticleCitation,
+    from domain.entities.research_workspace import (
+        Bibliography,
+        Citation,
+        KnowledgeMap,
+        LiteratureCollection,
+        LiteratureEntry,
+        ReadingList,
+        ResearchNote,
+        ResearchProject,
     )
 
 
@@ -139,7 +139,9 @@ class CurriculumExchangeRepository(ABC):
     def get_validation_report(self, report_id: str) -> PackageValidationReport | None: ...
 
     @abstractmethod
-    def get_validation_reports_for_package(self, package_id: str) -> list[PackageValidationReport]: ...
+    def get_validation_reports_for_package(
+        self, package_id: str
+    ) -> list[PackageValidationReport]: ...
 
     @abstractmethod
     def add_history(self, entry: ExchangeHistory) -> None: ...
@@ -174,7 +176,9 @@ class ResearchWorkspaceRepository(ABC):
     def update_literature_collection(self, collection: LiteratureCollection) -> None: ...
 
     @abstractmethod
-    def get_literature_collections_for_project(self, project_id: str) -> list[LiteratureCollection]: ...
+    def get_literature_collections_for_project(
+        self, project_id: str
+    ) -> list[LiteratureCollection]: ...
 
     @abstractmethod
     def add_literature_entry(self, entry: LiteratureEntry) -> None: ...

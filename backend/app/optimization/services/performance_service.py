@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import logging
-import statistics
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.optimization import (
     BenchmarkHistory,
@@ -63,14 +61,14 @@ class PerformanceService:
         logger.info("metric_collected", extra={"metric_id": result["id"], "name": metric.name})
         return result
 
-    def get_metric(self, metric_id: str) -> Optional[dict[str, Any]]:
+    def get_metric(self, metric_id: str) -> dict[str, Any] | None:
         return self._metric_repo.get_by_id(metric_id)
 
     def list_metrics(
         self,
         page: int = 1,
         per_page: int = 20,
-        category: Optional[str] = None,
+        category: str | None = None,
     ) -> dict[str, Any]:
         return self._metric_repo.get_all(page=page, per_page=per_page, category=category)
 
@@ -122,7 +120,7 @@ class PerformanceService:
         self,
         page: int = 1,
         per_page: int = 20,
-        category: Optional[str] = None,
+        category: str | None = None,
     ) -> dict[str, Any]:
         return self._benchmark_repo.get_all(page=page, per_page=per_page, category=category)
 
@@ -136,7 +134,7 @@ class PerformanceService:
     def detect_regressions(self) -> list[dict[str, Any]]:
         """Return all benchmarks with regression detected."""
         regressions = []
-        for name, history in self._benchmark_history.items():
+        for _name, history in self._benchmark_history.items():
             if history.regression_detected:
                 regressions.append(history.to_dict())
         return regressions
@@ -207,10 +205,10 @@ class PerformanceService:
         )
         return stored
 
-    def get_dashboard(self, dashboard_id: str) -> Optional[dict[str, Any]]:
+    def get_dashboard(self, dashboard_id: str) -> dict[str, Any] | None:
         return self._dashboard_repo.get_by_id(dashboard_id)
 
-    def get_latest_dashboard(self) -> Optional[dict[str, Any]]:
+    def get_latest_dashboard(self) -> dict[str, Any] | None:
         return self._dashboard_repo.get_latest()
 
     def list_dashboards(self, limit: int = 10) -> list[dict[str, Any]]:

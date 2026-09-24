@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 
 from app.standards.domain.entities.skills_taxonomy import (
     SkillCategory,
@@ -122,7 +121,7 @@ class SkillsTaxonomyService:
         tax.add_skill(skill)
         self._taxonomies.save(tax)
         self._skills.save(skill)
-        if hasattr(self._relationships, 'set_taxonomy_index'):
+        if hasattr(self._relationships, "set_taxonomy_index"):
             self._relationships.set_taxonomy_index(skill.id, taxonomy_id)
         return skill
 
@@ -223,7 +222,7 @@ class SkillsTaxonomyService:
             if tax is not None:
                 tax.add_relationship(rel)
                 self._taxonomies.save(tax)
-            if hasattr(self._relationships, 'set_taxonomy_index'):
+            if hasattr(self._relationships, "set_taxonomy_index"):
                 self._relationships.set_taxonomy_index(source_skill_id, taxonomy_id)
                 self._relationships.set_taxonomy_index(target_skill_id, taxonomy_id)
         return rel

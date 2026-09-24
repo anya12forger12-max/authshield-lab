@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -17,27 +17,27 @@ class ValidationCheck:
     status: str = "pending"
     details: str = ""
     evidence: str = ""
-    checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    checked_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def mark_passed(self, details_text: str = "", evidence_text: str = "") -> None:
         """Record a passing check."""
         self.status = "passed"
         self.details = details_text
         self.evidence = evidence_text
-        self.checked_at = datetime.now(timezone.utc)
+        self.checked_at = datetime.now(UTC)
 
     def mark_failed(self, details_text: str = "", evidence_text: str = "") -> None:
         """Record a failing check."""
         self.status = "failed"
         self.details = details_text
         self.evidence = evidence_text
-        self.checked_at = datetime.now(timezone.utc)
+        self.checked_at = datetime.now(UTC)
 
     def mark_skipped(self, reason: str = "") -> None:
         """Record a skipped check."""
         self.status = "skipped"
         self.details = reason
-        self.checked_at = datetime.now(timezone.utc)
+        self.checked_at = datetime.now(UTC)
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -63,7 +63,7 @@ class SubsystemValidation:
     failed: int = 0
     skipped: int = 0
     compliance_pct: float = 0.0
-    validated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    validated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_check(self, check: ValidationCheck) -> None:
         """Append a check and refresh counters."""
@@ -106,7 +106,7 @@ class PlatformValidationReport:
     overall_passed: int = 0
     overall_failed: int = 0
     overall_compliance: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def aggregate(self) -> None:
         """Recount totals across all subsystems."""
@@ -147,7 +147,7 @@ class FinalAcceptanceTest:
     results: dict[str, SubsystemValidation] = field(default_factory=dict)
     overall_status: str = "pending"
     sign_off_required: list[str] = field(default_factory=list)
-    completed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def run(self) -> str:
         """Evaluate all subsystem results and derive ``overall_status``."""
@@ -162,14 +162,12 @@ class FinalAcceptanceTest:
             self.overall_status = "failed"
         else:
             self.overall_status = "pending"
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
         return self.overall_status
 
     def missing_signoffs(self) -> list[str]:
         """Return required sign-offs that have not yet been provided."""
-        signed = {
-            name for name, sv in self.results.items() if sv.is_compliant(100.0)
-        }
+        signed = {name for name, sv in self.results.items() if sv.is_compliant(100.0)}
         return [s for s in self.sign_off_required if s not in signed]
 
     def to_dict(self) -> dict:

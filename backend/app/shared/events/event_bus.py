@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import uuid
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable, Coroutine, Optional
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -90,15 +92,15 @@ class DomainEvent:
 
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     event_type: EventType = EventType.AUDIT_EVENT
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     correlation_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     module: str = ""
     severity: EventSeverity = EventSeverity.INFO
     message: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
-    source_user_id: Optional[str] = None
-    target_user_id: Optional[str] = None
-    session_id: Optional[str] = None
+    source_user_id: str | None = None
+    target_user_id: str | None = None
+    session_id: str | None = None
 
 
 EventHandler = Callable[[DomainEvent], Coroutine[Any, Any, None]]
@@ -142,10 +144,8 @@ class EventBus:
         Does nothing if the handler is not currently registered.
         """
         handlers = self._subscribers.get(event_type, [])
-        try:
+        with contextlib.suppress(ValueError):
             handlers.remove(handler)
-        except ValueError:
-            pass
 
     # ------------------------------------------------------------------
     # Publishing
@@ -201,7 +201,7 @@ class EventBus:
 
     def get_event_log(
         self,
-        event_type: Optional[EventType] = None,
+        event_type: EventType | None = None,
         limit: int = 100,
     ) -> list[DomainEvent]:
         """Return recent events, optionally filtered by *event_type*.
@@ -239,12 +239,12 @@ class EventBus:
 # Module-level singleton
 # ------------------------------------------------------------------
 
-_event_bus: Optional[EventBus] = None
+_event_bus: EventBus | None = None
 
 
 def get_event_bus() -> EventBus:
     """Return the global :class:`EventBus` instance, creating it lazily."""
-    global _event_bus  # noqa: PLW0603
+    global _event_bus
     if _event_bus is None:
         _event_bus = EventBus()
     return _event_bus
@@ -255,5 +255,5 @@ def reset_event_bus() -> None:
 
     Primarily useful in tests.
     """
-    global _event_bus  # noqa: PLW0603
+    global _event_bus
     _event_bus = EventBus()

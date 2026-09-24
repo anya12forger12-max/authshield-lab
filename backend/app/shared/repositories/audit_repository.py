@@ -5,11 +5,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import select, func, desc
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.audit_event import AuditEvent
 from ..logging_config import get_logger
+from ..models.audit_event import AuditEvent
 from .base_repository import BaseRepository
 
 logger = get_logger(__name__)
@@ -29,7 +29,7 @@ class AuditRepository(BaseRepository[AuditEvent]):
     # Disabled mutation helpers
     # ------------------------------------------------------------------
 
-    async def update(self, id: str, data: dict[str, Any]) -> None:  # type: ignore[override]
+    async def update(self, id: str, data: dict[str, Any]) -> None:  # type: ignore[override]  # noqa: ARG002
         """Stub -- audit events are immutable after creation.
 
         Raises ``RuntimeError`` unconditionally.
@@ -40,9 +40,7 @@ class AuditRepository(BaseRepository[AuditEvent]):
     # Queries
     # ------------------------------------------------------------------
 
-    async def get_by_user(
-        self, user_id: str, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def get_by_user(self, user_id: str, page: int = 1, per_page: int = 20) -> dict:
         """Return a paginated list of audit events for *user_id*."""
         base = AuditEvent.user_id == user_id
 
@@ -68,9 +66,7 @@ class AuditRepository(BaseRepository[AuditEvent]):
             "pages": pages,
         }
 
-    async def get_by_module(
-        self, module: str, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def get_by_module(self, module: str, page: int = 1, per_page: int = 20) -> dict:
         """Return a paginated list of audit events for the given *module*."""
         base = AuditEvent.module == module
 
@@ -96,9 +92,7 @@ class AuditRepository(BaseRepository[AuditEvent]):
             "pages": pages,
         }
 
-    async def get_by_event_type(
-        self, event_type: str, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def get_by_event_type(self, event_type: str, page: int = 1, per_page: int = 20) -> dict:
         """Return a paginated list of audit events matching *event_type*."""
         base = AuditEvent.event_type == event_type
 
@@ -124,9 +118,7 @@ class AuditRepository(BaseRepository[AuditEvent]):
             "pages": pages,
         }
 
-    async def get_by_correlation_id(
-        self, correlation_id: str
-    ) -> list[AuditEvent]:
+    async def get_by_correlation_id(self, correlation_id: str) -> list[AuditEvent]:
         """Return all events sharing the same *correlation_id*.
 
         Useful for tracing a single request across multiple audit records.

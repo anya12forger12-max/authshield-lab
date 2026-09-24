@@ -2,10 +2,10 @@
 
 from .identity_validators import IdentityValidator, get_identity_validator
 from .validator import (
-    Validator,
     ValidationResult,
     ValidationRule,
     ValidationSeverity,
+    Validator,
     get_validator,
 )
 

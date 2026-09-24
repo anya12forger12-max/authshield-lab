@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -19,20 +18,20 @@ class UserProfile:
     user_id: str = ""
     username: str = ""
     display_name: str = ""
-    email: Optional[str] = None
-    profile_picture: Optional[str] = None
-    bio: Optional[str] = None
+    email: str | None = None
+    profile_picture: str | None = None
+    bio: str | None = None
     account_status: str = "active"
     role: str = "student"
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_login: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_login: datetime | None = None
     login_count: int = 0
     preferred_language: str = "en"
     preferred_theme: str = "dark"
     timezone: str = "UTC"
     # Security metadata
-    password_last_changed: Optional[datetime] = None
+    password_last_changed: datetime | None = None
     password_algorithm: str = "argon2id"
     password_version: int = 1
     failed_login_count: int = 0
@@ -60,7 +59,9 @@ class UserProfile:
             "preferred_language": self.preferred_language,
             "preferred_theme": self.preferred_theme,
             "timezone": self.timezone,
-            "password_last_changed": self.password_last_changed.isoformat() if self.password_last_changed else None,
+            "password_last_changed": self.password_last_changed.isoformat()
+            if self.password_last_changed
+            else None,
             "password_algorithm": self.password_algorithm,
             "password_version": self.password_version,
             "failed_login_count": self.failed_login_count,

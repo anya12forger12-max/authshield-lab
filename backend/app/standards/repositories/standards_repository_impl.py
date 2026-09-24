@@ -38,8 +38,8 @@ from app.standards.domain.interfaces.standards_interfaces import (
     AbstractEvidenceCollectionRepository,
     AbstractEvidenceItemRepository,
     AbstractFrameworkCategoryRepository,
-    AbstractFrameworkCompetencyRepository,
     AbstractFrameworkComparisonRepository,
+    AbstractFrameworkCompetencyRepository,
     AbstractFrameworkDomainRepository,
     AbstractFrameworkReferenceRepository,
     AbstractFrameworkRepository,
@@ -55,7 +55,6 @@ from app.standards.domain.interfaces.standards_interfaces import (
     AbstractTaxonomySkillRepository,
     AbstractTaxonomyVersionRepository,
 )
-
 
 # ---------------------------------------------------------------------------
 # Framework Repositories
@@ -186,8 +185,10 @@ class InMemorySkillRepository(AbstractSkillRepository):
     def search(self, query: str) -> list[Skill]:
         q = query.lower()
         return [
-            s for s in self._store.values()
-            if q in s.name.lower() or q in s.description.lower()
+            s
+            for s in self._store.values()
+            if q in s.name.lower()
+            or q in s.description.lower()
             or any(q in a.lower() for a in s.aliases)
         ]
 
@@ -344,8 +345,10 @@ class InMemoryTaxonomySkillRepository(AbstractTaxonomySkillRepository):
     def search(self, query: str) -> list[TaxonomySkill]:
         q = query.lower()
         return [
-            s for s in self._store.values()
-            if q in s.name.lower() or q in s.description.lower()
+            s
+            for s in self._store.values()
+            if q in s.name.lower()
+            or q in s.description.lower()
             or any(q in a.lower() for a in s.aliases)
         ]
 
@@ -389,16 +392,14 @@ class InMemorySkillRelationshipRepository(AbstractSkillRelationshipRepository):
 
     def list_by_taxonomy(self, taxonomy_id: str) -> list[SkillRelationship]:
         return [
-            r for r in self._store
+            r
+            for r in self._store
             if self._taxonomy_index.get(r.source_skill_id) == taxonomy_id
             or self._taxonomy_index.get(r.target_skill_id) == taxonomy_id
         ]
 
     def list_by_skill(self, skill_id: str) -> list[SkillRelationship]:
-        return [
-            r for r in self._store
-            if r.source_skill_id == skill_id or r.target_skill_id == skill_id
-        ]
+        return [r for r in self._store if skill_id in (r.source_skill_id, r.target_skill_id)]
 
     def save(self, relationship: SkillRelationship) -> SkillRelationship:
         self._store.append(relationship)
@@ -468,10 +469,7 @@ class InMemoryEvidenceItemRepository(AbstractEvidenceItemRepository):
 
     def search(self, query: str) -> list[EvidenceItem]:
         q = query.lower()
-        return [
-            i for i in self._store.values()
-            if q in i.description.lower()
-        ]
+        return [i for i in self._store.values() if q in i.description.lower()]
 
     def save(self, item: EvidenceItem) -> EvidenceItem:
         self._store[item.id] = item

@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Optional, Any
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -13,19 +12,19 @@ class AuditEntry:
 
     audit_id: str = ""
     correlation_id: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    user_id: Optional[str] = None
-    username: Optional[str] = None
-    administrator_id: Optional[str] = None
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
+    user_id: str | None = None
+    username: str | None = None
+    administrator_id: str | None = None
     module: str = ""
     event_type: str = ""
     severity: str = "info"
     description: str = ""
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
-    previous_state: Optional[dict] = None
-    new_state: Optional[dict] = None
-    metadata: Optional[dict] = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    previous_state: dict | None = None
+    new_state: dict | None = None
+    metadata: dict | None = None
     result: str = "success"
     ip_address: str = "127.0.0.1"
 

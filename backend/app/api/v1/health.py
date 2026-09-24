@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 
@@ -29,7 +29,7 @@ async def health_check() -> SuccessResponse:
             "version": settings.app.version,
             "environment": settings.app.environment.value,
             "uptime_seconds": round(uptime_seconds, 2),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         },
     )
 
@@ -41,7 +41,7 @@ async def readiness_check() -> SuccessResponse:
         message="Application is ready",
         data={
             "status": "ready",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         },
     )
 
@@ -53,6 +53,6 @@ async def liveness_check() -> SuccessResponse:
         message="Application is alive",
         data={
             "status": "alive",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         },
     )

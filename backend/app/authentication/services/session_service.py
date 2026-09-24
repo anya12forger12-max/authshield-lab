@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...config.constants import MODULE_AUTH
+from ...shared.logging_config import get_logger
 from ..domain.interfaces.event_publisher import IAuthenticationEventPublisher
 from ..domain.interfaces.repository_interfaces import ISessionRepository
 from ..domain.interfaces.session_service import ISessionService
@@ -69,7 +69,7 @@ class SessionService(ISessionService):
         str
             The newly created session ID.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         session_id = secrets.token_urlsafe(32)
         device_id = str(kwargs.get("device_id", "") or "")
         platform = str(kwargs.get("platform", "") or "")
@@ -120,16 +120,13 @@ class SessionService(ISessionService):
             return False
 
         expires_at = self._get_field(session, "expires_at")
-        if isinstance(expires_at, datetime):
-            if datetime.now(timezone.utc) > expires_at:
-                await self._expire_session(session_id, self._get_field(session, "user_id"))
-                return False
+        if isinstance(expires_at, datetime) and datetime.now(UTC) > expires_at:
+            await self._expire_session(session_id, self._get_field(session, "user_id"))
+            return False
 
         last_activity = self._get_field(session, "last_activity")
         if isinstance(last_activity, datetime):
-            idle_cutoff = datetime.now(timezone.utc) - timedelta(
-                minutes=self._idle_timeout
-            )
+            idle_cutoff = datetime.now(UTC) - timedelta(minutes=self._idle_timeout)
             if last_activity < idle_cutoff:
                 return False
 
@@ -157,7 +154,7 @@ class SessionService(ISessionService):
         if status not in ("active", "idle"):
             return False
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         update_data: dict[str, Any] = {
             "last_activity": now,
             "expires_at": now + timedelta(minutes=self._session_timeout),
@@ -215,9 +212,7 @@ class SessionService(ISessionService):
             session_id = self._get_field(session, "session_id") or self._get_field(session, "id")
             if session_id:
                 await self._session_repo.update(str(session_id), {"status": "revoked"})
-                await self._event_publisher.publish_session_destroyed(
-                    str(session_id), user_id
-                )
+                await self._event_publisher.publish_session_destroyed(str(session_id), user_id)
                 count += 1
 
         if count > 0:
@@ -254,10 +249,12 @@ class SessionService(ISessionService):
             if not include_expired and status not in ("active", "idle"):
                 continue
 
-            session_id = str(self._get_field(session, "session_id") or self._get_field(session, "id") or "")
-            created_at = self._get_field(session, "created_at") or datetime.now(timezone.utc)
-            expires_at = self._get_field(session, "expires_at") or datetime.now(timezone.utc)
-            last_activity = self._get_field(session, "last_activity") or datetime.now(timezone.utc)
+            session_id = str(
+                self._get_field(session, "session_id") or self._get_field(session, "id") or ""
+            )
+            created_at = self._get_field(session, "created_at") or datetime.now(UTC)
+            expires_at = self._get_field(session, "expires_at") or datetime.now(UTC)
+            last_activity = self._get_field(session, "last_activity") or datetime.now(UTC)
 
             result.append(
                 SessionResponse(
@@ -303,7 +300,7 @@ class SessionService(ISessionService):
         )
 
     @staticmethod
-    def _get_field(obj: Any, field_name: str) -> Any:  # noqa: ANN401
+    def _get_field(obj: Any, field_name: str) -> Any:
         """Extract a field from either an ORM model or a dict."""
         if isinstance(obj, dict):
             return obj.get(field_name)

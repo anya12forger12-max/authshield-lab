@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.developer.domain.entities.package_builder import (
     BuildConfig,
@@ -187,7 +187,7 @@ class PackageService:
             "manifest_id": manifest_id,
             "version": manifest.version,
             "installed_by": installed_by,
-            "installed_at": datetime.now(timezone.utc).isoformat(),
+            "installed_at": datetime.now(UTC).isoformat(),
         }
         self._install_history.append(record)
         return {"success": True, "record": record}
@@ -198,8 +198,7 @@ class PackageService:
         if manifest is None:
             return {"success": False, "error": "Manifest not found"}
         relevant = [
-            i for i, rec in enumerate(self._install_history)
-            if rec["manifest_id"] == manifest_id
+            i for i, rec in enumerate(self._install_history) if rec["manifest_id"] == manifest_id
         ]
         if not relevant:
             return {"success": False, "error": "No installation history found"}

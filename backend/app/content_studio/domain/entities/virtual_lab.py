@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -80,21 +80,21 @@ class VirtualLab:
     estimated_minutes: int = 60
     status: LabStatus = LabStatus.DRAFT
     version: int = 1
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_step(self, step: LabStep) -> None:
         step.lab_id = self.id
         step.step_number = len(self.steps) + 1
         self.steps.append(step)
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def remove_step(self, step_id: str) -> bool:
         for i, step in enumerate(self.steps):
             if step.id == step_id:
                 self.steps.pop(i)
                 self._renumber_steps()
-                self.updated_at = datetime.now(timezone.utc)
+                self.updated_at = datetime.now(UTC)
                 return True
         return False
 
@@ -108,16 +108,16 @@ class VirtualLab:
             step.step_number = idx + 1
             reordered.append(step)
         self.steps = reordered
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
         return True
 
     def update_status(self, new_status: LabStatus) -> None:
         self.status = new_status
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def increment_version(self) -> None:
         self.version += 1
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def get_step_count(self) -> int:
         return len(self.steps)
@@ -125,21 +125,21 @@ class VirtualLab:
     def add_learning_objective(self, objective: str) -> None:
         if objective not in self.learning_objectives:
             self.learning_objectives.append(objective)
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
 
     def add_expected_outcome(self, outcome: str) -> None:
         if outcome not in self.expected_outcomes:
             self.expected_outcomes.append(outcome)
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
 
     def add_reflection_question(self, question: str) -> None:
         if question not in self.reflection_questions:
             self.reflection_questions.append(question)
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
 
     def update_assessment_criteria(self, criteria: dict) -> None:
         self.assessment_criteria.update(criteria)
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def calculate_estimated_minutes(self) -> int:
         per_step = 10

@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
+from ...shared.events.event_bus import DomainEvent, EventBus, EventType, get_event_bus
 from ..domain.entities.scenario import Scenario, ScenarioStatus
 from ..domain.interfaces import ScenarioRepositoryInterface
-from ...shared.events.event_bus import EventBus, DomainEvent, EventType, get_event_bus
 
 
 class ScenarioService:
@@ -57,8 +57,8 @@ class ScenarioService:
             created_by=created_by,
             scenario_metadata=metadata or {},
             status=ScenarioStatus.DRAFT,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         errors = scenario.validate()
         if errors:
@@ -75,24 +75,20 @@ class ScenarioService:
         await self._event_bus.publish(event)
         return created
 
-    async def get_scenario(self, scenario_id: str) -> Optional[Scenario]:
+    async def get_scenario(self, scenario_id: str) -> Scenario | None:
         """Retrieve a scenario by ID."""
         return await self._repo.get_by_id(scenario_id)
 
-    async def list_scenarios(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def list_scenarios(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """List all scenarios with pagination."""
         return await self._repo.get_all(page=page, per_page=per_page)
 
-    async def update_scenario(
-        self, scenario_id: str, data: dict[str, Any]
-    ) -> Optional[Scenario]:
+    async def update_scenario(self, scenario_id: str, data: dict[str, Any]) -> Scenario | None:
         """Update an existing scenario."""
         scenario = await self._repo.get_by_id(scenario_id)
         if scenario is None:
             return None
-        data["updated_at"] = datetime.now(timezone.utc)
+        data["updated_at"] = datetime.now(UTC)
         return await self._repo.update(scenario_id, data)
 
     async def delete_scenario(self, scenario_id: str) -> bool:

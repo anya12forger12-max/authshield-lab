@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ...config.constants import MODULE_USERS
+from ...shared.events.event_bus import DomainEvent, EventBus
 from ...shared.exceptions import NotFoundError, ValidationError
 from ...shared.logging_config import get_logger, log_audit_event
-from ...shared.events.event_bus import EventBus, DomainEvent
 from ...shared.models.user import User
-from ...config.constants import MODULE_USERS
-from ..domain.interfaces.preference_service import IPreferenceService
 from ..domain.events.identity_events import PreferenceChangedEvent
+from ..domain.interfaces.preference_service import IPreferenceService
 
 logger = get_logger(MODULE_USERS)
 
@@ -54,7 +54,7 @@ class PreferenceService(IPreferenceService):
         In-process event bus for publishing domain events.
     """
 
-    def __init__(self, session_factory: Any, event_bus: Optional[EventBus] = None) -> None:
+    def __init__(self, session_factory: Any, event_bus: EventBus | None = None) -> None:
         self._session_factory = session_factory
         self._event_bus = event_bus
 
@@ -65,7 +65,7 @@ class PreferenceService(IPreferenceService):
         if self._event_bus is not None:
             await self._event_bus.publish(event)
 
-    async def get_preferences(self, user_id: str) -> Optional[dict]:
+    async def get_preferences(self, user_id: str) -> dict | None:
         """Retrieve all preferences for a user."""
         async with await self._get_session() as session:
             result = await session.execute(select(User).where(User.id == user_id))
@@ -83,7 +83,7 @@ class PreferenceService(IPreferenceService):
                 "notifications": dict(DEFAULT_PREFERENCES["notifications"]),
             }
 
-    async def update_preferences(self, user_id: str, data: dict[str, Any]) -> Optional[dict]:
+    async def update_preferences(self, user_id: str, data: dict[str, Any]) -> dict | None:
         """Update user preferences with the given data."""
         async with await self._get_session() as session:
             result = await session.execute(select(User).where(User.id == user_id))
@@ -93,15 +93,15 @@ class PreferenceService(IPreferenceService):
 
             changed: list[str] = []
 
-            if "theme" in data and data["theme"]:
+            if data.get("theme"):
                 user.preferred_theme = data["theme"]
                 changed.append("theme")
 
-            if "language" in data and data["language"]:
+            if data.get("language"):
                 user.preferred_language = data["language"]
                 changed.append("language")
 
-            if "timezone" in data and data["timezone"]:
+            if data.get("timezone"):
                 user.timezone = data["timezone"]
                 changed.append("timezone")
 
@@ -170,8 +170,11 @@ class PreferenceService(IPreferenceService):
 
             # Validate accessibility keys
             valid_keys = {
-                "high_contrast", "large_text", "screen_reader",
-                "reduced_motion", "keyboard_navigation",
+                "high_contrast",
+                "large_text",
+                "screen_reader",
+                "reduced_motion",
+                "keyboard_navigation",
             }
             for key in settings:
                 if key not in valid_keys:
@@ -258,7 +261,14 @@ class PreferenceService(IPreferenceService):
 
     async def import_preferences(self, user_id: str, data: dict[str, Any]) -> bool:
         """Import preferences from a dictionary."""
-        allowed_keys = {"theme", "language", "timezone", "accent_color", "accessibility", "notifications"}
+        allowed_keys = {
+            "theme",
+            "language",
+            "timezone",
+            "accent_color",
+            "accessibility",
+            "notifications",
+        }
         filtered = {k: v for k, v in data.items() if k in allowed_keys}
 
         if not filtered:

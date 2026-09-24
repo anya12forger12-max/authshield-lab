@@ -1,10 +1,9 @@
 """Tests for RoleEntity and PermissionEntity."""
 
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from app.users.domain.entities.role import RoleEntity
 from app.users.domain.entities.permission import PermissionEntity
+from app.users.domain.entities.role import RoleEntity
 
 
 class TestRoleEntity:
@@ -35,7 +34,7 @@ class TestRoleEntity:
         assert len(d["permissions"]) == 3
 
     def test_to_dict_serializes_created_at(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         role = RoleEntity(role_id="r1", name="test", created_at=now)
         d = role.to_dict()
         assert d["created_at"] == now.isoformat()
@@ -86,7 +85,7 @@ class TestPermissionEntity:
         assert perm.category == "defenses"
 
     def test_to_dict_serializes_created_at(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         perm = PermissionEntity(permission_id="p1", name="test", created_at=now)
         d = perm.to_dict()
         assert d["created_at"] == now.isoformat()

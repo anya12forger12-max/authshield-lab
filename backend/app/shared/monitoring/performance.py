@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
-from typing import Any, Optional
 from contextlib import asynccontextmanager
+from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -67,9 +67,7 @@ class PerformanceMonitor:
             return TimingResult(operation=name, duration_ms=0.0, success=False)
 
         duration_ms = (time.perf_counter() - start) * 1000
-        self._append_metric(
-            PerformanceMetric(name=name, value=duration_ms, unit="ms")
-        )
+        self._append_metric(PerformanceMetric(name=name, value=duration_ms, unit="ms"))
         return TimingResult(operation=name, duration_ms=duration_ms, success=True)
 
     @asynccontextmanager
@@ -93,13 +91,9 @@ class PerformanceMonitor:
     # Ad-hoc metrics
     # ------------------------------------------------------------------
 
-    def record_metric(
-        self, name: str, value: float, unit: str = "ms", **metadata: Any
-    ) -> None:
+    def record_metric(self, name: str, value: float, unit: str = "ms", **metadata: Any) -> None:
         """Record an arbitrary metric data point."""
-        self._append_metric(
-            PerformanceMetric(name=name, value=value, unit=unit, metadata=metadata)
-        )
+        self._append_metric(PerformanceMetric(name=name, value=value, unit=unit, metadata=metadata))
 
     # ------------------------------------------------------------------
     # Counters
@@ -117,9 +111,7 @@ class PerformanceMonitor:
     # Queries
     # ------------------------------------------------------------------
 
-    def get_metrics(
-        self, name: Optional[str] = None, limit: int = 100
-    ) -> list[PerformanceMetric]:
+    def get_metrics(self, name: str | None = None, limit: int = 100) -> list[PerformanceMetric]:
         """Return recorded metrics, optionally filtered by name.
 
         Parameters
@@ -134,7 +126,7 @@ class PerformanceMonitor:
             metrics = [m for m in metrics if m.name == name]
         return list(reversed(metrics[-limit:]))
 
-    def get_average(self, name: str) -> Optional[float]:
+    def get_average(self, name: str) -> float | None:
         """Return the arithmetic mean of all values for *name*, or ``None``."""
         values = [m.value for m in self._metrics if m.name == name]
         if not values:
@@ -181,12 +173,12 @@ class PerformanceMonitor:
 # Module-level singleton
 # ------------------------------------------------------------------
 
-_monitor: Optional[PerformanceMonitor] = None
+_monitor: PerformanceMonitor | None = None
 
 
 def get_performance_monitor() -> PerformanceMonitor:
     """Return the global :class:`PerformanceMonitor`, creating it lazily."""
-    global _monitor  # noqa: PLW0603
+    global _monitor
     if _monitor is None:
         _monitor = PerformanceMonitor()
     return _monitor

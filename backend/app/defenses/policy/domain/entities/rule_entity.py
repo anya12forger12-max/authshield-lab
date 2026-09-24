@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class RuleExecutionMode(str, Enum):
@@ -103,6 +103,7 @@ class RuleConditionClause:
         if self.operator == RuleCondition.REGEX_MATCH:
             if isinstance(field_value, str) and isinstance(self.value, str):
                 import re
+
                 try:
                     return bool(re.search(self.value, field_value))
                 except re.error:
@@ -135,7 +136,7 @@ class SecurityRule:
     metadata: dict[str, Any] = field(default_factory=dict)
     version: int = 1
     is_active: bool = True
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def evaluate(self, context: dict[str, Any]) -> tuple[bool, list[RuleAction]]:
         """Evaluate all conditions against the context.

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -65,7 +65,7 @@ class LocalPackage:
         self.favorite = favorite
         self.rating = rating
         self.review_count = review_count
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
         self.installed_at = installed_at
 
 
@@ -100,7 +100,7 @@ class InstallationRecord:
         self.id = str(uuid.uuid4())
         self.package_id = package_id
         self.installed_by = installed_by
-        self.installed_at = installed_at or datetime.now(timezone.utc)
+        self.installed_at = installed_at or datetime.now(UTC)
         self.version = version
         self.status = status
         self.config = config or {}

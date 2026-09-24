@@ -1,8 +1,7 @@
-"""Tests for quality entities and services — QualityScore, QualityDashboard, TestCase, Benchmark, QualityDashboardService."""
+"Tests for quality entities and services — QualityScore, QualityDashboard, TestCase, Benchmark, QualityDashboardService."
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
 from app.quality.domain.entities.quality import ModuleHealth, QualityDashboard, QualityScore
@@ -53,6 +52,7 @@ class TestModuleHealth:
 class TestQualityDashboardService:
     def test_add_score(self):
         from app.quality.services.quality_dashboard_service import QualityDashboardService
+
         score_repo = MagicMock()
         score_repo.save = MagicMock(return_value=QualityScore(category="test", score=90.0))
         dash_repo = MagicMock()
@@ -63,6 +63,7 @@ class TestQualityDashboardService:
 
     def test_generate_dashboard(self):
         from app.quality.services.quality_dashboard_service import QualityDashboardService
+
         scores = [
             QualityScore(category="test", score=90.0),
             QualityScore(category="code", score=80.0),
@@ -88,12 +89,15 @@ class TestQualityDashboardService:
 
     def test_get_module_health(self):
         from app.quality.services.quality_dashboard_service import QualityDashboardService
+
         score_repo = MagicMock()
         dash_repo = MagicMock()
         module_repo = MagicMock()
-        module_repo.find_all = MagicMock(return_value=[
-            ModuleHealth(module_name="auth", status="healthy"),
-        ])
+        module_repo.find_all = MagicMock(
+            return_value=[
+                ModuleHealth(module_name="auth", status="healthy"),
+            ]
+        )
         service = QualityDashboardService(score_repo, dash_repo, module_repo)
         result = service.get_module_health()
         assert len(result) == 1
@@ -101,6 +105,7 @@ class TestQualityDashboardService:
 
     def test_update_module_health(self):
         from app.quality.services.quality_dashboard_service import QualityDashboardService
+
         score_repo = MagicMock()
         dash_repo = MagicMock()
         module_repo = MagicMock()
@@ -112,6 +117,7 @@ class TestQualityDashboardService:
 
     def test_get_latest_dashboard(self):
         from app.quality.services.quality_dashboard_service import QualityDashboardService
+
         score_repo = MagicMock()
         dash_repo = MagicMock()
         dash_repo.find_latest = MagicMock(return_value=QualityDashboard(overall_score=95.0))
@@ -122,11 +128,14 @@ class TestQualityDashboardService:
 
     def test_aggregate_scores(self):
         from app.quality.services.quality_dashboard_service import QualityDashboardService
+
         score_repo = MagicMock()
-        score_repo.find_all = MagicMock(return_value=[
-            QualityScore(category="test", score=90.0),
-            QualityScore(category="code", score=80.0),
-        ])
+        score_repo.find_all = MagicMock(
+            return_value=[
+                QualityScore(category="test", score=90.0),
+                QualityScore(category="code", score=80.0),
+            ]
+        )
         dash_repo = MagicMock()
         module_repo = MagicMock()
         service = QualityDashboardService(score_repo, dash_repo, module_repo)
@@ -139,12 +148,14 @@ class TestTestCase:
 
     def test_create_test_case(self):
         from app.quality.domain.entities.testing import TestCase
+
         tc = TestCase(name="test_login", test_type="unit", module="auth")
         assert tc.name == "test_login"
         assert tc.test_type == "unit"
 
     def test_default_values(self):
         from app.quality.domain.entities.testing import TestCase
+
         tc = TestCase()
         assert tc.status == "not_run"
         assert tc.execution_time_ms == 0
@@ -152,8 +163,9 @@ class TestTestCase:
 
 class TestTestPlatformService:
     def test_create_test_case(self):
-        from app.quality.services.test_platform_service import TestPlatformService
         from app.quality.domain.entities.testing import TestCase
+        from app.quality.services.test_platform_service import TestPlatformService
+
         repo = MagicMock()
         suite_repo = MagicMock()
         coverage_repo = MagicMock()
@@ -163,8 +175,9 @@ class TestTestPlatformService:
         repo.save.assert_called_with(tc)
 
     def test_get_test_case(self):
-        from app.quality.services.test_platform_service import TestPlatformService
         from app.quality.domain.entities.testing import TestCase
+        from app.quality.services.test_platform_service import TestPlatformService
+
         repo = MagicMock()
         repo.find_by_id = MagicMock(return_value=TestCase(name="test_y"))
         suite_repo = MagicMock()

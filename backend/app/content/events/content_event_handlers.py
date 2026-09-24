@@ -3,21 +3,20 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 from typing import Any
 
 from ..domain.events.content_events import (
+    AccessibilityReviewCompleted,
+    AssessmentCompleted,
     ContentEvent,
+    ContentVersioned,
+    CourseArchived,
     CourseCreated,
     CoursePublished,
-    CourseArchived,
     LessonCreated,
+    MediaUploaded,
     QuizCreated,
     QuizGraded,
-    MediaUploaded,
-    AssessmentCompleted,
-    ContentVersioned,
-    AccessibilityReviewCompleted,
 )
 
 logger = logging.getLogger(__name__)

@@ -7,68 +7,68 @@ for the cybersecurity educational platform.
 
 from __future__ import annotations
 
-from .services.course_service import CourseService
-from .services.lesson_service import LessonService
-from .services.quiz_service import QuizService
-from .services.media_service import MediaService
-from .services.publishing_service import PublishingService
-from .services.knowledge_service import KnowledgeService
-from .validators.content_validator import ContentValidator
-from .domain.entities.content import (
-    Course,
-    Lesson,
-    Quiz,
-    QuizQuestion,
-    MediaAsset,
-    KnowledgeNode,
-)
+from .api.content_routes import router as content_router
 from .domain.entities.assessment import (
     Assessment,
-    Rubric,
     AssessmentCriteria,
     GradingScale,
+    Rubric,
+)
+from .domain.entities.content import (
+    Course,
+    KnowledgeNode,
+    Lesson,
+    MediaAsset,
+    Quiz,
+    QuizQuestion,
 )
 from .domain.events.content_events import (
-    CourseCreated,
-    CoursePublished,
-    CourseArchived,
-    LessonCreated,
-    QuizCreated,
-    QuizGraded,
-    MediaUploaded,
+    AccessibilityReviewCompleted,
     AssessmentCompleted,
     ContentVersioned,
-    AccessibilityReviewCompleted,
+    CourseArchived,
+    CourseCreated,
+    CoursePublished,
+    LessonCreated,
+    MediaUploaded,
+    QuizCreated,
+    QuizGraded,
 )
-from .api.content_routes import router as content_router
+from .services.course_service import CourseService
+from .services.knowledge_service import KnowledgeService
+from .services.lesson_service import LessonService
+from .services.media_service import MediaService
+from .services.publishing_service import PublishingService
+from .services.quiz_service import QuizService
+from .validators.content_validator import ContentValidator
 
 __all__ = [
-    "CourseService",
-    "LessonService",
-    "QuizService",
-    "MediaService",
-    "PublishingService",
-    "KnowledgeService",
-    "ContentValidator",
-    "Course",
-    "Lesson",
-    "Quiz",
-    "QuizQuestion",
-    "MediaAsset",
-    "KnowledgeNode",
+    "AccessibilityReviewCompleted",
     "Assessment",
-    "Rubric",
+    "AssessmentCompleted",
     "AssessmentCriteria",
-    "GradingScale",
+    "ContentValidator",
+    "ContentVersioned",
+    "Course",
+    "CourseArchived",
     "CourseCreated",
     "CoursePublished",
-    "CourseArchived",
+    "CourseService",
+    "GradingScale",
+    "KnowledgeNode",
+    "KnowledgeService",
+    "Lesson",
     "LessonCreated",
+    "LessonService",
+    "MediaAsset",
+    "MediaService",
+    "MediaUploaded",
+    "PublishingService",
+    "Quiz",
     "QuizCreated",
     "QuizGraded",
-    "MediaUploaded",
-    "AssessmentCompleted",
-    "ContentVersioned",
-    "AccessibilityReviewCompleted",
+    "QuizQuestion",
+    "QuizService",
+    "Rubric",
     "content_router",
 ]

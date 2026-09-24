@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-from sqlalchemy import String, Integer, Index
+from sqlalchemy import Index, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..base_model import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -27,9 +25,7 @@ class PasswordHistory(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     hash_algorithm: Mapped[str] = mapped_column(String(32), nullable=False)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
-    __table_args__ = (
-        Index("ix_password_history_user_version", "user_id", "version"),
-    )
+    __table_args__ = (Index("ix_password_history_user_version", "user_id", "version"),)
 
     def to_dict(self, include_hash: bool = False) -> dict:
         """Serialize the history entry to a dictionary.
@@ -53,7 +49,4 @@ class PasswordHistory(TimestampMixin, UUIDPrimaryKeyMixin, Base):
         return result
 
     def __repr__(self) -> str:
-        return (
-            f"<PasswordHistory id={self.id!r} user_id={self.user_id!r} "
-            f"version={self.version}>"
-        )
+        return f"<PasswordHistory id={self.id!r} user_id={self.user_id!r} version={self.version}>"

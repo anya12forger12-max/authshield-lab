@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -70,7 +70,7 @@ class Timeline:
     events: list[TimelineEvent] = field(default_factory=list)
     branches: list[BranchPath] = field(default_factory=list)
     total_duration_ms: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_event(self, event: TimelineEvent) -> None:
         """Add an event and recalculate the timeline."""
@@ -86,9 +86,7 @@ class Timeline:
         if len(self.events) < original_len:
             self._reindex_events()
             self.branches = [
-                b
-                for b in self.branches
-                if b.source_event_id != event_id and b.target_event_id != event_id
+                b for b in self.branches if event_id not in (b.source_event_id, b.target_event_id)
             ]
             self.calculate_duration()
             return True
@@ -131,15 +129,9 @@ class Timeline:
         self.total_duration_ms = max_offset
         return self.total_duration_ms
 
-    def get_events_in_window(
-        self, start_ms: int, end_ms: int
-    ) -> list[TimelineEvent]:
+    def get_events_in_window(self, start_ms: int, end_ms: int) -> list[TimelineEvent]:
         """Return events whose offset falls within the given window."""
-        return [
-            e
-            for e in self.events
-            if start_ms <= e.timestamp_offset_ms <= end_ms
-        ]
+        return [e for e in self.events if start_ms <= e.timestamp_offset_ms <= end_ms]
 
     def get_branches_from(self, event_id: str) -> list[BranchPath]:
         """Return all branches originating from the given event."""

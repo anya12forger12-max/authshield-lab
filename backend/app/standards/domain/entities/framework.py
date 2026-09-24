@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -222,8 +222,8 @@ class CompetencyFramework:
     knowledge_areas: list[KnowledgeArea] = field(default_factory=list)
     references: list[FrameworkReference] = field(default_factory=list)
     revision_history: list[dict] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_competency(self, competency: FrameworkCompetency) -> None:
         competency.framework_id = self.id
@@ -323,23 +323,27 @@ class CompetencyFramework:
         old = self.status
         self.status = new_status
         self._touch()
-        self.revision_history.append({
-            "field": "status",
-            "old_value": old,
-            "new_value": new_status,
-            "changed_at": datetime.now(timezone.utc).isoformat(),
-        })
+        self.revision_history.append(
+            {
+                "field": "status",
+                "old_value": old,
+                "new_value": new_status,
+                "changed_at": datetime.now(UTC).isoformat(),
+            }
+        )
 
     def bump_version(self, new_version: str) -> None:
         old = self.version
         self.version = new_version
         self._touch()
-        self.revision_history.append({
-            "field": "version",
-            "old_value": old,
-            "new_value": new_version,
-            "changed_at": datetime.now(timezone.utc).isoformat(),
-        })
+        self.revision_history.append(
+            {
+                "field": "version",
+                "old_value": old,
+                "new_value": new_version,
+                "changed_at": datetime.now(UTC).isoformat(),
+            }
+        )
 
     def find_competency(self, competency_id: str) -> FrameworkCompetency | None:
         for c in self.competencies:
@@ -375,7 +379,7 @@ class CompetencyFramework:
         return len(self.domains)
 
     def _touch(self) -> None:
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def to_dict(self) -> dict:
         return {

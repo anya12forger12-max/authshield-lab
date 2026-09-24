@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone, timedelta
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 
 @dataclass
@@ -13,16 +12,16 @@ class SessionEntity:
 
     session_id: str = ""
     user_id: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    expires_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_activity: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    expires_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_activity: datetime = field(default_factory=lambda: datetime.now(UTC))
     idle_timeout_minutes: int = 30
     status: str = "active"
     authentication_method: str = "password"
-    platform: Optional[str] = None
-    application_version: Optional[str] = None
-    device_id: Optional[str] = None
-    device_name: Optional[str] = None
+    platform: str | None = None
+    application_version: str | None = None
+    device_id: str | None = None
+    device_name: str | None = None
     ip_address: str = "127.0.0.1"
     remember_me: bool = False
     is_trusted: bool = False
@@ -31,12 +30,12 @@ class SessionEntity:
     @property
     def is_expired(self) -> bool:
         """Return ``True`` if the session has exceeded its absolute timeout."""
-        return datetime.now(timezone.utc) > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
     @property
     def is_idle(self) -> bool:
         """Return ``True`` if the session has exceeded its idle timeout."""
-        idle_cutoff = datetime.now(timezone.utc) - timedelta(minutes=self.idle_timeout_minutes)
+        idle_cutoff = datetime.now(UTC) - timedelta(minutes=self.idle_timeout_minutes)
         return self.last_activity < idle_cutoff
 
     @property
@@ -47,7 +46,7 @@ class SessionEntity:
     @property
     def duration_minutes(self) -> float:
         """Return the session duration in minutes since creation."""
-        delta = datetime.now(timezone.utc) - self.created_at
+        delta = datetime.now(UTC) - self.created_at
         return delta.total_seconds() / 60.0
 
     def to_dict(self) -> dict:

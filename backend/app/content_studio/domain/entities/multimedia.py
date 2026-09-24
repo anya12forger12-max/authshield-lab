@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -35,7 +35,7 @@ class MultimediaAsset:
     transcript: str = ""
     accessible: bool = True
     metadata: dict = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     version: int = 1
 
     def update_alt_text(self, alt_text: str) -> None:
@@ -96,7 +96,7 @@ class AssetCollection:
     name: str = ""
     description: str = ""
     asset_ids: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_asset(self, asset_id: str) -> None:
         if asset_id not in self.asset_ids:
@@ -135,7 +135,7 @@ class AssetValidationResult:
     asset_id: str = ""
     valid: bool = True
     issues: list[str] = field(default_factory=list)
-    checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    checked_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_issue(self, issue: str) -> None:
         self.issues.append(issue)

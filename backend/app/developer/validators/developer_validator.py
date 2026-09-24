@@ -7,7 +7,11 @@ from app.developer.domain.entities.automation import AutomationWorkflow
 from app.developer.domain.entities.extension import Extension
 from app.developer.domain.entities.package_builder import BuildConfig, PackageManifest
 from app.developer.domain.entities.sdk import PluginManifest, SdK, SdKModule, SdKTemplate
-from app.developer.domain.entities.validation import ValidationReport, ValidationResult, ValidationRule
+from app.developer.domain.entities.validation import (
+    ValidationReport,
+    ValidationResult,
+    ValidationRule,
+)
 
 
 class DeveloperValidator:
@@ -35,7 +39,11 @@ class DeveloperValidator:
             self._errors.append("SDK version is required")
         if not sdk.min_platform_version:
             self._warnings.append("Min platform version should be set")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     def validate_sdk_module(self, module: SdKModule) -> dict:
         """Validate an SDK module."""
@@ -47,7 +55,11 @@ class DeveloperValidator:
             self._errors.append("Module must belong to an SDK (sdk_id required)")
         if not module.version:
             self._warnings.append("Module version is recommended")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     # -- Plugin manifest validation ------------------------------------------
 
@@ -66,7 +78,11 @@ class DeveloperValidator:
         for dep in manifest.dependencies:
             if ":" not in dep and "@" not in dep:
                 self._warnings.append(f"Dependency '{dep}' may not follow expected format")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     # -- SDK template validation ---------------------------------------------
 
@@ -82,7 +98,11 @@ class DeveloperValidator:
             self._warnings.append("Template content is empty")
         if not template.version:
             self._warnings.append("Template version is recommended")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     # -- Extension validation ------------------------------------------------
 
@@ -105,7 +125,11 @@ class DeveloperValidator:
         for perm in extension.permissions:
             if not perm:
                 self._warnings.append("Empty permission string found")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     # -- Automation workflow validation --------------------------------------
 
@@ -123,8 +147,14 @@ class DeveloperValidator:
             if not step.action:
                 self._errors.append(f"Step '{step.id}' has no action defined")
             if step.on_failure not in ("stop", "continue", "retry", "skip"):
-                self._warnings.append(f"Step '{step.id}' has unexpected on_failure value: {step.on_failure}")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+                self._warnings.append(
+                    f"Step '{step.id}' has unexpected on_failure value: {step.on_failure}"
+                )
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     # -- API endpoint validation ---------------------------------------------
 
@@ -149,7 +179,11 @@ class DeveloperValidator:
                 self._errors.append("Parameter name is required")
             if param.type not in ("string", "integer", "boolean", "number", "array", "object"):
                 self._warnings.append(f"Parameter '{param.name}' has unusual type: {param.type}")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     # -- Package manifest validation -----------------------------------------
 
@@ -169,7 +203,11 @@ class DeveloperValidator:
             self._warnings.append("Compatibility string should be set")
         if manifest.bundle_size < 0:
             self._errors.append("Bundle size must be non-negative")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     # -- Build config validation ---------------------------------------------
 
@@ -183,7 +221,11 @@ class DeveloperValidator:
             self._warnings.append("No source paths specified")
         if config.output_format not in ("zip", "tar.gz", "wheel", "egg"):
             self._warnings.append(f"Unusual output format: {config.output_format}")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     # -- Validation rule & result validation ---------------------------------
 
@@ -199,7 +241,11 @@ class DeveloperValidator:
             self._warnings.append(f"Unusual severity: {rule.severity}")
         if not rule.check_fn:
             self._warnings.append("Check function identifier is empty")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     def validate_validation_result(self, result: ValidationResult) -> dict:
         """Validate a ValidationResult entity."""
@@ -213,7 +259,11 @@ class DeveloperValidator:
             self._errors.append("Result must specify a target_type")
         if not result.message:
             self._warnings.append("Result message is empty")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }
 
     def validate_validation_report(self, report: ValidationReport) -> dict:
         """Validate a ValidationReport entity."""
@@ -229,4 +279,8 @@ class DeveloperValidator:
             self._warnings.append(f"Unusual overall_status: {report.overall_status}")
         if not (0.0 <= report.score <= 1.0):
             self._errors.append("Score must be between 0.0 and 1.0")
-        return {"valid": len(self._errors) == 0, "errors": list(self._errors), "warnings": list(self._warnings)}
+        return {
+            "valid": len(self._errors) == 0,
+            "errors": list(self._errors),
+            "warnings": list(self._warnings),
+        }

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -59,7 +59,7 @@ class ProductionValidation:
     subsystem: str = ""
     status: str = "pass"
     checks: dict[str, bool] = field(default_factory=dict)
-    validated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    validated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     details: str = ""
 
 
@@ -81,4 +81,4 @@ class ProjectHealth:
     indicators: list[HealthIndicator] = field(default_factory=list)
     overall_score: float = 0.0
     grade: str = "F"
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))

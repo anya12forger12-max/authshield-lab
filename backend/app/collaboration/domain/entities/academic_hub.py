@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -39,8 +39,8 @@ class InstitutionalProject:
         self.department = department
         self.lead = lead
         self.members = members or []
-        self.created_at = created_at or datetime.now(timezone.utc)
-        self.updated_at = updated_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
+        self.updated_at = updated_at or datetime.now(UTC)
 
 
 class SharedCurriculumPackage:
@@ -67,7 +67,7 @@ class SharedCurriculumPackage:
         self.compatibility = compatibility
         self.accessibility_report = accessibility_report or {}
         self.localization_report = localization_report or {}
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
 
 
 class ImportedResource:
@@ -82,7 +82,7 @@ class ImportedResource:
         self.id = str(uuid.uuid4())
         self.package_id = package_id
         self.imported_by = imported_by
-        self.imported_at = imported_at or datetime.now(timezone.utc)
+        self.imported_at = imported_at or datetime.now(UTC)
         self.status = status
         self.validation_results = validation_results or {}
 
@@ -104,7 +104,7 @@ class ReviewRequest:
         self.submitter = submitter
         self.assignees = assignees or []
         self.status = status
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
         self.due_date = due_date
 
 
@@ -125,7 +125,7 @@ class PublicationQueueItem:
         self.title = title
         self.version = version
         self.submitted_by = submitted_by
-        self.submitted_at = submitted_at or datetime.now(timezone.utc)
+        self.submitted_at = submitted_at or datetime.now(UTC)
         self.status = status
 
 
@@ -145,7 +145,7 @@ class VersionHistory:
         self.version = version
         self.changes = changes or []
         self.author = author
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
 
 
 class AcademicHubDashboard:
@@ -163,4 +163,4 @@ class AcademicHubDashboard:
         self.imported_resources = imported_resources
         self.pending_reviews = pending_reviews
         self.publications_this_month = publications_this_month
-        self.generated_at = generated_at or datetime.now(timezone.utc)
+        self.generated_at = generated_at or datetime.now(UTC)

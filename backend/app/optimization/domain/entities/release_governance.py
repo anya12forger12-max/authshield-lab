@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -35,7 +35,7 @@ class ReleaseWorkflow:
     current_stage: ReleaseStage = ReleaseStage.PLANNING
     stage_history: list[dict] = field(default_factory=list)
     created_by: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
 
     def advance(self, notes: str = "") -> ReleaseStage:
@@ -43,11 +43,13 @@ class ReleaseWorkflow:
         stages = list(ReleaseStage)
         current_idx = stages.index(self.current_stage)
         if current_idx < len(stages) - 1:
-            self.stage_history.append({
-                "stage": self.current_stage.value,
-                "exited_at": datetime.now(timezone.utc).isoformat(),
-                "notes": notes,
-            })
+            self.stage_history.append(
+                {
+                    "stage": self.current_stage.value,
+                    "exited_at": datetime.now(UTC).isoformat(),
+                    "notes": notes,
+                }
+            )
             self.current_stage = stages[current_idx + 1]
         return self.current_stage
 
@@ -57,7 +59,7 @@ class ReleaseWorkflow:
 
     def complete(self) -> None:
         """Mark the workflow as completed."""
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
 
     def progress_pct(self) -> float:
         """Return how far along the workflow is (0-100)."""
@@ -69,7 +71,7 @@ class ReleaseWorkflow:
         """Return the names of stages not yet completed."""
         stages = list(ReleaseStage)
         current_idx = stages.index(self.current_stage)
-        return [s.value for s in stages[current_idx + 1:]]
+        return [s.value for s in stages[current_idx + 1 :]]
 
     def to_dict(self) -> dict:
         return {
@@ -102,7 +104,7 @@ class ReleaseApproval:
         """Record approval."""
         self.approved = True
         self.comments = comments or self.comments
-        self.approved_at = datetime.now(timezone.utc)
+        self.approved_at = datetime.now(UTC)
 
     def reject(self, comments: str = "") -> None:
         """Record rejection."""
@@ -141,7 +143,7 @@ class ReleaseGate:
         """Record the gate check result."""
         self.passed = passed
         self.evidence = evidence or self.evidence
-        self.checked_at = datetime.now(timezone.utc)
+        self.checked_at = datetime.now(UTC)
 
     def is_blocking(self) -> bool:
         """Return True if this gate is required and has not yet passed."""
@@ -175,7 +177,7 @@ class ReleaseChecklistItem:
     def complete(self) -> None:
         """Mark this checklist item as done."""
         self.completed = True
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
 
     def uncomplete(self) -> None:
         """Mark this checklist item as not done."""
@@ -188,7 +190,7 @@ class ReleaseChecklistItem:
             return False
         try:
             due = datetime.fromisoformat(self.due_date)
-            return datetime.now(timezone.utc) > due
+            return datetime.now(UTC) > due
         except ValueError:
             return False
 

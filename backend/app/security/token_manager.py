@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import secrets
-import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from jose import JWTError, jwt
@@ -114,7 +113,7 @@ class TokenManager:
         str
             Encoded JWT string.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if expires_at is None:
             expires_at = now + timedelta(minutes=self._access_expiry)
 
@@ -139,7 +138,7 @@ class TokenManager:
         extra: dict[str, Any] | None = None,
     ) -> str:
         """Create a signed JWT refresh token with a longer expiry."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expires_at = now + timedelta(minutes=self._refresh_expiry)
 
         claims: dict[str, Any] = {
@@ -213,7 +212,7 @@ class TokenManager:
             payload = self.validate_token(token)
             exp = payload.get("exp")
             if isinstance(exp, (int, float)):
-                return datetime.fromtimestamp(exp, tz=timezone.utc)
+                return datetime.fromtimestamp(exp, tz=UTC)
             if isinstance(exp, datetime):
                 return exp
         except (ValueError, JWTError):
@@ -225,7 +224,7 @@ class TokenManager:
         expiry = self.get_token_expiry(token)
         if expiry is None:
             return True
-        return datetime.now(timezone.utc) > expiry
+        return datetime.now(UTC) > expiry
 
     def regenerate_token(
         self,
@@ -267,7 +266,7 @@ class TokenManager:
         subject: str = payload["sub"]
         token_type: str = payload.get("type", "access")
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if token_type == "refresh":
             expires_at = now + timedelta(minutes=self._refresh_expiry)
         else:

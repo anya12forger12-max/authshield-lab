@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.course_designer import (
     ActivityType,
@@ -69,11 +69,14 @@ class LessonBuilderService:
                             module_id=module_id,
                             lesson_name=lesson["name"],
                         )
-                        logger.info("lesson_created", extra={
-                            "course_id": course_id,
-                            "lesson_id": lesson["id"],
-                            "event_id": event.event_id,
-                        })
+                        logger.info(
+                            "lesson_created",
+                            extra={
+                                "course_id": course_id,
+                                "lesson_id": lesson["id"],
+                                "event_id": event.event_id,
+                            },
+                        )
                         return lesson
                 raise ValueError(f"Module '{module_id}' not found in unit '{unit_id}'.")
         raise ValueError(f"Unit '{unit_id}' not found in course '{course_id}'.")
@@ -103,7 +106,10 @@ class LessonBuilderService:
         block_dict = block.to_dict()
         lesson.setdefault("content_blocks", []).append(block_dict)
         self._save_course_data(course_id, existing)
-        logger.info("content_block_added", extra={"course_id": course_id, "lesson_id": lesson_id, "block_id": block.id})
+        logger.info(
+            "content_block_added",
+            extra={"course_id": course_id, "lesson_id": lesson_id, "block_id": block.id},
+        )
         return block_dict
 
     def update_content_block(
@@ -123,16 +129,21 @@ class LessonBuilderService:
 
         for block in lesson.get("content_blocks", []):
             if block["id"] == block_id:
-                for key in ("content", "block_type", "metadata", "accessible", "localized", "order"):
+                for key in (
+                    "content",
+                    "block_type",
+                    "metadata",
+                    "accessible",
+                    "localized",
+                    "order",
+                ):
                     if key in data:
                         block[key] = data[key]
                 self._save_course_data(course_id, existing)
                 return block
         raise ValueError(f"Content block '{block_id}' not found in lesson '{lesson_id}'.")
 
-    def remove_content_block(
-        self, course_id: str, lesson_id: str, block_id: str
-    ) -> bool:
+    def remove_content_block(self, course_id: str, lesson_id: str, block_id: str) -> bool:
         existing = self._course_repo.get_by_id(course_id)
         if not existing:
             raise ValueError(f"Course '{course_id}' not found.")
@@ -151,9 +162,7 @@ class LessonBuilderService:
                 return True
         return False
 
-    def reorder_content_blocks(
-        self, course_id: str, lesson_id: str, block_ids: list[str]
-    ) -> bool:
+    def reorder_content_blocks(self, course_id: str, lesson_id: str, block_ids: list[str]) -> bool:
         existing = self._course_repo.get_by_id(course_id)
         if not existing:
             raise ValueError(f"Course '{course_id}' not found.")
@@ -199,7 +208,10 @@ class LessonBuilderService:
         activity_dict = activity.to_dict()
         lesson.setdefault("activities", []).append(activity_dict)
         self._save_course_data(course_id, existing)
-        logger.info("activity_added", extra={"course_id": course_id, "lesson_id": lesson_id, "activity_id": activity.id})
+        logger.info(
+            "activity_added",
+            extra={"course_id": course_id, "lesson_id": lesson_id, "activity_id": activity.id},
+        )
         return activity_dict
 
     def update_activity(
@@ -226,9 +238,7 @@ class LessonBuilderService:
                 return activity
         raise ValueError(f"Activity '{activity_id}' not found in lesson '{lesson_id}'.")
 
-    def remove_activity(
-        self, course_id: str, lesson_id: str, activity_id: str
-    ) -> bool:
+    def remove_activity(self, course_id: str, lesson_id: str, activity_id: str) -> bool:
         existing = self._course_repo.get_by_id(course_id)
         if not existing:
             raise ValueError(f"Course '{course_id}' not found.")
@@ -252,7 +262,7 @@ class LessonBuilderService:
         if not existing:
             raise ValueError(f"Course '{course_id}' not found.")
 
-        lesson, module, unit = self._find_lesson_in_course(existing, lesson_id)
+        lesson, _module, _unit = self._find_lesson_in_course(existing, lesson_id)
         if not lesson:
             raise ValueError(f"Lesson '{lesson_id}' not found.")
         return lesson
@@ -287,6 +297,7 @@ class LessonBuilderService:
 
         import copy
         import uuid as _uuid
+
         new_lesson = copy.deepcopy(lesson)
         new_lesson["id"] = str(_uuid.uuid4())
         new_lesson["name"] = new_name or f"{lesson.get('name', '')} (Copy)"

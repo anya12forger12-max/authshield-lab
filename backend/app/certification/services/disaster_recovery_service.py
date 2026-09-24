@@ -1,8 +1,6 @@
-"""Disaster recovery service: validate backups, test restores, archive recovery, readiness reports."""
+"Disaster recovery service: validate backups, test restores, archive recovery, readiness reports."
 
 from __future__ import annotations
-
-from typing import Optional
 
 from ..domain.entities.disaster_recovery import (
     ArchiveRecovery,
@@ -19,7 +17,9 @@ from ..domain.interfaces import (
 
 
 class DisasterRecoveryService:
-    """Validates backups, tests restores, manages archive recovery, and produces readiness reports."""
+    """Validates backups, tests restores, manages archive recovery, and produces"""
+
+    """readiness reports."""
 
     def __init__(
         self,
@@ -53,7 +53,7 @@ class DisasterRecoveryService:
         )
         return self._backup_repo.save(validation)
 
-    async def get_backup_validation(self, val_id: str) -> Optional[BackupValidation]:
+    async def get_backup_validation(self, val_id: str) -> BackupValidation | None:
         """Retrieve a backup validation by ID."""
         return self._backup_repo.find_by_id(val_id)
 
@@ -81,7 +81,7 @@ class DisasterRecoveryService:
         success: bool,
         duration_ms: int = 0,
         data_integrity: bool = True,
-    ) -> Optional[RestoreTest]:
+    ) -> RestoreTest | None:
         """Mark a restore test as complete."""
         test = self._restore_repo.find_by_id(test_id)
         if test is None:
@@ -92,7 +92,7 @@ class DisasterRecoveryService:
             test.mark_failure(duration_ms, data_integrity)
         return self._restore_repo.save(test)
 
-    async def get_restore_test(self, test_id: str) -> Optional[RestoreTest]:
+    async def get_restore_test(self, test_id: str) -> RestoreTest | None:
         """Retrieve a restore test by ID."""
         return self._restore_repo.find_by_id(test_id)
 
@@ -119,7 +119,7 @@ class DisasterRecoveryService:
         recovery_id: str,
         items_recovered: int,
         total_items: int,
-    ) -> Optional[ArchiveRecovery]:
+    ) -> ArchiveRecovery | None:
         """Mark an archive recovery as complete."""
         recovery = self._archive_repo.find_by_id(recovery_id)
         if recovery is None:
@@ -127,7 +127,7 @@ class DisasterRecoveryService:
         recovery.mark_complete(items_recovered, total_items)
         return self._archive_repo.save(recovery)
 
-    async def fail_archive_recovery(self, recovery_id: str) -> Optional[ArchiveRecovery]:
+    async def fail_archive_recovery(self, recovery_id: str) -> ArchiveRecovery | None:
         """Mark an archive recovery as failed."""
         recovery = self._archive_repo.find_by_id(recovery_id)
         if recovery is None:
@@ -135,7 +135,7 @@ class DisasterRecoveryService:
         recovery.mark_failed()
         return self._archive_repo.save(recovery)
 
-    async def get_archive_recovery(self, recovery_id: str) -> Optional[ArchiveRecovery]:
+    async def get_archive_recovery(self, recovery_id: str) -> ArchiveRecovery | None:
         """Retrieve an archive recovery by ID."""
         return self._archive_repo.find_by_id(recovery_id)
 
@@ -177,7 +177,7 @@ class DisasterRecoveryService:
         report.compute_overall()
         return self._readiness_repo.save(report)
 
-    async def get_latest_readiness(self) -> Optional[RecoveryReadinessReport]:
+    async def get_latest_readiness(self) -> RecoveryReadinessReport | None:
         """Return the most recent readiness report."""
         return self._readiness_repo.find_latest()
 

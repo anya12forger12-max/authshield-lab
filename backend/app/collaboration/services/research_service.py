@@ -2,10 +2,20 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from domain.entities.research_workspace import (
+        Bibliography,
+        Citation,
+        KnowledgeMap,
+        LiteratureCollection,
+        LiteratureEntry,
+        ReadingList,
+        ResearchNote,
+        ResearchProject,
+    )
     from domain.interfaces import ResearchWorkspaceRepository
 
 
@@ -19,8 +29,9 @@ class ResearchService:
         description: str,
         principal_investigator: str,
         team: list[str] | None = None,
-    ) -> "ResearchProject":
+    ) -> ResearchProject:
         from domain.entities.research_workspace import ResearchProject
+
         project = ResearchProject(
             name=name,
             description=description,
@@ -30,7 +41,7 @@ class ResearchService:
         self._repo.add_project(project)
         return project
 
-    def get_project(self, project_id: str) -> "ResearchProject | None":
+    def get_project(self, project_id: str) -> ResearchProject | None:
         return self._repo.get_project(project_id)
 
     def update_project(
@@ -40,7 +51,7 @@ class ResearchService:
         description: str | None = None,
         status: str | None = None,
         team: list[str] | None = None,
-    ) -> "ResearchProject":
+    ) -> ResearchProject:
         project = self._repo.get_project(project_id)
         if not project:
             raise ValueError(f"Project {project_id} not found")
@@ -52,7 +63,7 @@ class ResearchService:
             project.status = status
         if team is not None:
             project.team = team
-        project.updated_at = datetime.now(timezone.utc)
+        project.updated_at = datetime.now(UTC)
         self._repo.update_project(project)
         return project
 
@@ -66,8 +77,9 @@ class ResearchService:
         self,
         project_id: str,
         name: str,
-    ) -> "LiteratureCollection":
+    ) -> LiteratureCollection:
         from domain.entities.research_workspace import LiteratureCollection
+
         collection = LiteratureCollection(project_id=project_id, name=name)
         self._repo.add_literature_collection(collection)
         return collection
@@ -87,8 +99,9 @@ class ResearchService:
         abstract: str = "",
         keywords: list[str] | None = None,
         notes: str = "",
-    ) -> "LiteratureEntry":
+    ) -> LiteratureEntry:
         from domain.entities.research_workspace import LiteratureEntry
+
         entry = LiteratureEntry(
             title=title,
             author=author,
@@ -140,8 +153,9 @@ class ResearchService:
         entry_id: str,
         content: str,
         created_by: str = "anonymous",
-    ) -> "ResearchNote":
+    ) -> ResearchNote:
         from domain.entities.research_workspace import ResearchNote
+
         note = ResearchNote(
             entry_id=entry_id,
             content=content,
@@ -160,8 +174,9 @@ class ResearchService:
         citation_type: str,
         page: int = 0,
         note: str = "",
-    ) -> "Citation":
+    ) -> Citation:
         from domain.entities.research_workspace import Citation
+
         citation = Citation(
             source_id=source_id,
             target_id=target_id,
@@ -179,8 +194,9 @@ class ResearchService:
         self,
         project_id: str,
         name: str,
-    ) -> "KnowledgeMap":
+    ) -> KnowledgeMap:
         from domain.entities.research_workspace import KnowledgeMap
+
         km = KnowledgeMap(project_id=project_id, name=name)
         self._repo.add_knowledge_map(km)
         return km
@@ -199,6 +215,7 @@ class ResearchService:
         if not km:
             raise ValueError(f"Knowledge map {map_id} not found")
         from domain.entities.research_workspace import KnowledgeConcept
+
         concept = KnowledgeConcept(name=name, description=description, category=category)
         km.concepts.append(concept)
         self._repo.update_knowledge_map(km)
@@ -216,6 +233,7 @@ class ResearchService:
         if not km:
             raise ValueError(f"Knowledge map {map_id} not found")
         from domain.entities.research_workspace import KnowledgeLink
+
         link = KnowledgeLink(
             source_id=source_id,
             target_id=target_id,
@@ -234,8 +252,9 @@ class ResearchService:
         project_id: str,
         name: str,
         item_ids: list[str] | None = None,
-    ) -> "ReadingList":
+    ) -> ReadingList:
         from domain.entities.research_workspace import ReadingList
+
         rl = ReadingList(project_id=project_id, name=name, item_ids=item_ids)
         self._repo.add_reading_list(rl)
         return rl
@@ -249,8 +268,9 @@ class ResearchService:
         name: str = "default",
         entries: list[str] | None = None,
         format: str = "apa",
-    ) -> "Bibliography":
+    ) -> Bibliography:
         from domain.entities.research_workspace import Bibliography
+
         bib = Bibliography(
             project_id=project_id,
             name=name,

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from app.developer.domain.entities.extension import Extension, ExtensionStatus, ExtensionType, InstalledExtension
+from app.developer.domain.entities.extension import (
+    Extension,
+    ExtensionStatus,
+)
 from app.developer.domain.entities.sdk import PluginManifest, SdK, SdKVersion
 from app.developer.services.extension_service import ExtensionService
 

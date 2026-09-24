@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -17,7 +17,7 @@ class LearningProgress:
     competencies_achieved: int = 0
     avg_score: float = 0.0
     total_time_hours: float = 0.0
-    last_active: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_active: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -69,7 +69,7 @@ class ContentUsage:
     content_type: str = ""
     title: str = ""
     access_count: int = 0
-    last_accessed: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_accessed: datetime = field(default_factory=lambda: datetime.now(UTC))
     average_time_minutes: float = 0.0
 
 
@@ -85,7 +85,7 @@ class EducationalAnalyticsDashboard:
     content_usage: list[ContentUsage] = field(default_factory=list)
     a11y_metrics: dict = field(default_factory=dict)
     doc_quality: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass

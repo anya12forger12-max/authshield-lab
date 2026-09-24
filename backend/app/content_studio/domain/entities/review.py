@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -48,7 +48,7 @@ class EditorialReview:
     content_type: str = ""
     current_stage: ReviewStage = ReviewStage.DRAFT
     submitter: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def advance_stage(self) -> ReviewStage | None:
         current_idx = STAGE_ORDER.get(self.current_stage, 0)
@@ -100,7 +100,7 @@ class ReviewComment:
     stage: ReviewStage = ReviewStage.DRAFT
     comment: str = ""
     severity: str | None = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def is_critical(self) -> bool:
         return self.severity == "critical"
@@ -130,7 +130,7 @@ class ReviewDecision:
     reviewer: str = ""
     decision: ReviewDecisionType = ReviewDecisionType.APPROVED
     comments: str = ""
-    decided_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    decided_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def is_approved(self) -> bool:
         return self.decision == ReviewDecisionType.APPROVED
@@ -161,7 +161,7 @@ class ReviewEvent:
     stage: ReviewStage = ReviewStage.DRAFT
     action: str = ""
     actor: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         return {

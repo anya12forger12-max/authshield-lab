@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -40,7 +40,7 @@ class PeerReview:
         self.content_type = content_type
         self.current_stage = current_stage
         self.submitter = submitter
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
 
 
 class ReviewComment:
@@ -59,7 +59,7 @@ class ReviewComment:
         self.stage = stage
         self.comment = comment
         self.severity = severity
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
 
 
 class ReviewDecision:
@@ -78,7 +78,7 @@ class ReviewDecision:
         self.reviewer = reviewer
         self.decision = decision
         self.comments = comments
-        self.decided_at = decided_at or datetime.now(timezone.utc)
+        self.decided_at = decided_at or datetime.now(UTC)
 
 
 class ReviewRevision:
@@ -95,7 +95,7 @@ class ReviewRevision:
         self.revision_number = revision_number
         self.changes = changes or []
         self.author = author
-        self.created_at = created_at or datetime.now(timezone.utc)
+        self.created_at = created_at or datetime.now(UTC)
 
 
 class ReviewEvent:
@@ -110,7 +110,7 @@ class ReviewEvent:
         self.stage = stage
         self.action = action
         self.actor = actor
-        self.timestamp = timestamp or datetime.now(timezone.utc)
+        self.timestamp = timestamp or datetime.now(UTC)
         self.details = details
 
 

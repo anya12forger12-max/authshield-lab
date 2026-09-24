@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -34,20 +34,20 @@ class AuthoringSuggestion:
     confidence: float = 0.0
     reviewed: bool = False
     accepted: bool = False
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     reviewed_at: datetime | None = None
 
     def accept(self) -> None:
         """Mark the suggestion as reviewed and accepted."""
         self.reviewed = True
         self.accepted = True
-        self.reviewed_at = datetime.now(timezone.utc)
+        self.reviewed_at = datetime.now(UTC)
 
     def reject(self) -> None:
         """Mark the suggestion as reviewed but not accepted."""
         self.reviewed = True
         self.accepted = False
-        self.reviewed_at = datetime.now(timezone.utc)
+        self.reviewed_at = datetime.now(UTC)
 
     def is_high_confidence(self, threshold: float = 0.8) -> bool:
         """Return True if the confidence meets or exceeds the threshold."""
@@ -198,7 +198,7 @@ class ContentConsistencyResult:
 
     issues: list[ConsistencyIssue] = field(default_factory=list)
     score: float = 1.0
-    checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    checked_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def calculate_score(self) -> float:
         """Compute a consistency score (1.0 = perfect, 0.0 = many issues)."""
@@ -206,9 +206,7 @@ class ContentConsistencyResult:
             self.score = 1.0
             return self.score
         severity_weights = {"critical": 3.0, "warning": 2.0, "info": 1.0}
-        total_weight = sum(
-            severity_weights.get(i.severity, 1.0) for i in self.issues
-        )
+        total_weight = sum(severity_weights.get(i.severity, 1.0) for i in self.issues)
         max_possible = len(self.issues) * 3.0
         self.score = max(0.0, 1.0 - (total_weight / max_possible))
         return round(self.score, 3)
@@ -237,7 +235,7 @@ class MetadataSuggestion:
     content_id: str = ""
     metadata_type: str = ""
     suggestions: dict[str, float] = field(default_factory=dict)
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def top_suggestion(self) -> tuple[str, float]:
         """Return the metadata key with the highest confidence."""
@@ -269,14 +267,14 @@ class AIGenerationAudit:
     input_hash: str = ""
     output_hash: str = ""
     model_version: str = ""
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     instructor_reviewed: bool = False
     reviewed_at: datetime | None = None
 
     def mark_reviewed(self, approved: bool = True) -> None:
         """Mark the audit record as instructor-reviewed."""
         self.instructor_reviewed = approved
-        self.reviewed_at = datetime.now(timezone.utc)
+        self.reviewed_at = datetime.now(UTC)
 
     def is_pending_review(self) -> bool:
         """Return True if the record still needs instructor review."""

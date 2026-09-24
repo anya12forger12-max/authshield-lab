@@ -2,29 +2,28 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...shared.database import get_db_session
 from ...shared.events.event_bus import get_event_bus
-from ...shared.responses import SuccessResponse, PaginatedResponse, ErrorResponse
-from ...shared.exceptions import NotFoundError, ValidationError, ConflictError
-from ..services.identity_service import IdentityService
-from ..services.role_service import RoleService
-from ..services.preference_service import PreferenceService
-from ..services.device_service import DeviceService
+from ...shared.exceptions import NotFoundError, ValidationError
+from ...shared.responses import SuccessResponse
 from ..domain.models.request_models import (
+    ExportRequest,
+    UpdatePreferencesRequest,
     UpdateProfileRequest,
     UpdateStatusRequest,
-    AssignRoleRequest,
-    UpdatePreferencesRequest,
-    ExportRequest,
 )
 from ..domain.models.response_models import (
-    UserProfileResponse,
-    UserListResponse,
     PreferenceResponse,
+    UserListResponse,
+    UserProfileResponse,
 )
+from ..services.device_service import DeviceService
+from ..services.identity_service import IdentityService
+from ..services.preference_service import PreferenceService
+from ..services.role_service import RoleService
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -65,7 +64,7 @@ async def list_users(
 
 @router.get("/me", response_model=UserProfileResponse)
 async def get_current_user(
-    identity_service: IdentityService = Depends(_get_identity_service),
+    _identity_service: IdentityService = Depends(_get_identity_service),
 ):
     """Get the current authenticated user's profile.
 
@@ -145,7 +144,7 @@ async def delete_user(
 ):
     """Soft-delete a user."""
     try:
-        success = await identity_service.delete_user(user_id, soft=True)
+        await identity_service.delete_user(user_id, soft=True)
         return SuccessResponse(message="User deleted.", data={"user_id": user_id})
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -161,9 +160,7 @@ async def update_user_status(
 ):
     """Update a user's account status (admin)."""
     try:
-        success = await identity_service.update_user_status(
-            user_id, request.status, request.reason
-        )
+        await identity_service.update_user_status(user_id, request.status, request.reason)
         return SuccessResponse(
             message=f"User status updated to {request.status}.",
             data={"user_id": user_id, "status": request.status},
@@ -272,12 +269,11 @@ async def export_user_data(
                 message="User data exported.",
                 data=profile.to_admin_dict(),
             )
-        else:
-            # CSV export would be implemented here
-            return SuccessResponse(
-                message="CSV export not yet implemented.",
-                data=None,
-            )
+        # CSV export would be implemented here
+        return SuccessResponse(
+            message="CSV export not yet implemented.",
+            data=None,
+        )
     except HTTPException:
         raise
     except Exception as e:

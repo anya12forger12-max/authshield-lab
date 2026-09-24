@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.optimization import CompatibilityReport, CompatibilityResult
 from ..domain.events.optimization_events import CompatibilityReportGenerated
@@ -91,12 +90,10 @@ class CompatibilityService:
         )
         return stored
 
-    def get_report(self, report_id: str) -> Optional[dict[str, Any]]:
+    def get_report(self, report_id: str) -> dict[str, Any] | None:
         return self._repo.get_by_id(report_id)
 
-    def list_reports(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    def list_reports(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         return self._repo.get_all(page=page, per_page=per_page)
 
     def delete_report(self, report_id: str) -> bool:
@@ -111,9 +108,7 @@ class CompatibilityService:
         }
         return self.validate_component(platform, component, basic_checks)
 
-    def matrix_check(
-        self, platforms: list[str], components: list[str]
-    ) -> dict[str, Any]:
+    def matrix_check(self, platforms: list[str], components: list[str]) -> dict[str, Any]:
         """Run a full matrix check and return results without persisting."""
         all_results: list[dict[str, Any]] = []
         for platform in platforms:

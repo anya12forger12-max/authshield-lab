@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 import hmac
 import os
-import secrets
 import warnings
 from typing import Any
 
@@ -75,9 +74,7 @@ class PasswordHasher:
     # Public API
     # ------------------------------------------------------------------
 
-    def hash_password(
-        self, password: str, algorithm: str | None = None
-    ) -> str:
+    def hash_password(self, password: str, algorithm: str | None = None) -> str:
         """Hash *password* using the specified algorithm.
 
         Parameters
@@ -101,8 +98,7 @@ class PasswordHasher:
         algo = (algorithm or self._ARGON2ID).lower()
         if algo not in self._SUPPORTED:
             raise ValueError(
-                f"Unsupported algorithm '{algo}'. "
-                f"Supported: {', '.join(sorted(self._SUPPORTED))}"
+                f"Unsupported algorithm '{algo}'. Supported: {', '.join(sorted(self._SUPPORTED))}"
             )
 
         if algo == self._ARGON2ID:
@@ -214,7 +210,8 @@ class PasswordHasher:
                 "weaknesses": [
                     "Not memory-hard (vulnerable to GPU attacks at high scale)",
                     "Limited to 72-byte password truncation",
-                    "Uses Blowfish key schedule (patent concerns in some jurisdictions, now expired)",
+                    "Uses Blowfish key schedule (patent concerns in some jurisdictions, "
+                    "now expired)",
                 ],
             },
             self._PBKDF2: {
@@ -275,8 +272,7 @@ class PasswordHasher:
 
         if info is None:
             raise ValueError(
-                f"Unknown algorithm '{algorithm}'. "
-                f"Supported: {', '.join(sorted(self._SUPPORTED))}"
+                f"Unknown algorithm '{algorithm}'. Supported: {', '.join(sorted(self._SUPPORTED))}"
             )
         return info
 
@@ -349,7 +345,7 @@ class PasswordHasher:
         """Detect which algorithm produced a given hash."""
         if hashed.startswith("$argon2"):
             return "argon2id"
-        if hashed.startswith("$2b$") or hashed.startswith("$2a$"):
+        if hashed.startswith(("$2b$", "$2a$")):
             return "bcrypt"
         if hashed.startswith("$pbkdf2"):
             return "pbkdf2_sha256"

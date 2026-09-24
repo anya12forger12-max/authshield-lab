@@ -17,51 +17,30 @@ class IAuthenticationEventPublisher(ABC):
     @abstractmethod
     async def publish_authentication_requested(
         self, username: str, correlation_id: str
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
-    async def publish_authentication_succeeded(
-        self, result: AuthenticationResult
-    ) -> None:
-        ...
+    async def publish_authentication_succeeded(self, result: AuthenticationResult) -> None: ...
 
     @abstractmethod
-    async def publish_authentication_failed(
-        self, result: AuthenticationResult
-    ) -> None:
-        ...
+    async def publish_authentication_failed(self, result: AuthenticationResult) -> None: ...
 
     @abstractmethod
-    async def publish_registration_requested(
-        self, username: str, correlation_id: str
-    ) -> None:
-        ...
+    async def publish_registration_requested(self, username: str, correlation_id: str) -> None: ...
 
     @abstractmethod
-    async def publish_registration_completed(
-        self, result: AuthenticationResult
-    ) -> None:
-        ...
+    async def publish_registration_completed(self, result: AuthenticationResult) -> None: ...
 
     @abstractmethod
     async def publish_session_created(
         self, session_id: str, user_id: str, correlation_id: str
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
-    async def publish_session_expired(self, session_id: str, user_id: str) -> None:
-        ...
+    async def publish_session_expired(self, session_id: str, user_id: str) -> None: ...
 
     @abstractmethod
-    async def publish_session_destroyed(
-        self, session_id: str, user_id: str
-    ) -> None:
-        ...
+    async def publish_session_destroyed(self, session_id: str, user_id: str) -> None: ...
 
     @abstractmethod
-    async def publish_logout(
-        self, user_id: str, session_id: str, correlation_id: str
-    ) -> None:
-        ...
+    async def publish_logout(self, user_id: str, session_id: str, correlation_id: str) -> None: ...

@@ -89,8 +89,10 @@ def validate_transition(current: AccountStatus, target: AccountStatus) -> None:
         If the transition is not in the valid set.
     """
     if not can_transition(current, target):
+        allowed_targets = (
+            ", ".join(sorted(s.value for s in VALID_TRANSITIONS.get(current, set()))) or "(none)"
+        )
         raise ValueError(
             f"Invalid account status transition: {current.value} -> {target.value}. "
-            f"Allowed targets from {current.value}: "
-            f"{', '.join(sorted(s.value for s in VALID_TRANSITIONS.get(current, set()))) or '(none)'}"
+            f"Allowed targets from {current.value}: {allowed_targets}"
         )

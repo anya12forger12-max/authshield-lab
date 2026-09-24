@@ -24,9 +24,7 @@ class PasswordVerificationService(IPasswordHashingService):
     def __init__(self, hasher: PasswordHasher | None = None) -> None:
         self._hasher = hasher or PasswordHasher()
 
-    async def hash_password(
-        self, password: str, algorithm: str | None = None
-    ) -> str:
+    async def hash_password(self, password: str, algorithm: str | None = None) -> str:
         """Hash a password using the specified algorithm.
 
         Parameters

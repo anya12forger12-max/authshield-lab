@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
-from app.quality.domain.entities.accessibility_a11y import A11yAudit, A11yProfile, A11yScorecard, KeyboardShortcut
+from app.quality.domain.entities.accessibility_a11y import (
+    A11yAudit,
+    A11yProfile,
+    A11yScorecard,
+    KeyboardShortcut,
+)
 from app.quality.domain.entities.diagnostics import DiagnosticBundle, DiagnosticCheck
 from app.quality.domain.entities.maintainability import BuildHealth, TechnicalDebtItem
 from app.quality.domain.entities.observability import ApplicationMetric, ObservabilitySnapshot

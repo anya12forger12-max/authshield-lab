@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import copy
-from typing import Optional
 
-from ..domain.entities.content import Course, Lesson, Quiz, MediaAsset, KnowledgeNode
+from ..domain.entities.content import Course, KnowledgeNode, Lesson, MediaAsset, Quiz
 from ..domain.interfaces.content_repository import (
     CourseRepository,
-    LessonRepository,
-    QuizRepository,
-    MediaRepository,
     KnowledgeNodeRepository,
+    LessonRepository,
+    MediaRepository,
+    QuizRepository,
 )
 
 
@@ -21,7 +20,7 @@ class InMemoryCourseRepository(CourseRepository):
     def __init__(self) -> None:
         self._store: dict[str, Course] = {}
 
-    async def find_by_id(self, course_id: str) -> Optional[Course]:
+    async def find_by_id(self, course_id: str) -> Course | None:
         course = self._store.get(course_id)
         return copy.deepcopy(course) if course is not None else None
 
@@ -46,14 +45,18 @@ class InMemoryCourseRepository(CourseRepository):
         query_lower = query.lower()
         results: list[Course] = []
         for course in self._store.values():
-            if query_lower and query_lower not in course.title.lower() and query_lower not in course.description.lower():
+            if (
+                query_lower
+                and query_lower not in course.title.lower()
+                and query_lower not in course.description.lower()
+            ):
                 continue
             if filters:
                 if "difficulty" in filters and course.difficulty != filters["difficulty"]:
                     continue
                 if "status" in filters and course.status != filters["status"]:
                     continue
-                if "tags" in filters and filters["tags"]:
+                if filters.get("tags"):
                     tag_set = set(filters["tags"])
                     if not tag_set.intersection(set(course.tags)):
                         continue
@@ -67,7 +70,7 @@ class InMemoryLessonRepository(LessonRepository):
     def __init__(self) -> None:
         self._store: dict[str, Lesson] = {}
 
-    async def find_by_id(self, lesson_id: str) -> Optional[Lesson]:
+    async def find_by_id(self, lesson_id: str) -> Lesson | None:
         lesson = self._store.get(lesson_id)
         return copy.deepcopy(lesson) if lesson is not None else None
 
@@ -100,7 +103,7 @@ class InMemoryQuizRepository(QuizRepository):
     def __init__(self) -> None:
         self._store: dict[str, Quiz] = {}
 
-    async def find_by_id(self, quiz_id: str) -> Optional[Quiz]:
+    async def find_by_id(self, quiz_id: str) -> Quiz | None:
         quiz = self._store.get(quiz_id)
         return copy.deepcopy(quiz) if quiz is not None else None
 
@@ -124,7 +127,7 @@ class InMemoryMediaRepository(MediaRepository):
     def __init__(self) -> None:
         self._store: dict[str, MediaAsset] = {}
 
-    async def find_by_id(self, asset_id: str) -> Optional[MediaAsset]:
+    async def find_by_id(self, asset_id: str) -> MediaAsset | None:
         asset = self._store.get(asset_id)
         return copy.deepcopy(asset) if asset is not None else None
 
@@ -152,7 +155,7 @@ class InMemoryKnowledgeNodeRepository(KnowledgeNodeRepository):
     def __init__(self) -> None:
         self._store: dict[str, KnowledgeNode] = {}
 
-    async def find_by_id(self, node_id: str) -> Optional[KnowledgeNode]:
+    async def find_by_id(self, node_id: str) -> KnowledgeNode | None:
         node = self._store.get(node_id)
         return copy.deepcopy(node) if node is not None else None
 

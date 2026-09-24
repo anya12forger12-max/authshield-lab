@@ -184,6 +184,7 @@ def _get_sdk_service():  # type: ignore[no-untyped-def]
     global _sdk_service
     if _sdk_service is None:
         from app.developer.services.sdk_service import SdKService
+
         _sdk_service = SdKService()
     return _sdk_service
 
@@ -192,6 +193,7 @@ def _get_extension_service():  # type: ignore[no-untyped-def]
     global _extension_service
     if _extension_service is None:
         from app.developer.services.extension_service import ExtensionService
+
         _extension_service = ExtensionService()
     return _extension_service
 
@@ -200,6 +202,7 @@ def _get_automation_service():  # type: ignore[no-untyped-def]
     global _automation_service
     if _automation_service is None:
         from app.developer.services.automation_service import AutomationService
+
         _automation_service = AutomationService()
     return _automation_service
 
@@ -208,6 +211,7 @@ def _get_api_explorer_service():  # type: ignore[no-untyped-def]
     global _api_explorer_service
     if _api_explorer_service is None:
         from app.developer.services.api_explorer_service import ApiExplorerService
+
         _api_explorer_service = ApiExplorerService()
     return _api_explorer_service
 
@@ -216,6 +220,7 @@ def _get_validation_service():  # type: ignore[no-untyped-def]
     global _validation_service
     if _validation_service is None:
         from app.developer.services.validation_service import ValidationService
+
         _validation_service = ValidationService()
     return _validation_service
 
@@ -224,6 +229,7 @@ def _get_package_service():  # type: ignore[no-untyped-def]
     global _package_service
     if _package_service is None:
         from app.developer.services.package_service import PackageService
+
         _package_service = PackageService()
     return _package_service
 
@@ -232,6 +238,7 @@ def _get_developer_tools_service():  # type: ignore[no-untyped-def]
     global _developer_tools_service
     if _developer_tools_service is None:
         from app.developer.services.developer_tools_service import DeveloperToolsService
+
         _developer_tools_service = DeveloperToolsService()
     return _developer_tools_service
 
@@ -246,7 +253,9 @@ async def create_sdk(body: SdKCreateRequest) -> dict:  # type: ignore[no-untyped
     """Create a new SDK."""
     from app.developer.domain.entities.sdk import SdKVersion
 
-    version_enum = SdKVersion(body.version) if body.version in [v.value for v in SdKVersion] else SdKVersion.V1
+    version_enum = (
+        SdKVersion(body.version) if body.version in [v.value for v in SdKVersion] else SdKVersion.V1
+    )
     sdk = _get_sdk_service().create_sdk(
         name=body.name,
         version=version_enum,
@@ -309,7 +318,11 @@ async def create_extension(body: ExtensionCreateRequest) -> dict:  # type: ignor
     """Create a new extension."""
     from app.developer.domain.entities.extension import ExtensionType
 
-    ext_type = ExtensionType(body.extension_type) if body.extension_type in [e.value for e in ExtensionType] else ExtensionType.PLUGIN
+    ext_type = (
+        ExtensionType(body.extension_type)
+        if body.extension_type in [e.value for e in ExtensionType]
+        else ExtensionType.PLUGIN
+    )
     ext = _get_extension_service().register_extension(
         name=body.name,
         version=body.version,
@@ -381,7 +394,7 @@ async def disable_extension(extension_id: str) -> dict:  # type: ignore[no-untyp
 
 
 @router.get("/extensions/{extension_id}/validate")
-async def validate_extension(extension_id: str) -> dict:  # type: ignore[no-untyped-def]
+async def validate_extension_endpoint(extension_id: str) -> dict:  # type: ignore[no-untyped-def]
     """Validate an extension."""
     return _get_extension_service().validate_extension(extension_id)
 

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -192,40 +192,40 @@ def _get_services() -> dict[str, Any]:
         return _services
 
     from ..repositories.certification_repository_impl import (
-        InMemoryServiceStatusRepository,
-        InMemoryPlatformHealthRepository,
-        InMemoryModuleInventoryRepository,
-        InMemoryPackageHealthRepository,
-        InMemoryEcosystemDashboardRepository,
-        InMemoryPlatformCertificationRepository,
-        InMemoryCertificationRequirementRepository,
-        InMemoryCertificationReportRepository,
-        InMemoryDependencyLifecycleRepository,
         InMemoryAPIStabilityRepository,
-        InMemoryModuleOwnershipRepository,
+        InMemoryArchiveRecoveryRepository,
+        InMemoryBackupValidationRepository,
+        InMemoryCertificationReportRepository,
+        InMemoryCertificationRequirementRepository,
+        InMemoryDependencyLifecycleRepository,
         InMemoryDocumentationFreshnessRepository,
-        InMemorySustainabilityDashboardRepository,
+        InMemoryEcosystemDashboardRepository,
+        InMemoryFinalAcceptanceTestRepository,
         InMemoryMaintenanceRoadmapRepository,
-        InMemoryReleasePlanRepository,
-        InMemoryReleaseValidationRepository,
+        InMemoryModuleInventoryRepository,
+        InMemoryModuleOwnershipRepository,
+        InMemoryPackageHealthRepository,
         InMemoryPackagingResultRepository,
+        InMemoryPlatformCertificationRepository,
+        InMemoryPlatformHealthRepository,
+        InMemoryPlatformValidationReportRepository,
+        InMemoryRecoveryReadinessRepository,
         InMemoryRegressionResultRepository,
         InMemoryReleaseHistoryRepository,
-        InMemoryBackupValidationRepository,
+        InMemoryReleasePlanRepository,
+        InMemoryReleaseValidationRepository,
         InMemoryRestoreTestRepository,
-        InMemoryArchiveRecoveryRepository,
-        InMemoryRecoveryReadinessRepository,
-        InMemoryValidationCheckRepository,
+        InMemoryServiceStatusRepository,
         InMemorySubsystemValidationRepository,
-        InMemoryPlatformValidationReportRepository,
-        InMemoryFinalAcceptanceTestRepository,
+        InMemorySustainabilityDashboardRepository,
+        InMemoryValidationCheckRepository,
     )
-    from ..services.operations_service import OperationsService
     from ..services.certification_service import CertificationService
-    from ..services.sustainability_service import SustainabilityService
-    from ..services.release_engineering_service import ReleaseEngineeringService
     from ..services.disaster_recovery_service import DisasterRecoveryService
+    from ..services.operations_service import OperationsService
     from ..services.platform_validation_service import PlatformValidationService
+    from ..services.release_engineering_service import ReleaseEngineeringService
+    from ..services.sustainability_service import SustainabilityService
 
     svc_ops = OperationsService(
         InMemoryServiceStatusRepository(),
@@ -295,7 +295,7 @@ async def certification_health() -> dict:
     return {
         "status": "healthy",
         "module": "certification",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -308,6 +308,7 @@ async def certification_health() -> dict:
 async def register_service(body: RegisterServiceRequest) -> dict:
     svc = _get_services()["operations"]
     from ..domain.entities.operations import ServiceHealthStatus
+
     try:
         shs = ServiceHealthStatus(body.status)
     except ValueError:
@@ -351,7 +352,9 @@ async def get_latest_platform_health() -> dict:
 @router.post("/operations/modules", status_code=201)
 async def register_module(body: RegisterModuleRequest) -> dict:
     svc = _get_services()["operations"]
-    result = await svc.register_module(body.name, body.version, body.status, body.enabled, body.dependencies)
+    result = await svc.register_module(
+        body.name, body.version, body.status, body.enabled, body.dependencies
+    )
     return {"status": "success", "data": _to_dict(result)}
 
 
@@ -383,7 +386,9 @@ async def remove_module(module_id: str) -> dict:
 @router.post("/operations/packages", status_code=201)
 async def register_package(body: RegisterPackageRequest) -> dict:
     svc = _get_services()["operations"]
-    result = await svc.register_package(body.name, body.version, body.integrity, body.compatibility, body.health_score)
+    result = await svc.register_package(
+        body.name, body.version, body.integrity, body.compatibility, body.health_score
+    )
     return {"status": "success", "data": _to_dict(result)}
 
 
@@ -402,7 +407,9 @@ async def generate_ecosystem_dashboard(
     performance_score: float = Query(default=0.0),
 ) -> dict:
     svc = _get_services()["operations"]
-    result = await svc.generate_ecosystem_dashboard(doc_status, a11y_score, security_score, performance_score)
+    result = await svc.generate_ecosystem_dashboard(
+        doc_status, a11y_score, security_score, performance_score
+    )
     return {"status": "success", "data": _to_dict(result)}
 
 
@@ -490,7 +497,9 @@ async def evaluate_certification(cert_id: str) -> dict:
 @router.post("/certs/{cert_id}/issue")
 async def issue_certification(cert_id: str, body: IssueCertificationRequest) -> dict:
     svc = _get_services()["certification"]
-    cert = await svc.issue_certification(cert_id, body.approver, evidence=body.evidence, metrics=body.metrics)
+    cert = await svc.issue_certification(
+        cert_id, body.approver, evidence=body.evidence, metrics=body.metrics
+    )
     if cert is None:
         raise HTTPException(status_code=404, detail="Certification not found")
     return {"status": "success", "data": _to_dict(cert)}
@@ -557,8 +566,12 @@ async def get_latest_certification_report() -> dict:
 async def register_dependency(body: RegisterDependencyRequest) -> dict:
     svc = _get_services()["sustainability"]
     dep = await svc.register_dependency(
-        body.name, body.version, body.end_of_life_date, body.status,
-        body.update_available, body.latest_version,
+        body.name,
+        body.version,
+        body.end_of_life_date,
+        body.status,
+        body.update_available,
+        body.latest_version,
     )
     return {"status": "success", "data": _to_dict(dep)}
 
@@ -591,7 +604,9 @@ async def remove_dependency(name: str) -> dict:
 @router.post("/sustainability/api-stability", status_code=201)
 async def record_api_stability(body: RecordApiStabilityRequest) -> dict:
     svc = _get_services()["sustainability"]
-    report = await svc.record_api_stability(body.version, body.endpoints, body.deprecated, body.breaking_changes)
+    report = await svc.record_api_stability(
+        body.version, body.endpoints, body.deprecated, body.breaking_changes
+    )
     return {"status": "success", "data": _to_dict(report)}
 
 
@@ -677,7 +692,12 @@ async def get_roadmap(roadmap_id: str) -> dict:
 async def add_roadmap_item(roadmap_id: str, body: AddRoadmapItemRequest) -> dict:
     svc = _get_services()["sustainability"]
     roadmap = await svc.add_roadmap_item(
-        roadmap_id, body.description, body.category, body.effort_hours, body.status, body.target_date,
+        roadmap_id,
+        body.description,
+        body.category,
+        body.effort_hours,
+        body.status,
+        body.target_date,
     )
     if roadmap is None:
         raise HTTPException(status_code=404, detail="Roadmap not found")
@@ -765,7 +785,9 @@ async def fail_validation(val_id: str, details: str = Query(default="")) -> dict
 @router.post("/releases/packages", status_code=201)
 async def create_packaging_result(body: CreatePackageResultRequest) -> dict:
     svc = _get_services()["release"]
-    pkg = await svc.create_package(body.release_id, body.platform, body.package_type, body.output_path, body.checksum)
+    pkg = await svc.create_package(
+        body.release_id, body.platform, body.package_type, body.output_path, body.checksum
+    )
     return {"status": "success", "data": _to_dict(pkg)}
 
 
@@ -780,7 +802,12 @@ async def list_packaging_results(release_id: str) -> dict:
 async def record_regression(body: RecordRegressionRequest) -> dict:
     svc = _get_services()["release"]
     result = await svc.record_regression(
-        body.release_id, body.tests_run, body.passed, body.failed, body.skipped, body.coverage,
+        body.release_id,
+        body.tests_run,
+        body.passed,
+        body.failed,
+        body.skipped,
+        body.coverage,
     )
     return {"status": "success", "data": _to_dict(result)}
 
@@ -814,7 +841,9 @@ async def list_release_history() -> dict:
 @router.post("/recovery/backups", status_code=201)
 async def validate_backup(body: ValidateBackupRequest) -> dict:
     svc = _get_services()["recovery"]
-    result = await svc.validate_backup(body.backup_id, body.backup_type, body.size_bytes, body.integrity, body.restorable)
+    result = await svc.validate_backup(
+        body.backup_id, body.backup_type, body.size_bytes, body.integrity, body.restorable
+    )
     return {"status": "success", "data": _to_dict(result)}
 
 
@@ -835,7 +864,9 @@ async def create_restore_test(backup_id: str = Query(...)) -> dict:
 @router.patch("/recovery/restore-tests/{test_id}/complete")
 async def complete_restore_test(test_id: str, body: CompleteRestoreTestRequest) -> dict:
     svc = _get_services()["recovery"]
-    test = await svc.complete_restore_test(test_id, body.success, body.duration_ms, body.data_integrity)
+    test = await svc.complete_restore_test(
+        test_id, body.success, body.duration_ms, body.data_integrity
+    )
     if test is None:
         raise HTTPException(status_code=404, detail="Restore test not found")
     return {"status": "success", "data": _to_dict(test)}
@@ -858,7 +889,9 @@ async def start_archive_recovery(body: StartArchiveRecoveryRequest) -> dict:
 @router.patch("/recovery/archive/{recovery_id}/complete")
 async def complete_archive_recovery(recovery_id: str, body: CompleteArchiveRecoveryRequest) -> dict:
     svc = _get_services()["recovery"]
-    result = await svc.complete_archive_recovery(recovery_id, body.items_recovered, body.total_items)
+    result = await svc.complete_archive_recovery(
+        recovery_id, body.items_recovered, body.total_items
+    )
     if result is None:
         raise HTTPException(status_code=404, detail="Archive recovery not found")
     return {"status": "success", "data": _to_dict(result)}
@@ -895,7 +928,9 @@ async def get_latest_readiness() -> dict:
 @router.post("/validation/checks", status_code=201)
 async def run_check(body: RunCheckRequest) -> dict:
     svc = _get_services()["validation"]
-    check = await svc.run_check(body.subsystem, body.check_name, body.status, body.details, body.evidence)
+    check = await svc.run_check(
+        body.subsystem, body.check_name, body.status, body.details, body.evidence
+    )
     return {"status": "success", "data": _to_dict(check)}
 
 

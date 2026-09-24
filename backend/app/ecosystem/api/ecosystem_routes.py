@@ -1,28 +1,27 @@
 """Ecosystem API routes."""
+# ruff: noqa: B006
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-from fastapi import APIRouter, HTTPException
-
-from domain.entities.marketplace import (
-    LocalPackage, PackageCategory, PackageSearch, InstallationRecord,
-)
 from domain.entities.library import LibraryItem, LibraryItemType
-from domain.entities.research import ResearchProject, ResearchStatus
-from domain.entities.institution import Organization, OrgType
-from domain.entities.content_distribution import DistributionPackage
-from repositories.ecosystem_repository_impl import (
-    InMemoryMarketplaceRepository, InMemoryLibraryRepository,
-    InMemoryResearchRepository, InMemoryInstitutionRepository,
-    InMemoryDistributionRepository,
+from domain.entities.marketplace import (
+    LocalPackage,
+    PackageCategory,
+    PackageSearch,
 )
-from services.marketplace_service import MarketplaceService
-from services.library_service import LibraryService
-from services.research_service import ResearchService
-from services.institution_service import InstitutionService
+from fastapi import APIRouter, HTTPException
+from repositories.ecosystem_repository_impl import (
+    InMemoryDistributionRepository,
+    InMemoryInstitutionRepository,
+    InMemoryLibraryRepository,
+    InMemoryMarketplaceRepository,
+    InMemoryResearchRepository,
+)
 from services.distribution_service import DistributionService
+from services.institution_service import InstitutionService
+from services.library_service import LibraryService
+from services.marketplace_service import MarketplaceService
+from services.research_service import ResearchService
 from validators.ecosystem_validator import EcosystemValidator
 
 router = APIRouter(prefix="/api/v1/ecosystem", tags=["ecosystem"])
@@ -60,8 +59,12 @@ def create_package(
     if not validator.validate_semver(version):
         raise HTTPException(400, "Invalid semver version")
     pkg = LocalPackage(
-        name=name, version=version, author=author, description=description,
-        category=PackageCategory(category), tags=tags,
+        name=name,
+        version=version,
+        author=author,
+        description=description,
+        category=PackageCategory(category),
+        tags=tags,
     )
     _market_repo.add_package(pkg)
     return vars(pkg)
@@ -119,7 +122,9 @@ def list_installed():
 
 
 @router.post("/packages/search")
-def search_packages(query: str = "", category: str = "", sort_by: str = "name", limit: int = 20, offset: int = 0):
+def search_packages(
+    query: str = "", category: str = "", sort_by: str = "name", limit: int = 20, offset: int = 0
+):
     cat = PackageCategory(category) if category else None
     search = PackageSearch(query=query, category=cat, sort_by=sort_by, limit=limit, offset=offset)
     return [vars(p) for p in market_service.search_packages(search)]
@@ -132,8 +137,11 @@ def list_library_items():
 
 @router.post("/library")
 def create_library_item(
-    title: str, author: str, item_type: str,
-    description: str = "", tags: list[str] = [],
+    title: str,
+    author: str,
+    item_type: str,
+    description: str = "",
+    tags: list[str] = [],
 ):
     it = LibraryItemType(item_type)
     item = LibraryItem(title=title, author=author, item_type=it, description=description, tags=tags)
@@ -163,7 +171,9 @@ def bookmark_item(item_id: str, user_id: str = "anonymous", note: str = ""):
 
 
 @router.post("/library/{item_id}/annotate")
-def annotate_item(item_id: str, user_id: str = "anonymous", text: str = "", highlight: str = "", page: int = 0):
+def annotate_item(
+    item_id: str, user_id: str = "anonymous", text: str = "", highlight: str = "", page: int = 0
+):
     ann = library_service.add_annotation(item_id, user_id, text, highlight, page)
     return vars(ann)
 
@@ -184,7 +194,13 @@ def get_item_citations(item_id: str):
 
 
 @router.post("/library/citations")
-def create_citation(source_item_id: str, target_item_id: str, citation_type: str = "references", page: int = 0, note: str = ""):
+def create_citation(
+    source_item_id: str,
+    target_item_id: str,
+    citation_type: str = "references",
+    page: int = 0,
+    note: str = "",
+):
     cit = library_service.add_citation(source_item_id, target_item_id, citation_type, page, note)
     return vars(cit)
 
@@ -218,7 +234,9 @@ def get_research_project(project_id: str):
 
 
 @router.put("/research/projects/{project_id}")
-def update_research_project(project_id: str, title: str = "", description: str = "", status: str = ""):
+def update_research_project(
+    project_id: str, title: str = "", description: str = "", status: str = ""
+):
     t = title if title else None
     d = description if description else None
     s = status if status else None
@@ -236,8 +254,18 @@ def delete_research_project(project_id: str):
 
 
 @router.post("/research/projects/{project_id}/literature")
-def add_literature(project_id: str, title: str, author: str = "", year: int = 0, source: str = "", abstract: str = "", keywords: list[str] = []):
-    entry = research_service.add_literature(project_id, title, author, year, source, abstract, keywords)
+def add_literature(
+    project_id: str,
+    title: str,
+    author: str = "",
+    year: int = 0,
+    source: str = "",
+    abstract: str = "",
+    keywords: list[str] = [],
+):
+    entry = research_service.add_literature(
+        project_id, title, author, year, source, abstract, keywords
+    )
     return vars(entry)
 
 
@@ -289,7 +317,9 @@ def list_reading_lists(project_id: str):
 
 
 @router.post("/research/projects/{project_id}/bibliographies")
-def create_bibliography(project_id: str, name: str = "default", entries: list[str] = [], format: str = "apa"):
+def create_bibliography(
+    project_id: str, name: str = "default", entries: list[str] = [], format: str = "apa"
+):
     bib = research_service.create_bibliography(project_id, name, entries, format)
     return vars(bib)
 
@@ -379,8 +409,16 @@ def list_departments_for_org(org_id: str):
 
 
 @router.post("/institution/departments/{dept_id}/programs")
-def create_program(dept_id: str, name: str, description: str = "", duration_months: int = 0, competencies: list[str] = []):
-    prog = institution_service.create_program(dept_id, name, description, duration_months, competencies)
+def create_program(
+    dept_id: str,
+    name: str,
+    description: str = "",
+    duration_months: int = 0,
+    competencies: list[str] = [],
+):
+    prog = institution_service.create_program(
+        dept_id, name, description, duration_months, competencies
+    )
     return vars(prog)
 
 
@@ -423,8 +461,12 @@ def get_assignments(instructor_id: str):
 
 
 @router.post("/institution/resource-allocations")
-def create_allocation(resource_type: str, amount: float, unit: str = "", allocated_to: str = "", purpose: str = ""):
-    alloc = institution_service.allocate_resource(resource_type, amount, unit, allocated_to, purpose)
+def create_allocation(
+    resource_type: str, amount: float, unit: str = "", allocated_to: str = "", purpose: str = ""
+):
+    alloc = institution_service.allocate_resource(
+        resource_type, amount, unit, allocated_to, purpose
+    )
     return vars(alloc)
 
 
@@ -439,7 +481,13 @@ def list_distribution_packages():
 
 
 @router.post("/distribution/packages")
-def create_distribution_package(name: str, description: str = "", content_type: str = "", version: str = "1.0.0", created_by: str = ""):
+def create_distribution_package(
+    name: str,
+    description: str = "",
+    content_type: str = "",
+    version: str = "1.0.0",
+    created_by: str = "",
+):
     if not validator.validate_package_name(name):
         raise HTTPException(400, "Invalid package name")
     if not validator.validate_semver(version):
@@ -483,6 +531,7 @@ def list_sync():
 @router.get("/validate/package/{package_id}")
 def validate_package(package_id: str):
     from services.governance_validation_service import GovernanceValidationService
+
     pkg = _market_repo.get_package(package_id)
     if not pkg:
         raise HTTPException(404, "Package not found")

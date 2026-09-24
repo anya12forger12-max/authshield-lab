@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional, Any
 from pydantic import BaseModel, Field
 
 
@@ -11,13 +10,13 @@ class SessionDetailResponse(BaseModel):
 
     session_id: str = ""
     user_id: str = ""
-    created_at: Optional[str] = None
-    expires_at: Optional[str] = None
-    last_activity: Optional[str] = None
+    created_at: str | None = None
+    expires_at: str | None = None
+    last_activity: str | None = None
     status: str = "active"
     authentication_method: str = "password"
-    platform: Optional[str] = None
-    device_name: Optional[str] = None
+    platform: str | None = None
+    device_name: str | None = None
     ip_address: str = "127.0.0.1"
     is_expired: bool = False
     is_idle: bool = False

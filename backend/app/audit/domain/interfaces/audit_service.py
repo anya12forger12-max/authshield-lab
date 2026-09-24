@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any
 
 from ..entities.audit_entry import AuditEntry
 
@@ -17,22 +17,18 @@ class IAuditService(ABC):
         ...
 
     @abstractmethod
-    async def get_audit_trail(
-        self, user_id: str, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def get_audit_trail(self, user_id: str, page: int = 1, per_page: int = 20) -> dict:
         """Return the audit trail for a specific user."""
         ...
 
     @abstractmethod
-    async def get_module_audit(
-        self, module: str, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def get_module_audit(self, module: str, page: int = 1, per_page: int = 20) -> dict:
         """Return audit events for a specific module."""
         ...
 
     @abstractmethod
     async def search_audit(
-        self, filters: Optional[dict] = None, page: int = 1, per_page: int = 20
+        self, filters: dict | None = None, page: int = 1, per_page: int = 20
     ) -> dict:
         """Search audit events with filters and pagination."""
         ...
@@ -48,8 +44,6 @@ class IAuditService(ABC):
         ...
 
     @abstractmethod
-    async def export_audit(
-        self, filters: Optional[dict] = None, format: str = "json"
-    ) -> Any:
+    async def export_audit(self, filters: dict | None = None, format: str = "json") -> Any:
         """Export audit events in the specified format."""
         ...

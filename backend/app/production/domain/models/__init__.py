@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 
 from sqlalchemy import (
     Boolean,
@@ -129,7 +129,7 @@ class BuildInfoModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     built_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
     build_environment: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     python_version: Mapped[str] = mapped_column(String(16), nullable=False, default="")
@@ -165,7 +165,7 @@ class LtsVersionModel(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     @property
@@ -205,7 +205,7 @@ class MigrationStepModel(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     def to_dict(self) -> dict:
@@ -234,7 +234,7 @@ class CompatibilityMatrixModel(UUIDPrimaryKeyMixin, Base):
     checked_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     def to_dict(self) -> dict:
@@ -261,7 +261,7 @@ class DeprecationEntryModel(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     def to_dict(self) -> dict:
@@ -324,11 +324,13 @@ class GovernancePolicyModel(UUIDPrimaryKeyMixin, Base):
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     requirements_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     review_frequency_days: Mapped[int] = mapped_column(Integer, nullable=False, default=30)
-    last_reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_reviewed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     @property
@@ -347,7 +349,9 @@ class GovernancePolicyModel(UUIDPrimaryKeyMixin, Base):
             "description": self.description,
             "requirements": self.requirements,
             "review_frequency_days": self.review_frequency_days,
-            "last_reviewed_at": self.last_reviewed_at.isoformat() if self.last_reviewed_at else None,
+            "last_reviewed_at": self.last_reviewed_at.isoformat()
+            if self.last_reviewed_at
+            else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
@@ -421,7 +425,7 @@ class CertificationRequirementModel(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     def to_dict(self) -> dict:
@@ -448,7 +452,7 @@ class ProductionValidationModel(UUIDPrimaryKeyMixin, Base):
     validated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
     details: Mapped[str] = mapped_column(Text, nullable=False, default="")
 
@@ -483,7 +487,7 @@ class ProjectHealthModel(UUIDPrimaryKeyMixin, Base):
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     @property
@@ -518,7 +522,7 @@ class ArchitectureDecisionRecordModel(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
     reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -551,7 +555,7 @@ class MigrationHistoryModel(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     def to_dict(self) -> dict:
@@ -580,7 +584,7 @@ class ReleaseHistoryModel(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     def to_dict(self) -> dict:
@@ -641,7 +645,7 @@ class CodingStandardModel(UUIDPrimaryKeyMixin, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
     @property

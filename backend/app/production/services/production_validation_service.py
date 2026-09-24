@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ...shared.logging_config import get_logger
 from ..domain.entities.certification import ProductionValidation
@@ -103,7 +103,7 @@ class ProductionValidationService:
             subsystem=subsystem,
             status="pass" if all_pass else "fail",
             checks=checks,
-            validated_at=datetime.now(timezone.utc),
+            validated_at=datetime.now(UTC),
             details=f"Validated {len(checks)} checks for {subsystem}",
         )
         await self._validation_repo.create(validation)
@@ -123,13 +123,11 @@ class ProductionValidationService:
             results.append(result)
         return results
 
-    async def get_validation(self, validation_id: str) -> Optional[ProductionValidation]:
+    async def get_validation(self, validation_id: str) -> ProductionValidation | None:
         """Retrieve a specific validation result."""
         return await self._validation_repo.get_by_id(validation_id)
 
-    async def get_validations_by_subsystem(
-        self, subsystem: str
-    ) -> list[ProductionValidation]:
+    async def get_validations_by_subsystem(self, subsystem: str) -> list[ProductionValidation]:
         """List validation results for a specific subsystem."""
         return await self._validation_repo.get_by_subsystem(subsystem)
 

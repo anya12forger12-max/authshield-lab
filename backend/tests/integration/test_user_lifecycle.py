@@ -1,17 +1,13 @@
 """Integration tests for user lifecycle: create -> update -> status change -> delete."""
 
-import pytest
-from datetime import datetime, timezone
-
-from app.users.domain.entities.user_profile import UserProfile
+from app.shared.validation.validator import Validator
 from app.users.domain.entities.identity_lifecycle import (
     UserLifecycleState,
     can_transition,
-    validate_transition,
 )
-from app.users.domain.entities.role import RoleEntity
 from app.users.domain.entities.permission import PermissionEntity
-from app.shared.validation.validator import Validator
+from app.users.domain.entities.role import RoleEntity
+from app.users.domain.entities.user_profile import UserProfile
 
 
 class TestUserCreation:
@@ -158,10 +154,13 @@ class TestUserDeletion:
         )
 
     def test_cannot_undelete(self):
-        assert can_transition(
-            UserLifecycleState.DELETED,
-            UserLifecycleState.ACTIVE,
-        ) is False
+        assert (
+            can_transition(
+                UserLifecycleState.DELETED,
+                UserLifecycleState.ACTIVE,
+            )
+            is False
+        )
 
     def test_delete_profile_data(self):
         profile = UserProfile(user_id="u1", username="user1")

@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     Float,
     Integer,
     String,
     Text,
-    JSON,
 )
 from sqlalchemy.orm import Mapped, mapped_column
 

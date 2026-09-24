@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from ...shared.logging_config import get_logger
 from ..domain.entities.certification import HealthIndicator, ProjectHealth
@@ -59,7 +58,7 @@ class HealthDashboardService:
         return "F"
 
     async def collect_health_indicators(
-        self, custom_indicators: Optional[list[dict]] = None
+        self, custom_indicators: list[dict] | None = None
     ) -> list[HealthIndicator]:
         """Collect all health indicators, using defaults or custom values."""
         indicator_data = custom_indicators or DEFAULT_INDICATORS
@@ -79,7 +78,7 @@ class HealthDashboardService:
         return indicators
 
     async def generate_health_report(
-        self, custom_indicators: Optional[list[dict]] = None
+        self, custom_indicators: list[dict] | None = None
     ) -> ProjectHealth:
         """Generate a complete project health report."""
         indicators = await self.collect_health_indicators(custom_indicators)
@@ -97,7 +96,7 @@ class HealthDashboardService:
             indicators=indicators,
             overall_score=round(overall_score, 2),
             grade=grade,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
         await self._health_repo.create(health)
         logger.info(
@@ -108,7 +107,7 @@ class HealthDashboardService:
         )
         return health
 
-    async def get_latest_health(self) -> Optional[ProjectHealth]:
+    async def get_latest_health(self) -> ProjectHealth | None:
         """Retrieve the most recent health report."""
         return await self._health_repo.get_latest()
 
@@ -116,9 +115,7 @@ class HealthDashboardService:
         """Retrieve all historical health reports."""
         return await self._health_repo.get_all()
 
-    async def get_indicator_trend(
-        self, indicator_name: str
-    ) -> list[dict]:
+    async def get_indicator_trend(self, indicator_name: str) -> list[dict]:
         """Get historical values for a specific indicator."""
         history = await self._health_repo.get_all()
         trend: list[dict] = []
@@ -127,9 +124,7 @@ class HealthDashboardService:
                 if indicator.name == indicator_name:
                     trend.append(
                         {
-                            "date": report.generated_at.isoformat()
-                            if report.generated_at
-                            else "",
+                            "date": report.generated_at.isoformat() if report.generated_at else "",
                             "value": indicator.value,
                             "status": indicator.status,
                         }

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.multimedia import (
     AssetCollection,
@@ -42,31 +42,33 @@ class MultimediaService:
             accessible=data.get("accessible", True),
             metadata=data.get("metadata", {}),
         )
-        result = self._asset_repo.create({
-            "id": asset.id,
-            "name": asset.name,
-            "asset_type": asset.asset_type.value,
-            "description": asset.description,
-            "file_path": asset.file_path,
-            "alt_text": asset.alt_text,
-            "caption": asset.caption,
-            "transcript": asset.transcript,
-            "accessible": asset.accessible,
-            "metadata": asset.metadata,
-            "version": asset.version,
-        })
+        result = self._asset_repo.create(
+            {
+                "id": asset.id,
+                "name": asset.name,
+                "asset_type": asset.asset_type.value,
+                "description": asset.description,
+                "file_path": asset.file_path,
+                "alt_text": asset.alt_text,
+                "caption": asset.caption,
+                "transcript": asset.transcript,
+                "accessible": asset.accessible,
+                "metadata": asset.metadata,
+                "version": asset.version,
+            }
+        )
         logger.info("multimedia_asset_created", extra={"asset_id": result["id"]})
         return result
 
-    def get_asset(self, asset_id: str) -> Optional[dict[str, Any]]:
+    def get_asset(self, asset_id: str) -> dict[str, Any] | None:
         return self._asset_repo.get_by_id(asset_id)
 
     def list_assets(
-        self, page: int = 1, per_page: int = 20, asset_type: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, asset_type: str | None = None
     ) -> dict[str, Any]:
         return self._asset_repo.get_all(page=page, per_page=per_page, asset_type=asset_type)
 
-    def update_asset(self, asset_id: str, data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def update_asset(self, asset_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         existing = self._asset_repo.get_by_id(asset_id)
         if not existing:
             raise ValueError(f"Asset '{asset_id}' not found.")
@@ -79,9 +81,7 @@ class MultimediaService:
             raise ValueError(f"Asset '{asset_id}' not found.")
         return self._asset_repo.delete(asset_id)
 
-    def search_assets(
-        self, query: str, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    def search_assets(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         return self._asset_repo.search(query, page=page, per_page=per_page)
 
     def validate_asset(self, asset_id: str) -> dict[str, Any]:
@@ -98,17 +98,14 @@ class MultimediaService:
         if not asset.get("file_path"):
             vr.add_issue("File path is missing")
 
-        if asset_type in ("image", "svg", "icon"):
-            if not asset.get("alt_text"):
-                vr.add_issue("Alt text is required for image assets")
+        if asset_type in ("image", "svg", "icon") and not asset.get("alt_text"):
+            vr.add_issue("Alt text is required for image assets")
 
-        if asset_type == "audio":
-            if not asset.get("transcript"):
-                vr.add_issue("Transcript is required for audio assets")
+        if asset_type == "audio" and not asset.get("transcript"):
+            vr.add_issue("Transcript is required for audio assets")
 
-        if asset_type == "pdf":
-            if not asset.get("alt_text"):
-                vr.add_issue("Alt text / description is required for PDF assets")
+        if asset_type == "pdf" and not asset.get("alt_text"):
+            vr.add_issue("Alt text / description is required for PDF assets")
 
         if not asset.get("accessible", True):
             vr.add_issue("Asset is marked as not accessible")
@@ -121,24 +118,24 @@ class MultimediaService:
             description=data.get("description", ""),
             asset_ids=data.get("asset_ids", []),
         )
-        result = self._collection_repo.create({
-            "id": collection.id,
-            "name": collection.name,
-            "description": collection.description,
-            "asset_ids": collection.asset_ids,
-        })
+        result = self._collection_repo.create(
+            {
+                "id": collection.id,
+                "name": collection.name,
+                "description": collection.description,
+                "asset_ids": collection.asset_ids,
+            }
+        )
         logger.info("asset_collection_created", extra={"collection_id": result["id"]})
         return result
 
-    def get_collection(self, collection_id: str) -> Optional[dict[str, Any]]:
+    def get_collection(self, collection_id: str) -> dict[str, Any] | None:
         return self._collection_repo.get_by_id(collection_id)
 
     def list_collections(self) -> list[dict[str, Any]]:
         return self._collection_repo.get_all()
 
-    def update_collection(
-        self, collection_id: str, data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def update_collection(self, collection_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         existing = self._collection_repo.get_by_id(collection_id)
         if not existing:
             raise ValueError(f"Collection '{collection_id}' not found.")
@@ -187,7 +184,9 @@ class MultimediaService:
                 vr = self.validate_asset(asset_id)
                 results.append(vr)
             except ValueError:
-                results.append({"asset_id": asset_id, "valid": False, "issues": ["Asset not found"]})
+                results.append(
+                    {"asset_id": asset_id, "valid": False, "issues": ["Asset not found"]}
+                )
 
         total = len(results)
         valid_count = sum(1 for r in results if r.get("valid", False))

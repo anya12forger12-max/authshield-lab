@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -26,7 +26,7 @@ class PublishRequest:
     content_type: str = ""
     version: int = 1
     requested_by: str = ""
-    requested_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    requested_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     validation_results: dict = field(default_factory=dict)
     a11y_check_results: dict = field(default_factory=dict)
     localization_results: dict = field(default_factory=dict)
@@ -126,7 +126,7 @@ class PublishHistory:
     version: int = 1
     action: str = ""
     performed_by: str = ""
-    performed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    performed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     details: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -150,7 +150,7 @@ class ContentVersion:
     version: int = 1
     changes: list[str] = field(default_factory=list)
     author: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     checksum: str = ""
 
     def add_change(self, change_description: str) -> None:

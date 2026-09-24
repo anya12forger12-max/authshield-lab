@@ -2,35 +2,6 @@
 
 from __future__ import annotations
 
-from .classroom import (
-    Classroom,
-    ClassroomMember,
-    ClassroomRole,
-    ClassroomSession,
-    ClassroomStatus,
-    ClassroomMemberStatus,
-    SessionStatus,
-)
-from .enrollment import (
-    CourseEnrollmentConfig,
-    Enrollment,
-    EnrollmentStatus,
-    WaitlistEntry,
-)
-from .gradebook import (
-    GradeEntry,
-    GradeItem,
-    GradeScale,
-    GradebookEntry,
-    GradingCategory,
-)
-from .competency import (
-    Competency,
-    CompetencyFramework,
-    CompetencyLevel,
-    CompetencyStatus,
-    LearnerCompetencyProgress,
-)
 from .assessment_lms import (
     AssessmentAttempt,
     AssessmentStatus,
@@ -46,6 +17,35 @@ from .calendar import (
     ImportantDate,
     ImportantDateType,
     Term,
+)
+from .classroom import (
+    Classroom,
+    ClassroomMember,
+    ClassroomMemberStatus,
+    ClassroomRole,
+    ClassroomSession,
+    ClassroomStatus,
+    SessionStatus,
+)
+from .competency import (
+    Competency,
+    CompetencyFramework,
+    CompetencyLevel,
+    CompetencyStatus,
+    LearnerCompetencyProgress,
+)
+from .enrollment import (
+    CourseEnrollmentConfig,
+    Enrollment,
+    EnrollmentStatus,
+    WaitlistEntry,
+)
+from .gradebook import (
+    GradebookEntry,
+    GradeEntry,
+    GradeItem,
+    GradeScale,
+    GradingCategory,
 )
 from .portfolio import (
     CompetencyEvidence,

@@ -1,23 +1,23 @@
 """User domain entities."""
 
-from .user_profile import UserProfile
-from .role import RoleEntity
-from .permission import PermissionEntity
 from .identity_lifecycle import (
-    UserLifecycleState,
-    LifecycleTransition,
     VALID_LIFECYCLE_TRANSITIONS,
+    LifecycleTransition,
+    UserLifecycleState,
     can_transition,
     validate_transition,
 )
+from .permission import PermissionEntity
+from .role import RoleEntity
+from .user_profile import UserProfile
 
 __all__ = [
-    "UserProfile",
-    "RoleEntity",
-    "PermissionEntity",
-    "UserLifecycleState",
-    "LifecycleTransition",
     "VALID_LIFECYCLE_TRANSITIONS",
+    "LifecycleTransition",
+    "PermissionEntity",
+    "RoleEntity",
+    "UserLifecycleState",
+    "UserProfile",
     "can_transition",
     "validate_transition",
 ]

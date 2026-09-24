@@ -1,4 +1,4 @@
-"""Tests for release and LTS entities and services — Release, ReleasePackage, LtsVersion, ReleaseService, LtsService."""
+"Tests for release and LTS entities and services — Release, ReleasePackage, LtsVersion, ReleaseService, LtsService."
 
 from __future__ import annotations
 
@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from app.production.domain.entities.lts import CompatibilityMatrix, LtsVersion, MigrationStep
 from app.production.domain.entities.release_center import Release, ReleasePackage, ReleaseStatus
-from app.production.domain.entities.lts import LtsVersion, MigrationStep, CompatibilityMatrix
 
 
 class TestRelease:
@@ -55,7 +55,9 @@ class TestMigrationStep:
         assert m.requires_backup is False
 
     def test_custom_step(self):
-        m = MigrationStep(from_version="1.0", to_version="2.0", step_number=1, description="DB migration")
+        m = MigrationStep(
+            from_version="1.0", to_version="2.0", step_number=1, description="DB migration"
+        )
         assert m.from_version == "1.0"
         assert m.description == "DB migration"
 
@@ -74,12 +76,14 @@ class TestReleaseService:
     @pytest.fixture
     def service(self, repos):
         from app.production.services.release_service import ReleaseService
+
         return ReleaseService(*repos)
 
     def test_create_release(self, service, repos):
-        release_repo, package_repo, build_repo = repos
+        release_repo, _package_repo, _build_repo = repos
         release_repo.create = AsyncMock()
         import asyncio
+
         result = asyncio.run(service.create_release("1.0.0", "Alpha"))
         assert result.version == "1.0.0"
         assert result.name == "Alpha"
@@ -89,6 +93,7 @@ class TestReleaseService:
         r = Release(id="r1")
         release_repo.get_by_id = AsyncMock(return_value=r)
         import asyncio
+
         result = asyncio.run(service.get_release("r1"))
         assert result.id == "r1"
 
@@ -96,6 +101,7 @@ class TestReleaseService:
         release_repo, _, _ = repos
         release_repo.get_by_id = AsyncMock(return_value=None)
         import asyncio
+
         result = asyncio.run(service.get_release("bad"))
         assert result is None
 
@@ -106,6 +112,7 @@ class TestReleaseService:
         updated_release = Release(id="r1", status=ReleaseStatus.RELEASE_CANDIDATE)
         release_repo.update = AsyncMock(return_value=updated_release)
         import asyncio
+
         result = asyncio.run(service.update_release_status("r1", ReleaseStatus.RELEASE_CANDIDATE))
         assert result.status == ReleaseStatus.RELEASE_CANDIDATE
 
@@ -114,6 +121,7 @@ class TestReleaseService:
         r = Release(id="r1", status=ReleaseStatus.IN_DEVELOPMENT)
         release_repo.get_by_id = AsyncMock(return_value=r)
         import asyncio
+
         with pytest.raises(ValueError, match="Cannot transition"):
             asyncio.run(service.update_release_status("r1", ReleaseStatus.STABLE))
 
@@ -121,6 +129,7 @@ class TestReleaseService:
         _, package_repo, _ = repos
         package_repo.create = AsyncMock()
         import asyncio
+
         pkg = asyncio.run(service.create_package("r1", "installer.exe", "installer", "windows"))
         assert pkg.release_id == "r1"
         assert pkg.platform == "windows"
@@ -134,12 +143,14 @@ class TestLtsService:
     @pytest.fixture
     def service(self, repos):
         from app.production.services.lts_service import LtsService
+
         return LtsService(*repos)
 
     def test_create_lts_version(self, service, repos):
         lts_repo, _, _, _ = repos
         lts_repo.create = AsyncMock()
         import asyncio
+
         result = asyncio.run(service.create_lts_version("3.0", "2026-01-01", "2030-01-01"))
         assert result.version == "3.0"
         assert result.status == "active"
@@ -149,6 +160,7 @@ class TestLtsService:
         l = LtsVersion(id="l1", version="2.0")
         lts_repo.get_by_id = AsyncMock(return_value=l)
         import asyncio
+
         result = asyncio.run(service.get_lts_version("l1"))
         assert result.version == "2.0"
 
@@ -156,6 +168,7 @@ class TestLtsService:
         lts_repo, _, _, _ = repos
         lts_repo.get_by_id = AsyncMock(return_value=None)
         import asyncio
+
         result = asyncio.run(service.get_lts_version("bad"))
         assert result is None
 
@@ -166,6 +179,7 @@ class TestLtsService:
         updated_lts = LtsVersion(id="l1", status="extended")
         lts_repo.update = AsyncMock(return_value=updated_lts)
         import asyncio
+
         result = asyncio.run(service.update_lts_status("l1", "extended"))
         assert result.status == "extended"
 
@@ -174,6 +188,7 @@ class TestLtsService:
         l = LtsVersion(id="l1")
         lts_repo.get_by_id = AsyncMock(return_value=l)
         import asyncio
+
         with pytest.raises(ValueError, match="Invalid LTS status"):
             asyncio.run(service.update_lts_status("l1", "bogus"))
 
@@ -181,6 +196,7 @@ class TestLtsService:
         _, migration_repo, _, _ = repos
         migration_repo.create = AsyncMock()
         import asyncio
+
         step = asyncio.run(service.add_migration_step("1.0", "2.0", 1, "Migration step"))
         assert step.from_version == "1.0"
         assert step.step_number == 1
@@ -190,5 +206,6 @@ class TestLtsService:
         compat_repo.check_compatibility = AsyncMock(return_value=None)
         compat_repo.create = AsyncMock()
         import asyncio
+
         result = asyncio.run(service.check_compatibility("1.0", "2.0"))
         assert result.compatible is True

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -36,7 +36,7 @@ class ContentHealthDashboard:
     needs_attention: int = 0
     critical: int = 0
     by_type: dict[str, int] = field(default_factory=dict)
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -56,4 +56,4 @@ class MaintenanceSchedule:
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     items: list[MaintenanceScheduleItem] = field(default_factory=list)
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))

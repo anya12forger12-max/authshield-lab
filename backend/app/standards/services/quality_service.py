@@ -3,14 +3,11 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 
 from app.standards.domain.entities.quality import (
     AcademicQualityDashboard,
-    FrameworkComparison,
     LearningOutcomeValidation,
     ReadinessReview,
-    ReadinessReviewEvent,
 )
 from app.standards.domain.events.standards_events import (
     QualityDashboardGenerated,
@@ -90,7 +87,12 @@ class QualityService:
             health_status=dashboard.health_status(),
         )
         self._bus.dispatch(event)
-        logger.info("Dashboard generated: id=%s overall=%.2f status=%s", dashboard.id, dashboard.overall_score(), dashboard.health_status())
+        logger.info(
+            "Dashboard generated: id=%s overall=%.2f status=%s",
+            dashboard.id,
+            dashboard.overall_score(),
+            dashboard.health_status(),
+        )
         return dashboard
 
     def get_latest_dashboard(self) -> AcademicQualityDashboard | None:
@@ -140,7 +142,7 @@ class QualityService:
             return None
         old_stage = review.current_stage.value
         try:
-            event = review.advance(actor=actor, comments=comments)
+            review.advance(actor=actor, comments=comments)
         except RuntimeError as exc:
             logger.warning("Cannot advance review %s: %s", review_id, exc)
             return None

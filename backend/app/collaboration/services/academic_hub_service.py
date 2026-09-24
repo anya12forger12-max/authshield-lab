@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.interfaces import AcademicHubRepository
     from domain.entities.academic_hub import (
-        InstitutionalProject,
-        SharedCurriculumPackage,
-        ImportedResource,
-        ReviewRequest,
-        PublicationQueueItem,
-        VersionHistory,
         AcademicHubDashboard,
+        ImportedResource,
+        InstitutionalProject,
+        PublicationQueueItem,
+        ReviewRequest,
+        SharedCurriculumPackage,
+        VersionHistory,
     )
+    from domain.interfaces import AcademicHubRepository
 
 
 class AcademicHubService:
@@ -31,6 +31,7 @@ class AcademicHubService:
         members: list[str] | None = None,
     ) -> InstitutionalProject:
         from domain.entities.academic_hub import InstitutionalProject
+
         project = InstitutionalProject(
             name=name,
             description=description,
@@ -64,10 +65,16 @@ class AcademicHubService:
             project.status = status
         if members is not None:
             project.members = members
-        project.updated_at = datetime.now(timezone.utc)
+        project.updated_at = datetime.now(UTC)
         self._repo.update_project(project)
         changes = [f"Updated at {project.updated_at.isoformat()}"]
-        self._record_version(project.id, "InstitutionalProject", project.version if hasattr(project, 'version') else "1.1.0", changes, project.lead)
+        self._record_version(
+            project.id,
+            "InstitutionalProject",
+            project.version if hasattr(project, "version") else "1.1.0",
+            changes,
+            project.lead,
+        )
         return project
 
     def delete_project(self, project_id: str) -> None:
@@ -89,6 +96,7 @@ class AcademicHubService:
         localization_report: dict | None = None,
     ) -> SharedCurriculumPackage:
         from domain.entities.academic_hub import SharedCurriculumPackage
+
         pkg = SharedCurriculumPackage(
             title=title,
             source_institution=source_institution,
@@ -117,6 +125,7 @@ class AcademicHubService:
         validation_results: dict | None = None,
     ) -> ImportedResource:
         from domain.entities.academic_hub import ImportedResource
+
         resource = ImportedResource(
             package_id=package_id,
             imported_by=imported_by,
@@ -140,7 +149,8 @@ class AcademicHubService:
         assignees: list[str] | None = None,
         due_date: str = "",
     ) -> ReviewRequest:
-        from domain.entities.academic_hub import ReviewRequest, ReviewStatus
+        from domain.entities.academic_hub import ReviewRequest
+
         request = ReviewRequest(
             title=title,
             request_type=request_type,
@@ -171,6 +181,7 @@ class AcademicHubService:
         submitted_by: str,
     ) -> PublicationQueueItem:
         from domain.entities.academic_hub import PublicationQueueItem
+
         item = PublicationQueueItem(
             content_id=content_id,
             content_type=content_type,
@@ -197,15 +208,17 @@ class AcademicHubService:
 
     def get_dashboard(self) -> AcademicHubDashboard:
         from domain.entities.academic_hub import AcademicHubDashboard
+
         projects = self._repo.all_projects()
         packages = self._repo.all_shared_packages()
         resources = self._repo.all_imported_resources()
         reviews = self._repo.all_review_requests()
         publications = self._repo.all_publication_items()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         pending = sum(1 for r in reviews if r.status.value in ("draft", "in_review"))
         pubs_this_month = sum(
-            1 for p in publications
+            1
+            for p in publications
             if p.submitted_at.year == now.year and p.submitted_at.month == now.month
         )
         return AcademicHubDashboard(
@@ -225,6 +238,7 @@ class AcademicHubService:
         author: str,
     ) -> None:
         from domain.entities.academic_hub import VersionHistory
+
         entry = VersionHistory(
             entity_id=entity_id,
             entity_type=entity_type,

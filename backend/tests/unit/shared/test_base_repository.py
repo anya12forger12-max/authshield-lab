@@ -1,9 +1,9 @@
 """Tests for BaseRepository methods."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from sqlalchemy import String, Boolean, DateTime
+import pytest
+from sqlalchemy import Boolean, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.shared.base_model import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -41,7 +41,7 @@ class TestCreate:
         mock_session.flush.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_create_returns_instance(self, repository, mock_session):
+    async def test_create_returns_instance(self, repository):
         instance = await repository.create({"name": "test"})
         assert instance is not None
         assert isinstance(instance, FakeModel)
@@ -115,6 +115,6 @@ class TestUpdate:
         mock_result = MagicMock()
         mock_result.scalar_one_or_none.return_value = instance
         mock_session.execute.return_value = mock_result
-        result = await repository.update("test-id", {"name": "new"})
+        await repository.update("test-id", {"name": "new"})
         assert instance.name == "new"
         mock_session.add.assert_called_once()

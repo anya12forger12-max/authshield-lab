@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -46,9 +46,7 @@ class ExerciseResult:
     rubric_results: dict[str, Any] = field(default_factory=dict)
     accessibility_usage: dict[str, Any] = field(default_factory=dict)
     time_on_task_seconds: int = 0
-    improvement_recommendations: list[ImprovementRecommendation] = field(
-        default_factory=list
-    )
+    improvement_recommendations: list[ImprovementRecommendation] = field(default_factory=list)
     completed_at: datetime | None = None
 
     def calculate_overall_score(self) -> float:
@@ -74,14 +72,12 @@ class ExerciseResult:
 
     def get_high_priority_recommendations(self) -> list[ImprovementRecommendation]:
         """Return only high-priority improvement recommendations."""
-        return [
-            r for r in self.improvement_recommendations if r.priority == "high"
-        ]
+        return [r for r in self.improvement_recommendations if r.priority == "high"]
 
     def mark_complete(self) -> None:
         """Mark the result as complete with a timestamp."""
         self.completion_status = "completed"
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -97,8 +93,6 @@ class ExerciseResult:
             "rubric_results": dict(self.rubric_results),
             "accessibility_usage": dict(self.accessibility_usage),
             "time_on_task_seconds": self.time_on_task_seconds,
-            "improvement_recommendations": [
-                r.to_dict() for r in self.improvement_recommendations
-            ],
+            "improvement_recommendations": [r.to_dict() for r in self.improvement_recommendations],
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
         }

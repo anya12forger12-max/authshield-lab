@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ..domain.entities.exercise import Exercise, ExerciseStatus
+from ...shared.events.event_bus import EventBus, get_event_bus
+from ..domain.entities.exercise import Exercise
 from ..domain.interfaces import ExerciseRepositoryInterface
-from ...shared.events.event_bus import EventBus, DomainEvent, EventType, get_event_bus
 
 
 class ExerciseService:
@@ -48,8 +48,8 @@ class ExerciseService:
             difficulty=difficulty,
             learning_outcomes=learning_outcomes or [],
             estimated_completion_minutes=estimated_completion_minutes,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         errors = exercise.validate()
         if errors:
@@ -57,21 +57,17 @@ class ExerciseService:
 
         return await self._repo.create(exercise)
 
-    async def get_exercise(self, exercise_id: str) -> Optional[Exercise]:
+    async def get_exercise(self, exercise_id: str) -> Exercise | None:
         """Retrieve an exercise by ID."""
         return await self._repo.get_by_id(exercise_id)
 
-    async def list_exercises(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def list_exercises(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """List all exercises with pagination."""
         return await self._repo.get_all(page=page, per_page=per_page)
 
-    async def update_exercise(
-        self, exercise_id: str, data: dict[str, Any]
-    ) -> Optional[Exercise]:
+    async def update_exercise(self, exercise_id: str, data: dict[str, Any]) -> Exercise | None:
         """Update an existing exercise."""
-        data["updated_at"] = datetime.now(timezone.utc)
+        data["updated_at"] = datetime.now(UTC)
         return await self._repo.update(exercise_id, data)
 
     async def delete_exercise(self, exercise_id: str) -> bool:
@@ -162,10 +158,7 @@ class ExerciseService:
         """Return all exercises within a difficulty range."""
         result = await self._repo.get_all(page=1, per_page=1000)
         items = result.get("items", [])
-        return [
-            e for e in items
-            if min_difficulty <= e.difficulty <= max_difficulty
-        ]
+        return [e for e in items if min_difficulty <= e.difficulty <= max_difficulty]
 
     async def filter_by_category(self, category: str) -> list[Exercise]:
         """Return all exercises in a given category."""

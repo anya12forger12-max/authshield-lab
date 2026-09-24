@@ -52,7 +52,9 @@ class EnrollmentModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Audi
     course_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     enrollment_status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
     enrolled_at: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=False)
-    completed_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    completed_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     grade: Mapped[str | None] = mapped_column(String(10), nullable=True, default=None)
 
 
@@ -73,7 +75,9 @@ class GradeItemModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     category: Mapped[str] = mapped_column(String(50), nullable=False, default="assignment")
     points_possible: Mapped[float] = mapped_column(Float, nullable=False, default=100.0)
     weight: Mapped[float] = mapped_column(Float, nullable=False, default=1.0)
-    due_date: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    due_date: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
 
 class GradeEntryModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -125,7 +129,9 @@ class LearnerCompetencyModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     competency_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="not_started")
     evidence_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
-    assessed_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    assessed_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     assessor_id: Mapped[str | None] = mapped_column(String(36), nullable=True, default=None)
 
 
@@ -148,7 +154,9 @@ class AssessmentAttemptModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     learner_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     attempt_number: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     started_at: Mapped[str] = mapped_column(DateTime(timezone=True), nullable=False)
-    submitted_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    submitted_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     score: Mapped[float | None] = mapped_column(Float, nullable=True, default=None)
     feedback: Mapped[str | None] = mapped_column(Text, nullable=True, default=None)
 

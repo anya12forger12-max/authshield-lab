@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ....shared.base_model import (
-    AuditMixin,
     Base,
     SoftDeleteMixin,
     TimestampMixin,
@@ -98,7 +97,9 @@ class TechnicalDebtItemModel(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixi
     severity: Mapped[str] = mapped_column(String(20), nullable=False, default="low")
     estimated_hours: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     resolved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    resolved_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    resolved_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
 
 class ReleaseWorkflowModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -109,7 +110,9 @@ class ReleaseWorkflowModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     current_stage: Mapped[str] = mapped_column(String(50), nullable=False, default="planning")
     stage_history_json: Mapped[str] = mapped_column(Text, nullable=False, default="[]")
     created_by: Mapped[str] = mapped_column(String(36), nullable=False, default="")
-    completed_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    completed_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
 
 class ReleaseApprovalModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -120,7 +123,9 @@ class ReleaseApprovalModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     approver: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     comments: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    approved_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    approved_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
 
 class ReleaseGateModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -131,7 +136,9 @@ class ReleaseGateModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     required: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     passed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     evidence: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    checked_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    checked_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
 
 class ReleaseChecklistItemModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -143,7 +150,9 @@ class ReleaseChecklistItemModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     completed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     assignee: Mapped[str] = mapped_column(String(36), nullable=False, default="")
     due_date: Mapped[str] = mapped_column(String(30), nullable=False, default="")
-    completed_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    completed_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
 
 class AIGenerationAuditModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -155,7 +164,9 @@ class AIGenerationAuditModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     output_hash: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     model_version: Mapped[str] = mapped_column(String(50), nullable=False, default="")
     instructor_reviewed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    reviewed_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    reviewed_at: Mapped[str | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
 
 
 class DiagnosticTraceModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.continuous_improvement import (
     ActionPlan,
     ActionPlanItem,
@@ -16,13 +16,13 @@ from ..domain.entities.continuous_improvement import (
     ImprovementInitiative,
     ImprovementReport,
 )
+from ..domain.events.analytics_events import ImprovementPlanCreated
 from ..domain.interfaces import (
     IActionPlanItemRepository,
     IActionPlanRepository,
     IImprovementInitiativeRepository,
     IImprovementReportRepository,
 )
-from ..domain.events.analytics_events import ImprovementPlanCreated
 
 logger = get_logger("analytics.continuous_improvement_service")
 
@@ -50,7 +50,7 @@ class ContinuousImprovementService:
         plan_item_repo: IActionPlanItemRepository,
         initiative_repo: IImprovementInitiativeRepository,
         report_repo: IImprovementReportRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._plan_repo = plan_repo
         self._plan_item_repo = plan_item_repo
@@ -68,7 +68,7 @@ class ContinuousImprovementService:
         description: str = "",
         owner: str = "",
         target_date: str = "",
-        items: Optional[list[str]] = None,
+        items: list[str] | None = None,
     ) -> ActionPlan:
         """Create a new action plan with optional items."""
         plan = ActionPlan(
@@ -78,7 +78,7 @@ class ContinuousImprovementService:
             owner=owner,
             status=ActionPlanStatus.NOT_STARTED,
             target_date=target_date,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         await self._plan_repo.create(plan)
 
@@ -105,24 +105,22 @@ class ContinuousImprovementService:
 
         return plan
 
-    async def get_action_plan(self, plan_id: str) -> Optional[ActionPlan]:
+    async def get_action_plan(self, plan_id: str) -> ActionPlan | None:
         """Retrieve an action plan by ID."""
         return await self._plan_repo.get_by_id(plan_id)
 
-    async def list_action_plans(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_action_plans(self, page: int = 1, per_page: int = 20) -> dict:
         """List all action plans with pagination."""
         return await self._plan_repo.get_all(page=page, per_page=per_page)
 
-    async def update_plan_status(
-        self, plan_id: str, status: str
-    ) -> Optional[ActionPlan]:
+    async def update_plan_status(self, plan_id: str, status: str) -> ActionPlan | None:
         """Update the status of an action plan."""
         try:
             plan_status = ActionPlanStatus(status)
         except ValueError:
-            raise ValueError(f"Invalid status: {status}. Must be one of: {[s.value for s in ActionPlanStatus]}")
+            raise ValueError(
+                f"Invalid status: {status}. Must be one of: {[s.value for s in ActionPlanStatus]}"
+            )
 
         updated = await self._plan_repo.update(plan_id, {"status": plan_status})
         if updated is not None:
@@ -134,7 +132,7 @@ class ContinuousImprovementService:
         plan_id: str,
         description: str,
         review_date: str = "",
-    ) -> Optional[ActionPlanItem]:
+    ) -> ActionPlanItem | None:
         """Add an item to an existing action plan."""
         plan = await self._plan_repo.get_by_id(plan_id)
         if plan is None:
@@ -155,9 +153,9 @@ class ContinuousImprovementService:
     async def update_plan_item(
         self,
         item_id: str,
-        status: Optional[str] = None,
-        evidence: Optional[list[str]] = None,
-    ) -> Optional[ActionPlanItem]:
+        status: str | None = None,
+        evidence: list[str] | None = None,
+    ) -> ActionPlanItem | None:
         """Update an action plan item."""
         data: dict[str, Any] = {}
         if status is not None:
@@ -196,8 +194,8 @@ class ContinuousImprovementService:
         description: str = "",
         start_date: str = "",
         end_date: str = "",
-        assignees: Optional[list[str]] = None,
-        metrics: Optional[dict] = None,
+        assignees: list[str] | None = None,
+        metrics: dict | None = None,
     ) -> ImprovementInitiative:
         """Create a new improvement initiative."""
         initiative = ImprovementInitiative(
@@ -214,22 +212,20 @@ class ContinuousImprovementService:
         logger.info("initiative_created", initiative_id=created.id, name=name)
         return created
 
-    async def get_initiative(self, initiative_id: str) -> Optional[ImprovementInitiative]:
+    async def get_initiative(self, initiative_id: str) -> ImprovementInitiative | None:
         """Retrieve an improvement initiative by ID."""
         return await self._initiative_repo.get_by_id(initiative_id)
 
-    async def list_initiatives(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_initiatives(self, page: int = 1, per_page: int = 20) -> dict:
         """List all improvement initiatives with pagination."""
         return await self._initiative_repo.get_all(page=page, per_page=per_page)
 
     async def update_initiative(
         self,
         initiative_id: str,
-        progress_pct: Optional[float] = None,
-        metrics: Optional[dict] = None,
-    ) -> Optional[ImprovementInitiative]:
+        progress_pct: float | None = None,
+        metrics: dict | None = None,
+    ) -> ImprovementInitiative | None:
         """Update an improvement initiative."""
         data: dict[str, Any] = {}
         if progress_pct is not None:
@@ -243,9 +239,9 @@ class ContinuousImprovementService:
         initiative_id: str,
         period: str = "",
         progress: float = 0.0,
-        findings: Optional[list[str]] = None,
-        next_steps: Optional[list[str]] = None,
-    ) -> Optional[ImprovementReport]:
+        findings: list[str] | None = None,
+        next_steps: list[str] | None = None,
+    ) -> ImprovementReport | None:
         """Generate a periodic improvement report for an initiative."""
         initiative = await self._initiative_repo.get_by_id(initiative_id)
         if initiative is None:
@@ -258,7 +254,7 @@ class ContinuousImprovementService:
             progress=progress,
             findings=findings or [],
             next_steps=next_steps or [],
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
         created = await self._report_repo.create(report)
         logger.info(

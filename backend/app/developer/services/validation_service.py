@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.developer.domain.entities.validation import (
     ValidationReport,
@@ -95,7 +95,7 @@ class ValidationService:
         report = ValidationReport(
             name=f"compatibility:{source_type}",
             target_type="compatibility",
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
         source_parts = [int(p) for p in source_version.split(".")]
         target_parts = [int(p) for p in target_version.split(".")]
@@ -106,9 +106,7 @@ class ValidationService:
             target_type="compatibility",
             passed=major_compatible,
             message=(
-                "Major version is compatible"
-                if major_compatible
-                else "Major version mismatch"
+                "Major version is compatible" if major_compatible else "Major version mismatch"
             ),
         )
         report.add_result(result)
@@ -144,7 +142,7 @@ class ValidationService:
         report = ValidationReport(
             name=f"{target_type}:{target_id}",
             target_type=target_type,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
         for rule in rules:
             passed = self._evaluate_rule(rule, data)
@@ -183,9 +181,7 @@ class ValidationService:
             return bool(data)
         if check == "always_pass":
             return True
-        if check == "always_fail":
-            return False
-        return True
+        return check != "always_fail"
 
     # -- Report management ---------------------------------------------------
 

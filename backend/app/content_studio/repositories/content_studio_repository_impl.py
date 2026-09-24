@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.interfaces.content_studio_interfaces import (
     IA11yCheckRepository,
@@ -16,6 +16,7 @@ from ..domain.interfaces.content_studio_interfaces import (
     IContentVersionRepository,
     ICourseDesignRepository,
     IEditorialReviewRepository,
+    ILabTemplateRepository,
     IMultimediaAssetRepository,
     IProgramRepository,
     IPublishHistoryRepository,
@@ -23,7 +24,6 @@ from ..domain.interfaces.content_studio_interfaces import (
     IReviewCommentRepository,
     IReviewDecisionRepository,
     IVirtualLabRepository,
-    ILabTemplateRepository,
 )
 
 logger = logging.getLogger(__name__)
@@ -33,13 +33,14 @@ logger = logging.getLogger(__name__)
 # Program Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryProgramRepository(IProgramRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "name": data.get("name", ""),
@@ -58,7 +59,7 @@ class InMemoryProgramRepository(IProgramRepository):
         return self._items.get(item_id)
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, status: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, status: str | None = None
     ) -> dict[str, Any]:
         items = list(self._items.values())
         if status:
@@ -67,7 +68,13 @@ class InMemoryProgramRepository(IProgramRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, item_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         item = self._items.get(item_id)
@@ -76,7 +83,7 @@ class InMemoryProgramRepository(IProgramRepository):
         for key in ("name", "description", "department", "status", "version", "courses"):
             if key in data:
                 item[key] = data[key]
-        item["updated_at"] = datetime.now(timezone.utc).isoformat()
+        item["updated_at"] = datetime.now(UTC).isoformat()
         return item
 
     def delete(self, item_id: str) -> bool:
@@ -87,13 +94,14 @@ class InMemoryProgramRepository(IProgramRepository):
 # Course Design Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryCourseDesignRepository(ICourseDesignRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "program_id": data.get("program_id", ""),
@@ -119,7 +127,7 @@ class InMemoryCourseDesignRepository(ICourseDesignRepository):
         return self._items.get(item_id)
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, status: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, status: str | None = None
     ) -> dict[str, Any]:
         items = list(self._items.values())
         if status:
@@ -128,18 +136,36 @@ class InMemoryCourseDesignRepository(ICourseDesignRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, item_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         item = self._items.get(item_id)
         if not item:
             return None
-        for key in ("name", "description", "units", "learning_objectives", "estimated_hours",
-                     "competencies", "prerequisites", "a11y_notes", "localization_status",
-                     "version", "status", "created_by", "program_id"):
+        for key in (
+            "name",
+            "description",
+            "units",
+            "learning_objectives",
+            "estimated_hours",
+            "competencies",
+            "prerequisites",
+            "a11y_notes",
+            "localization_status",
+            "version",
+            "status",
+            "created_by",
+            "program_id",
+        ):
             if key in data:
                 item[key] = data[key]
-        item["updated_at"] = datetime.now(timezone.utc).isoformat()
+        item["updated_at"] = datetime.now(UTC).isoformat()
         return item
 
     def delete(self, item_id: str) -> bool:
@@ -147,13 +173,22 @@ class InMemoryCourseDesignRepository(ICourseDesignRepository):
 
     def search(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         q = query.lower()
-        items = [i for i in self._items.values()
-                 if q in i.get("name", "").lower() or q in i.get("description", "").lower()]
+        items = [
+            i
+            for i in self._items.values()
+            if q in i.get("name", "").lower() or q in i.get("description", "").lower()
+        ]
         items.sort(key=lambda i: i.get("created_at", ""), reverse=True)
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def get_by_program(self, program_id: str) -> list[dict[str, Any]]:
         return [i for i in self._items.values() if i.get("program_id") == program_id]
@@ -163,13 +198,14 @@ class InMemoryCourseDesignRepository(ICourseDesignRepository):
 # Virtual Lab Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryVirtualLabRepository(IVirtualLabRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "name": data.get("name", ""),
@@ -195,7 +231,7 @@ class InMemoryVirtualLabRepository(IVirtualLabRepository):
         return self._items.get(item_id)
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, status: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, status: str | None = None
     ) -> dict[str, Any]:
         items = list(self._items.values())
         if status:
@@ -204,18 +240,36 @@ class InMemoryVirtualLabRepository(IVirtualLabRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, item_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         item = self._items.get(item_id)
         if not item:
             return None
-        for key in ("name", "description", "lab_type", "learning_objectives", "prerequisites",
-                     "steps", "expected_outcomes", "reflection_questions", "assessment_criteria",
-                     "a11y_instructions", "estimated_minutes", "status", "version"):
+        for key in (
+            "name",
+            "description",
+            "lab_type",
+            "learning_objectives",
+            "prerequisites",
+            "steps",
+            "expected_outcomes",
+            "reflection_questions",
+            "assessment_criteria",
+            "a11y_instructions",
+            "estimated_minutes",
+            "status",
+            "version",
+        ):
             if key in data:
                 item[key] = data[key]
-        item["updated_at"] = datetime.now(timezone.utc).isoformat()
+        item["updated_at"] = datetime.now(UTC).isoformat()
         return item
 
     def delete(self, item_id: str) -> bool:
@@ -223,18 +277,28 @@ class InMemoryVirtualLabRepository(IVirtualLabRepository):
 
     def search(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         q = query.lower()
-        items = [i for i in self._items.values()
-                 if q in i.get("name", "").lower() or q in i.get("description", "").lower()]
+        items = [
+            i
+            for i in self._items.values()
+            if q in i.get("name", "").lower() or q in i.get("description", "").lower()
+        ]
         items.sort(key=lambda i: i.get("created_at", ""), reverse=True)
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
 
 # ---------------------------------------------------------------------------
 # Lab Template Repository
 # ---------------------------------------------------------------------------
+
 
 class InMemoryLabTemplateRepository(ILabTemplateRepository):
     def __init__(self) -> None:
@@ -242,7 +306,7 @@ class InMemoryLabTemplateRepository(ILabTemplateRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "name": data.get("name", ""),
@@ -278,13 +342,14 @@ class InMemoryLabTemplateRepository(ILabTemplateRepository):
 # Multimedia Asset Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryMultimediaAssetRepository(IMultimediaAssetRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "name": data.get("name", ""),
@@ -306,7 +371,7 @@ class InMemoryMultimediaAssetRepository(IMultimediaAssetRepository):
         return self._items.get(item_id)
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, asset_type: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, asset_type: str | None = None
     ) -> dict[str, Any]:
         items = list(self._items.values())
         if asset_type:
@@ -315,14 +380,30 @@ class InMemoryMultimediaAssetRepository(IMultimediaAssetRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, item_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         item = self._items.get(item_id)
         if not item:
             return None
-        for key in ("name", "asset_type", "description", "file_path", "alt_text",
-                     "caption", "transcript", "accessible", "metadata", "version"):
+        for key in (
+            "name",
+            "asset_type",
+            "description",
+            "file_path",
+            "alt_text",
+            "caption",
+            "transcript",
+            "accessible",
+            "metadata",
+            "version",
+        ):
             if key in data:
                 item[key] = data[key]
         return item
@@ -332,18 +413,28 @@ class InMemoryMultimediaAssetRepository(IMultimediaAssetRepository):
 
     def search(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         q = query.lower()
-        items = [i for i in self._items.values()
-                 if q in i.get("name", "").lower() or q in i.get("description", "").lower()]
+        items = [
+            i
+            for i in self._items.values()
+            if q in i.get("name", "").lower() or q in i.get("description", "").lower()
+        ]
         items.sort(key=lambda i: i.get("created_at", ""), reverse=True)
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
 
 # ---------------------------------------------------------------------------
 # Asset Collection Repository
 # ---------------------------------------------------------------------------
+
 
 class InMemoryAssetCollectionRepository(IAssetCollectionRepository):
     def __init__(self) -> None:
@@ -351,7 +442,7 @@ class InMemoryAssetCollectionRepository(IAssetCollectionRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "name": data.get("name", ""),
@@ -385,13 +476,14 @@ class InMemoryAssetCollectionRepository(IAssetCollectionRepository):
 # Content Template Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryContentTemplateRepository(IContentTemplateRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "name": data.get("name", ""),
@@ -410,7 +502,7 @@ class InMemoryContentTemplateRepository(IContentTemplateRepository):
         return self._items.get(item_id)
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, template_type: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, template_type: str | None = None
     ) -> dict[str, Any]:
         items = list(self._items.values())
         if template_type:
@@ -419,13 +511,27 @@ class InMemoryContentTemplateRepository(IContentTemplateRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, item_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         item = self._items.get(item_id)
         if not item:
             return None
-        for key in ("name", "template_type", "description", "structure", "version", "author", "inherit_from"):
+        for key in (
+            "name",
+            "template_type",
+            "description",
+            "structure",
+            "version",
+            "author",
+            "inherit_from",
+        ):
             if key in data:
                 item[key] = data[key]
         return item
@@ -438,13 +544,14 @@ class InMemoryContentTemplateRepository(IContentTemplateRepository):
 # Publish Request Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryPublishRequestRepository(IPublishRequestRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "content_id": data.get("content_id", ""),
@@ -467,7 +574,7 @@ class InMemoryPublishRequestRepository(IPublishRequestRepository):
         return self._items.get(item_id)
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, status: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, status: str | None = None
     ) -> dict[str, Any]:
         items = list(self._items.values())
         if status:
@@ -476,14 +583,27 @@ class InMemoryPublishRequestRepository(IPublishRequestRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, item_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         item = self._items.get(item_id)
         if not item:
             return None
-        for key in ("validation_results", "a11y_check_results", "localization_results",
-                     "dependency_results", "digital_signature", "release_notes", "status"):
+        for key in (
+            "validation_results",
+            "a11y_check_results",
+            "localization_results",
+            "dependency_results",
+            "digital_signature",
+            "release_notes",
+            "status",
+        ):
             if key in data:
                 item[key] = data[key]
         return item
@@ -499,13 +619,14 @@ class InMemoryPublishRequestRepository(IPublishRequestRepository):
 # Publish History Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryPublishHistoryRepository(IPublishHistoryRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "content_id": data.get("content_id", ""),
@@ -526,20 +647,25 @@ class InMemoryPublishHistoryRepository(IPublishHistoryRepository):
         items.sort(key=lambda i: i.get("performed_at", ""), reverse=True)
         return items
 
-    def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         items = list(self._items.values())
         items.sort(key=lambda i: i.get("performed_at", ""), reverse=True)
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
 
 # ---------------------------------------------------------------------------
 # Content Version Repository
 # ---------------------------------------------------------------------------
+
 
 class InMemoryContentVersionRepository(IContentVersionRepository):
     def __init__(self) -> None:
@@ -547,7 +673,7 @@ class InMemoryContentVersionRepository(IContentVersionRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "content_id": data.get("content_id", ""),
@@ -579,13 +705,14 @@ class InMemoryContentVersionRepository(IContentVersionRepository):
 # Editorial Review Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryEditorialReviewRepository(IEditorialReviewRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "content_id": data.get("content_id", ""),
@@ -607,7 +734,7 @@ class InMemoryEditorialReviewRepository(IEditorialReviewRepository):
         return None
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, stage: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, stage: str | None = None
     ) -> dict[str, Any]:
         items = list(self._items.values())
         if stage:
@@ -616,7 +743,13 @@ class InMemoryEditorialReviewRepository(IEditorialReviewRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, item_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         item = self._items.get(item_id)
@@ -632,13 +765,14 @@ class InMemoryEditorialReviewRepository(IEditorialReviewRepository):
 # Review Comment Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryReviewCommentRepository(IReviewCommentRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "review_id": data.get("review_id", ""),
@@ -662,13 +796,14 @@ class InMemoryReviewCommentRepository(IReviewCommentRepository):
 # Review Decision Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryReviewDecisionRepository(IReviewDecisionRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "review_id": data.get("review_id", ""),
@@ -695,13 +830,14 @@ class InMemoryReviewDecisionRepository(IReviewDecisionRepository):
 # A11y Check Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryA11yCheckRepository(IA11yCheckRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "report_id": data.get("report_id", ""),
@@ -725,13 +861,14 @@ class InMemoryA11yCheckRepository(IA11yCheckRepository):
 # A11y Validation Report Repository
 # ---------------------------------------------------------------------------
 
+
 class InMemoryA11yValidationReportRepository(IA11yValidationReportRepository):
     def __init__(self) -> None:
         self._items: dict[str, dict[str, Any]] = {}
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "content_id": data.get("content_id", ""),
@@ -754,20 +891,25 @@ class InMemoryA11yValidationReportRepository(IA11yValidationReportRepository):
                 return item
         return None
 
-    def get_all(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    def get_all(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         items = list(self._items.values())
         items.sort(key=lambda i: i.get("generated_at", ""), reverse=True)
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        return {"items": items[offset:offset + per_page], "total": total, "page": page, "per_page": per_page, "pages": pages}
+        return {
+            "items": items[offset : offset + per_page],
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
 
 # ---------------------------------------------------------------------------
 # A11y Remediation Repository
 # ---------------------------------------------------------------------------
+
 
 class InMemoryA11yRemediationRepository(IA11yRemediationRepository):
     def __init__(self) -> None:
@@ -775,7 +917,7 @@ class InMemoryA11yRemediationRepository(IA11yRemediationRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "report_id": data.get("report_id", ""),

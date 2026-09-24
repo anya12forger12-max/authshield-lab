@@ -5,15 +5,14 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.entities.ai_assistant import (
     AIGenerationAudit,
     AuthoringSuggestion,
-    ContentConsistencyResult,
     ConsistencyIssue,
+    ContentConsistencyResult,
     CurriculumMappingSuggestion,
     GlossaryTerm,
     MetadataSuggestion,
@@ -79,7 +78,10 @@ class AIAssistantService:
         elif suggestion_type == SuggestionType.OUTLINE:
             content = self._generate_outline_suggestion(source_material)
         else:
-            content = f"AI suggestion for {suggestion_type.value}: review the source material for improvements."
+            content = (
+                f"AI suggestion for {suggestion_type.value}: review the "
+                "source material for improvements."
+            )
 
         suggestion = AuthoringSuggestion(
             suggestion_type=suggestion_type,
@@ -96,23 +98,22 @@ class AIAssistantService:
             "ai_suggestion_generated",
             extra={"suggestion_id": suggestion.id, "event_id": event.event_id},
         )
-        result = self._repo.create_suggestion(suggestion.to_dict())
-        return result
+        return self._repo.create_suggestion(suggestion.to_dict())
 
-    def get_suggestion(self, suggestion_id: str) -> Optional[dict[str, Any]]:
+    def get_suggestion(self, suggestion_id: str) -> dict[str, Any] | None:
         return self._repo.get_suggestion_by_id(suggestion_id)
 
     def list_suggestions(
         self,
         page: int = 1,
         per_page: int = 20,
-        suggestion_type: Optional[str] = None,
+        suggestion_type: str | None = None,
     ) -> dict[str, Any]:
         return self._repo.get_all_suggestions(
             page=page, per_page=per_page, suggestion_type=suggestion_type
         )
 
-    def review_suggestion(self, suggestion_id: str, accepted: bool) -> Optional[dict[str, Any]]:
+    def review_suggestion(self, suggestion_id: str, accepted: bool) -> dict[str, Any] | None:
         """Review and accept/reject a suggestion."""
         suggestion = self._repo.get_suggestion_by_id(suggestion_id)
         if not suggestion:
@@ -120,7 +121,7 @@ class AIAssistantService:
         updates = {
             "reviewed": True,
             "accepted": accepted,
-            "reviewed_at": datetime.now(timezone.utc).isoformat(),
+            "reviewed_at": datetime.now(UTC).isoformat(),
         }
         result = self._repo.update_suggestion(suggestion_id, updates)
         event = ContentReviewCompleted(
@@ -154,10 +155,17 @@ class AIAssistantService:
         avg_words_per_sentence = word_count / sentence_count
 
         flesch_kincaid = (0.39 * avg_words_per_sentence) + (11.8 * avg_syllables) - 15.59
-        gunning_fog = 0.4 * (avg_words_per_sentence + 100.0 * (sum(1 for w in words if _count_syllables(w) >= 3) / max(1, word_count)))
+        gunning_fog = 0.4 * (
+            avg_words_per_sentence
+            + 100.0 * (sum(1 for w in words if _count_syllables(w) >= 3) / max(1, word_count))
+        )
 
         complex_words = sum(1 for w in words if _count_syllables(w) >= 3)
-        coleman_liau = (0.0588 * (word_count / sentence_count * 100.0)) - (0.296 * (complex_words / max(1, word_count) * 100.0)) - 15.8
+        coleman_liau = (
+            (0.0588 * (word_count / sentence_count * 100.0))
+            - (0.296 * (complex_words / max(1, word_count) * 100.0))
+            - 15.8
+        )
 
         analysis = ReadingLevelAnalysis(
             text=text[:2000],
@@ -218,26 +226,35 @@ class AIAssistantService:
             for term, defn in definitions:
                 norm_def = defn.strip().lower()[:80]
                 if term in seen_terms and norm_def not in seen_terms[term]:
-                    issues.append(ConsistencyIssue(
-                        location=f"content_block_{idx}",
-                        issue_type="definition_mismatch",
-                        description=f"'{term}' has inconsistent definitions across content blocks.",
-                        suggestion=f"Review and unify the definition of '{term}'.",
-                        severity="warning",
-                    ))
+                    issues.append(
+                        ConsistencyIssue(
+                            location=f"content_block_{idx}",
+                            issue_type="definition_mismatch",
+                            description=(
+                                f"'{term}' has inconsistent definitions across content blocks."
+                            ),
+                            suggestion=f"Review and unify the definition of '{term}'.",
+                            severity="warning",
+                        )
+                    )
                 seen_terms.setdefault(term, []).append(norm_def)
 
         for term_text, locations in all_terms.items():
             if len(set(locations)) > 1:
                 short = term_text[:50]
                 for loc in locations[1:]:
-                    issues.append(ConsistencyIssue(
-                        location=f"content_block_{loc}",
-                        issue_type="terminology_variation",
-                        description=f"Term '{short}' appears in multiple blocks — ensure consistent usage.",
-                        suggestion=f"Standardize '{short}' across all content.",
-                        severity="info",
-                    ))
+                    issues.append(
+                        ConsistencyIssue(
+                            location=f"content_block_{loc}",
+                            issue_type="terminology_variation",
+                            description=(
+                                f"Term '{short}' appears in multiple blocks "
+                                "— ensure consistent usage."
+                            ),
+                            suggestion=f"Standardize '{short}' across all content.",
+                            severity="info",
+                        )
+                    )
 
         result = ContentConsistencyResult(issues=issues)
         result.calculate_score()
@@ -303,7 +320,12 @@ class AIAssistantService:
     # ------------------------------------------------------------------
 
     def record_generation(
-        self, content_id: str, ai_type: str, input_text: str, output_text: str, model_version: str = "rule-based-1.0"
+        self,
+        content_id: str,
+        ai_type: str,
+        input_text: str,
+        output_text: str,
+        model_version: str = "rule-based-1.0",
     ) -> dict[str, Any]:
         """Create an audit trail entry for an AI generation."""
         audit = AIGenerationAudit(
@@ -314,23 +336,25 @@ class AIAssistantService:
             model_version=model_version,
         )
         result = self._repo.create_audit(audit.to_dict())
-        logger.info("ai_generation_audited", extra={"audit_id": result["id"], "content_id": content_id})
+        logger.info(
+            "ai_generation_audited", extra={"audit_id": result["id"], "content_id": content_id}
+        )
         return result
 
-    def get_audit(self, audit_id: str) -> Optional[dict[str, Any]]:
+    def get_audit(self, audit_id: str) -> dict[str, Any] | None:
         return self._repo.get_audit_by_id(audit_id)
 
     def get_audits_for_content(self, content_id: str) -> list[dict[str, Any]]:
         return self._repo.get_audits_for_content(content_id)
 
-    def review_audit(self, audit_id: str, approved: bool) -> Optional[dict[str, Any]]:
+    def review_audit(self, audit_id: str, approved: bool) -> dict[str, Any] | None:
         """Mark an audit record as instructor-reviewed."""
         audit = self._repo.get_audit_by_id(audit_id)
         if not audit:
             return None
         updates = {
             "instructor_reviewed": approved,
-            "reviewed_at": datetime.now(timezone.utc).isoformat(),
+            "reviewed_at": datetime.now(UTC).isoformat(),
         }
         return self._repo.update_audit(audit_id, updates)
 
@@ -356,13 +380,21 @@ class AIAssistantService:
         if terms:
             names = [t["term"] for t in terms[:5]]
             return f"Consider adding glossary entries for: {', '.join(names)}."
-        return "No prominent technical terms detected — review manually for potential glossary entries."
+        return (
+            "No prominent technical terms detected — review manually "
+            "for potential glossary entries."
+        )
 
     def _generate_objectives_suggestion(self, source: str) -> str:
-        sentences = [s.strip() for s in re.split(r"[.!?]+", source) if s.strip() and len(s.strip()) > 15]
+        sentences = [
+            s.strip() for s in re.split(r"[.!?]+", source) if s.strip() and len(s.strip()) > 15
+        ]
         if sentences:
             first = sentences[0][:80]
-            return f"Consider adding learning objectives. A good starting point might relate to: \"{first}...\"."
+            return (
+                f"Consider adding learning objectives. A good starting point "
+                f'might relate to: "{first}...".'
+            )
         return "Add clear learning objectives at the beginning of the content."
 
     def _generate_tags_suggestion(self, source: str) -> str:
@@ -383,14 +415,23 @@ class AIAssistantService:
         return "Consider adding descriptive tags based on the content topics."
 
     def _generate_quiz_suggestion(self, source: str) -> str:
-        sentences = [s.strip() for s in re.split(r"[.!?]+", source) if s.strip() and len(s.strip()) > 20]
+        sentences = [
+            s.strip() for s in re.split(r"[.!?]+", source) if s.strip() and len(s.strip()) > 20
+        ]
         if sentences:
             key_fact = sentences[0][:100]
-            return f"Create a quiz question about: \"{key_fact}...\". Example: 'What is the primary purpose of {key_fact.split()[0] if key_fact.split() else 'this concept'}?'"
+            focus = key_fact.split()[0] if key_fact.split() else "this concept"
+            return (
+                f'Create a quiz question about: "{key_fact}...". '
+                f"Example: 'What is the primary purpose of {focus}?'"
+            )
         return "Generate quiz questions from the key concepts in this content."
 
     def _generate_outline_suggestion(self, source: str) -> str:
         headings = re.findall(r"^#+\s+(.+)$", source, re.MULTILINE)
         if headings:
-            return f"Current outline has {len(headings)} sections. Consider adding an introduction, summary, and practice section."
+            return (
+                f"Current outline has {len(headings)} sections. Consider "
+                "adding an introduction, summary, and practice section."
+            )
         return "Structure the content with clear headings and subheadings for better navigation."

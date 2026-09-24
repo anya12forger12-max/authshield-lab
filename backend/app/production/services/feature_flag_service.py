@@ -5,8 +5,8 @@ from __future__ import annotations
 import copy
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ...shared.logging_config import get_logger
 
@@ -24,8 +24,8 @@ class FeatureFlag:
     rollout_percentage: float = 0.0
     allowed_environments: list[str] = field(default_factory=list)
     allowed_roles: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -37,8 +37,8 @@ class ConfigProfile:
     environment: str = "development"
     values: dict[str, Any] = field(default_factory=dict)
     is_active: bool = False
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -49,9 +49,9 @@ class ApiVersion:
     version: str = ""
     base_path: str = ""
     status: str = "active"
-    deprecated_at: Optional[datetime] = None
-    sunset_at: Optional[datetime] = None
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    deprecated_at: datetime | None = None
+    sunset_at: datetime | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -65,7 +65,7 @@ class ExperimentalFeature:
     min_version: str = ""
     required_roles: list[str] = field(default_factory=list)
     status: str = "preview"
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 class FeatureFlagService:
@@ -87,8 +87,8 @@ class FeatureFlagService:
         description: str = "",
         enabled: bool = False,
         rollout_percentage: float = 0.0,
-        allowed_environments: Optional[list[str]] = None,
-        allowed_roles: Optional[list[str]] = None,
+        allowed_environments: list[str] | None = None,
+        allowed_roles: list[str] | None = None,
     ) -> FeatureFlag:
         """Create a new feature flag."""
         flag = FeatureFlag(
@@ -99,18 +99,18 @@ class FeatureFlagService:
             rollout_percentage=rollout_percentage,
             allowed_environments=allowed_environments or [],
             allowed_roles=allowed_roles or [],
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         self._flags[flag.id] = flag
         logger.info("feature_flag_created", flag_id=flag.id, name=name)
         return flag
 
-    async def get_flag(self, flag_id: str) -> Optional[FeatureFlag]:
+    async def get_flag(self, flag_id: str) -> FeatureFlag | None:
         """Retrieve a feature flag by ID."""
         return copy.deepcopy(self._flags.get(flag_id))
 
-    async def get_flag_by_name(self, name: str) -> Optional[FeatureFlag]:
+    async def get_flag_by_name(self, name: str) -> FeatureFlag | None:
         """Look up a feature flag by name."""
         for flag in self._flags.values():
             if flag.name == name:
@@ -121,9 +121,7 @@ class FeatureFlagService:
         """List all feature flags."""
         return [copy.deepcopy(f) for f in self._flags.values()]
 
-    async def update_flag(
-        self, flag_id: str, data: dict[str, Any]
-    ) -> Optional[FeatureFlag]:
+    async def update_flag(self, flag_id: str, data: dict[str, Any]) -> FeatureFlag | None:
         """Update fields on a feature flag."""
         flag = self._flags.get(flag_id)
         if flag is None:
@@ -131,16 +129,16 @@ class FeatureFlagService:
         for key, value in data.items():
             if hasattr(flag, key):
                 setattr(flag, key, value)
-        flag.updated_at = datetime.now(timezone.utc)
+        flag.updated_at = datetime.now(UTC)
         return copy.deepcopy(flag)
 
-    async def toggle_flag(self, flag_id: str) -> Optional[FeatureFlag]:
+    async def toggle_flag(self, flag_id: str) -> FeatureFlag | None:
         """Toggle a feature flag on or off."""
         flag = self._flags.get(flag_id)
         if flag is None:
             return None
         flag.enabled = not flag.enabled
-        flag.updated_at = datetime.now(timezone.utc)
+        flag.updated_at = datetime.now(UTC)
         logger.info(
             "feature_flag_toggled",
             flag_id=flag_id,
@@ -160,9 +158,7 @@ class FeatureFlagService:
             return False
         if flag.allowed_environments and environment not in flag.allowed_environments:
             return False
-        if flag.allowed_roles and role not in flag.allowed_roles:
-            return False
-        return True
+        return not (flag.allowed_roles and role not in flag.allowed_roles)
 
     async def delete_flag(self, flag_id: str) -> bool:
         """Remove a feature flag."""
@@ -180,7 +176,7 @@ class FeatureFlagService:
         self,
         name: str,
         environment: str = "development",
-        values: Optional[dict[str, Any]] = None,
+        values: dict[str, Any] | None = None,
         is_active: bool = False,
     ) -> ConfigProfile:
         """Create a configuration profile."""
@@ -190,38 +186,32 @@ class FeatureFlagService:
             environment=environment,
             values=values or {},
             is_active=is_active,
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
         )
         self._profiles[profile.id] = profile
         logger.info("config_profile_created", profile_id=profile.id, name=name)
         return profile
 
-    async def get_profile(self, profile_id: str) -> Optional[ConfigProfile]:
+    async def get_profile(self, profile_id: str) -> ConfigProfile | None:
         """Retrieve a configuration profile by ID."""
         return copy.deepcopy(self._profiles.get(profile_id))
 
-    async def get_active_profile(
-        self, environment: str = "development"
-    ) -> Optional[ConfigProfile]:
+    async def get_active_profile(self, environment: str = "development") -> ConfigProfile | None:
         """Get the active profile for an environment."""
         for profile in self._profiles.values():
             if profile.environment == environment and profile.is_active:
                 return copy.deepcopy(profile)
         return None
 
-    async def list_profiles(
-        self, environment: Optional[str] = None
-    ) -> list[ConfigProfile]:
+    async def list_profiles(self, environment: str | None = None) -> list[ConfigProfile]:
         """List all profiles, optionally filtered by environment."""
         profiles = list(self._profiles.values())
         if environment:
             profiles = [p for p in profiles if p.environment == environment]
         return [copy.deepcopy(p) for p in profiles]
 
-    async def update_profile(
-        self, profile_id: str, data: dict[str, Any]
-    ) -> Optional[ConfigProfile]:
+    async def update_profile(self, profile_id: str, data: dict[str, Any]) -> ConfigProfile | None:
         """Update fields on a configuration profile."""
         profile = self._profiles.get(profile_id)
         if profile is None:
@@ -229,10 +219,10 @@ class FeatureFlagService:
         for key, value in data.items():
             if hasattr(profile, key):
                 setattr(profile, key, value)
-        profile.updated_at = datetime.now(timezone.utc)
+        profile.updated_at = datetime.now(UTC)
         return copy.deepcopy(profile)
 
-    async def set_active_profile(self, profile_id: str) -> Optional[ConfigProfile]:
+    async def set_active_profile(self, profile_id: str) -> ConfigProfile | None:
         """Activate a profile, deactivating others for the same environment."""
         profile = self._profiles.get(profile_id)
         if profile is None:
@@ -241,7 +231,7 @@ class FeatureFlagService:
             if p.environment == profile.environment:
                 p.is_active = False
         profile.is_active = True
-        profile.updated_at = datetime.now(timezone.utc)
+        profile.updated_at = datetime.now(UTC)
         return copy.deepcopy(profile)
 
     async def delete_profile(self, profile_id: str) -> bool:
@@ -267,13 +257,13 @@ class FeatureFlagService:
             version=version,
             base_path=base_path,
             status=status,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         self._api_versions[api_version.id] = api_version
         logger.info("api_version_registered", version=version, base_path=base_path)
         return api_version
 
-    async def get_api_version(self, version_id: str) -> Optional[ApiVersion]:
+    async def get_api_version(self, version_id: str) -> ApiVersion | None:
         """Retrieve an API version by ID."""
         return copy.deepcopy(self._api_versions.get(version_id))
 
@@ -281,26 +271,22 @@ class FeatureFlagService:
         """List all registered API versions."""
         return [copy.deepcopy(v) for v in self._api_versions.values()]
 
-    async def deprecate_api_version(
-        self, version_id: str
-    ) -> Optional[ApiVersion]:
+    async def deprecate_api_version(self, version_id: str) -> ApiVersion | None:
         """Mark an API version as deprecated."""
         api_version = self._api_versions.get(version_id)
         if api_version is None:
             return None
         api_version.status = "deprecated"
-        api_version.deprecated_at = datetime.now(timezone.utc)
+        api_version.deprecated_at = datetime.now(UTC)
         return copy.deepcopy(api_version)
 
-    async def sunset_api_version(
-        self, version_id: str
-    ) -> Optional[ApiVersion]:
+    async def sunset_api_version(self, version_id: str) -> ApiVersion | None:
         """Mark an API version as sunset (end-of-life)."""
         api_version = self._api_versions.get(version_id)
         if api_version is None:
             return None
         api_version.status = "sunset"
-        api_version.sunset_at = datetime.now(timezone.utc)
+        api_version.sunset_at = datetime.now(UTC)
         return copy.deepcopy(api_version)
 
     async def delete_api_version(self, version_id: str) -> bool:
@@ -320,7 +306,7 @@ class FeatureFlagService:
         description: str,
         flag_id: str = "",
         min_version: str = "",
-        required_roles: Optional[list[str]] = None,
+        required_roles: list[str] | None = None,
     ) -> ExperimentalFeature:
         """Register an experimental feature."""
         feature = ExperimentalFeature(
@@ -331,15 +317,13 @@ class FeatureFlagService:
             min_version=min_version,
             required_roles=required_roles or [],
             status="preview",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         self._experimental[feature.id] = feature
         logger.info("experimental_feature_created", feature_id=feature.id, name=name)
         return feature
 
-    async def get_experimental_feature(
-        self, feature_id: str
-    ) -> Optional[ExperimentalFeature]:
+    async def get_experimental_feature(self, feature_id: str) -> ExperimentalFeature | None:
         """Retrieve an experimental feature by ID."""
         return copy.deepcopy(self._experimental.get(feature_id))
 
@@ -347,9 +331,7 @@ class FeatureFlagService:
         """List all experimental features."""
         return [copy.deepcopy(f) for f in self._experimental.values()]
 
-    async def promote_experimental_feature(
-        self, feature_id: str
-    ) -> Optional[ExperimentalFeature]:
+    async def promote_experimental_feature(self, feature_id: str) -> ExperimentalFeature | None:
         """Promote an experimental feature to stable status."""
         feature = self._experimental.get(feature_id)
         if feature is None:
@@ -357,9 +339,7 @@ class FeatureFlagService:
         feature.status = "stable"
         return copy.deepcopy(feature)
 
-    async def archive_experimental_feature(
-        self, feature_id: str
-    ) -> Optional[ExperimentalFeature]:
+    async def archive_experimental_feature(self, feature_id: str) -> ExperimentalFeature | None:
         """Archive an experimental feature."""
         feature = self._experimental.get(feature_id)
         if feature is None:

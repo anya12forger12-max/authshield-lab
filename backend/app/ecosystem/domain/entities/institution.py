@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -34,7 +34,7 @@ class Organization:
         self.org_type = org_type
         self.departments = departments or []
         self.settings = settings or {}
-        self.created_at = datetime.now(timezone.utc)
+        self.created_at = datetime.now(UTC)
 
 
 class Department:
@@ -88,7 +88,7 @@ class InstructorAssignment:
         self.program_id = program_id
         self.course_id = course_id
         self.term = term
-        self.assigned_at = datetime.now(timezone.utc)
+        self.assigned_at = datetime.now(UTC)
 
 
 class ResourceAllocation:
@@ -106,4 +106,4 @@ class ResourceAllocation:
         self.unit = unit
         self.allocated_to = allocated_to
         self.purpose = purpose
-        self.allocated_at = datetime.now(timezone.utc)
+        self.allocated_at = datetime.now(UTC)

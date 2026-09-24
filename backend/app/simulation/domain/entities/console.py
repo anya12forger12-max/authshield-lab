@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -25,7 +25,7 @@ class Submission:
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     session_id: str = ""
     content: str = ""
-    submitted_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    submitted_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     feedback: str = ""
     grade: float = 0.0
 
@@ -61,47 +61,39 @@ class InstructorSession:
     def launch(self) -> None:
         """Transition the session to active and record the start time."""
         if self.status != SessionStatus.NOT_STARTED:
-            raise ValueError(
-                f"Cannot launch session from '{self.status.value}' status"
-            )
+            raise ValueError(f"Cannot launch session from '{self.status.value}' status")
         self.status = SessionStatus.ACTIVE
-        self.started_at = datetime.now(timezone.utc)
+        self.started_at = datetime.now(UTC)
 
     def pause(self) -> None:
         """Pause an active session."""
         if self.status != SessionStatus.ACTIVE:
-            raise ValueError(
-                f"Cannot pause session from '{self.status.value}' status"
-            )
+            raise ValueError(f"Cannot pause session from '{self.status.value}' status")
         self.status = SessionStatus.PAUSED
-        self.paused_at = datetime.now(timezone.utc)
+        self.paused_at = datetime.now(UTC)
 
     def resume(self) -> None:
         """Resume a paused session."""
         if self.status != SessionStatus.PAUSED:
-            raise ValueError(
-                f"Cannot resume session from '{self.status.value}' status"
-            )
+            raise ValueError(f"Cannot resume session from '{self.status.value}' status")
         self.status = SessionStatus.ACTIVE
         self.paused_at = None
 
     def complete(self) -> None:
         """Complete the session."""
         if self.status not in (SessionStatus.ACTIVE, SessionStatus.PAUSED):
-            raise ValueError(
-                f"Cannot complete session from '{self.status.value}' status"
-            )
+            raise ValueError(f"Cannot complete session from '{self.status.value}' status")
         self.status = SessionStatus.COMPLETED
-        self.ended_at = datetime.now(timezone.utc)
+        self.ended_at = datetime.now(UTC)
 
     def get_elapsed_seconds(self) -> float:
         """Calculate elapsed active time in seconds."""
         if self.started_at is None:
             return 0.0
-        end = self.ended_at or datetime.now(timezone.utc)
+        end = self.ended_at or datetime.now(UTC)
         elapsed = (end - self.started_at).total_seconds()
         if self.paused_at is not None and self.ended_at is None:
-            paused_duration = (datetime.now(timezone.utc) - self.paused_at).total_seconds()
+            paused_duration = (datetime.now(UTC) - self.paused_at).total_seconds()
             elapsed -= paused_duration
         return max(0.0, elapsed)
 
@@ -142,11 +134,9 @@ class LearnerSession:
     def start(self) -> None:
         """Start the learner session."""
         if self.status != SessionStatus.NOT_STARTED:
-            raise ValueError(
-                f"Cannot start session from '{self.status.value}' status"
-            )
+            raise ValueError(f"Cannot start session from '{self.status.value}' status")
         self.status = SessionStatus.ACTIVE
-        self.started_at = datetime.now(timezone.utc)
+        self.started_at = datetime.now(UTC)
 
     def add_evidence(self, evidence_item: str) -> None:
         """Record an evidence item."""
@@ -166,9 +156,7 @@ class LearnerSession:
     def complete(self) -> None:
         """Mark the session as completed."""
         if self.status != SessionStatus.ACTIVE:
-            raise ValueError(
-                f"Cannot complete session from '{self.status.value}' status"
-            )
+            raise ValueError(f"Cannot complete session from '{self.status.value}' status")
         self.status = SessionStatus.COMPLETED
         self.progress = 1.0
 

@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any
-
-from ..domain.entities.scenario import Scenario
-from ..domain.entities.exercise import Exercise
-from ..domain.entities.dataset import SyntheticDataset, DatasetArtifact
-from ..domain.entities.timeline import Timeline, TimelineEvent, BranchPath
-from ..domain.entities.console import InstructorSession, LearnerSession
-from ..domain.entities.results import ExerciseResult, ImprovementRecommendation
 from ..domain.entities.assessment_sim import AssessmentMapper
+from ..domain.entities.console import InstructorSession, LearnerSession
+from ..domain.entities.dataset import DatasetArtifact, SyntheticDataset
+from ..domain.entities.exercise import Exercise
+from ..domain.entities.results import ExerciseResult, ImprovementRecommendation
+from ..domain.entities.scenario import Scenario
+from ..domain.entities.timeline import BranchPath, Timeline, TimelineEvent
 
 
 class SimulationValidator:
@@ -194,9 +192,7 @@ class SimulationValidator:
 
         for competency, progress in result.competency_progress.items():
             if progress < 0.0 or progress > 1.0:
-                errors.append(
-                    f"Competency progress for '{competency}' must be between 0.0 and 1.0"
-                )
+                errors.append(f"Competency progress for '{competency}' must be between 0.0 and 1.0")
 
         if result.time_on_task_seconds < 0:
             errors.append("Time on task must be non-negative")

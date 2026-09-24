@@ -19,17 +19,6 @@ class OptimizationEventHandler:
         if self._handlers_registered:
             return
 
-        from ..domain.events.optimization_events import (
-            AIGenerationRequested,
-            BenchmarkCompleted,
-            CompatibilityReportGenerated,
-            ContentReviewCompleted,
-            FeatureFlagToggled,
-            OptimizationDashboardGenerated,
-            ReleaseWorkflowAdvanced,
-            SustainabilityReportGenerated,
-        )
-
         event_bus.subscribe_benchmark_completed(self._on_benchmark_completed)
         event_bus.subscribe_optimization_dashboard_generated(self._on_dashboard_generated)
         event_bus.subscribe_compatibility_report_generated(self._on_compatibility_report)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -83,19 +83,19 @@ class Assessment:
     time_limit: int = 0
     version: int = 1
     status: str = AssessmentStatus.DRAFT.value
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def activate(self) -> Assessment:
         """Set the assessment to active status."""
         self.status = AssessmentStatus.ACTIVE.value
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
         return self
 
     def archive(self) -> Assessment:
         """Set the assessment to archived status."""
         self.status = AssessmentStatus.ARCHIVED.value
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
         return self
 
     def validate(self) -> list[str]:

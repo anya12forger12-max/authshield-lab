@@ -2,23 +2,22 @@
 
 from __future__ import annotations
 
-import time
 import uuid
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_v1_router
 from app.config.constants import (
+    HEADER_PERMISSIONS_POLICY,
+    HEADER_REFERRER_POLICY,
     HEADER_REQUEST_ID,
+    HEADER_SECURITY_POLICY,
     HEADER_X_CONTENT_TYPE,
     HEADER_X_FRAME_OPTIONS,
     HEADER_X_XSS_PROTECTION,
-    HEADER_PERMISSIONS_POLICY,
-    HEADER_REFERRER_POLICY,
-    HEADER_SECURITY_POLICY,
 )
 from app.config.settings import get_settings
 from app.shared.database import close_db, init_db
@@ -26,7 +25,7 @@ from app.shared.logging_config import RequestLoggingMiddleware, get_logger, setu
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan – startup and shutdown events."""
     settings = get_settings()
     setup_logging(
@@ -80,7 +79,7 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def security_headers_middleware(request: Request, call_next) -> Response:  # noqa: ANN001
+async def security_headers_middleware(request: Request, call_next) -> Response:
     """Attach security-related HTTP headers to every response."""
     response: Response = await call_next(request)
 
@@ -108,7 +107,7 @@ async def security_headers_middleware(request: Request, call_next) -> Response: 
 
 
 @app.middleware("http")
-async def request_id_middleware(request: Request, call_next) -> Response:  # noqa: ANN001
+async def request_id_middleware(request: Request, call_next) -> Response:
     """Inject a unique request ID into every request and response."""
     request_id = request.headers.get(HEADER_REQUEST_ID) or str(uuid.uuid4())
     request.state.request_id = request_id

@@ -4,17 +4,17 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.program_evaluation import ExecutiveSummary, ProgramEvaluation
+from ..domain.events.analytics_events import ProgramEvaluated
 from ..domain.interfaces import (
     IExecutiveSummaryRepository,
     IProgramEvaluationRepository,
 )
-from ..domain.events.analytics_events import ProgramEvaluated
 
 logger = get_logger("analytics.program_evaluation_service")
 
@@ -36,7 +36,7 @@ class ProgramEvaluationService:
         self,
         evaluation_repo: IProgramEvaluationRepository,
         summary_repo: IExecutiveSummaryRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._evaluation_repo = evaluation_repo
         self._summary_repo = summary_repo
@@ -52,10 +52,10 @@ class ProgramEvaluationService:
         period: str = "",
         effectiveness_score: float = 0.0,
         competency_coverage: float = 0.0,
-        course_performance: Optional[dict[str, float]] = None,
+        course_performance: dict[str, float] | None = None,
         resource_utilization: float = 0.0,
-        instructor_workload: Optional[dict[str, float]] = None,
-        certification_outcomes: Optional[dict[str, float]] = None,
+        instructor_workload: dict[str, float] | None = None,
+        certification_outcomes: dict[str, float] | None = None,
         a11y_readiness: float = 0.0,
         governance_compliance: float = 0.0,
         doc_health: float = 0.0,
@@ -74,7 +74,7 @@ class ProgramEvaluationService:
             a11y_readiness=a11y_readiness,
             governance_compliance=governance_compliance,
             doc_health=doc_health,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
         await self._evaluation_repo.create(evaluation)
@@ -93,19 +93,17 @@ class ProgramEvaluationService:
 
         return evaluation
 
-    async def get_evaluation(self, evaluation_id: str) -> Optional[ProgramEvaluation]:
+    async def get_evaluation(self, evaluation_id: str) -> ProgramEvaluation | None:
         """Retrieve a specific program evaluation by ID."""
         return await self._evaluation_repo.get_by_id(evaluation_id)
 
-    async def list_evaluations(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_evaluations(self, page: int = 1, per_page: int = 20) -> dict:
         """List all program evaluations with pagination."""
         return await self._evaluation_repo.get_all(page=page, per_page=per_page)
 
     async def generate_executive_summary(
         self,
-        evaluations: Optional[list[ProgramEvaluation]] = None,
+        evaluations: list[ProgramEvaluation] | None = None,
     ) -> ExecutiveSummary:
         """Generate a high-level executive summary from evaluations."""
         if evaluations is None:
@@ -118,26 +116,16 @@ class ProgramEvaluationService:
                 key_findings=["No program evaluations available"],
                 recommendations=["Conduct initial program evaluation"],
                 priorities=["Establish evaluation baseline"],
-                generated_at=datetime.now(timezone.utc),
+                generated_at=datetime.now(UTC),
             )
             await self._summary_repo.create(summary)
             return summary
 
-        avg_effectiveness = (
-            sum(e.effectiveness_score for e in evaluations) / len(evaluations)
-        )
-        avg_competency = (
-            sum(e.competency_coverage for e in evaluations) / len(evaluations)
-        )
-        avg_resource = (
-            sum(e.resource_utilization for e in evaluations) / len(evaluations)
-        )
+        avg_effectiveness = sum(e.effectiveness_score for e in evaluations) / len(evaluations)
+        avg_competency = sum(e.competency_coverage for e in evaluations) / len(evaluations)
+        avg_resource = sum(e.resource_utilization for e in evaluations) / len(evaluations)
 
-        overall_health = (
-            avg_effectiveness * 0.4
-            + avg_competency * 0.3
-            + avg_resource * 0.3
-        )
+        overall_health = avg_effectiveness * 0.4 + avg_competency * 0.3 + avg_resource * 0.3
 
         key_findings: list[str] = []
         recommendations: list[str] = []
@@ -151,9 +139,7 @@ class ProgramEvaluationService:
             priorities.append("Improve program effectiveness")
 
         if avg_competency < 75.0:
-            key_findings.append(
-                f"Competency coverage ({avg_competency:.1f}%) has gaps"
-            )
+            key_findings.append(f"Competency coverage ({avg_competency:.1f}%) has gaps")
             recommendations.append("Map additional competencies to program content")
             priorities.append("Expand competency coverage")
 
@@ -166,9 +152,7 @@ class ProgramEvaluationService:
 
         for evaluation in evaluations:
             if evaluation.a11y_readiness < 70.0:
-                key_findings.append(
-                    f"Program '{evaluation.program_name}' a11y readiness is low"
-                )
+                key_findings.append(f"Program '{evaluation.program_name}' a11y readiness is low")
                 recommendations.append(
                     f"Improve accessibility readiness for '{evaluation.program_name}'"
                 )
@@ -177,7 +161,8 @@ class ProgramEvaluationService:
         for evaluation in evaluations:
             if evaluation.governance_compliance < 80.0:
                 key_findings.append(
-                    f"Governance compliance ({evaluation.governance_compliance:.1f}%) needs improvement"
+                    f"Governance compliance "
+                    f"({evaluation.governance_compliance:.1f}%) needs improvement"
                 )
                 priorities.append("Achieve governance compliance target")
                 break
@@ -194,7 +179,7 @@ class ProgramEvaluationService:
             key_findings=key_findings,
             recommendations=recommendations,
             priorities=priorities,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
         await self._summary_repo.create(summary)
@@ -205,7 +190,7 @@ class ProgramEvaluationService:
 
         return summary
 
-    async def get_latest_summary(self) -> Optional[ExecutiveSummary]:
+    async def get_latest_summary(self) -> ExecutiveSummary | None:
         """Retrieve the most recently generated executive summary."""
         return await self._summary_repo.get_latest()
 
@@ -213,7 +198,7 @@ class ProgramEvaluationService:
         self,
         evaluation_id: str,
         format_type: str = "json",
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Export a program evaluation in the specified format."""
         evaluation = await self._evaluation_repo.get_by_id(evaluation_id)
         if evaluation is None:
@@ -237,7 +222,7 @@ class ProgramEvaluationService:
 
         if format_type == "json":
             return {"format": "json", "data": data}
-        elif format_type == "csv":
+        if format_type == "csv":
             rows: list[dict[str, str]] = []
             for key, value in data.items():
                 if isinstance(value, (dict, list)):
@@ -245,5 +230,4 @@ class ProgramEvaluationService:
                 else:
                     rows.append({"metric": key, "value": str(value)})
             return {"format": "csv", "data": rows}
-        else:
-            return {"format": format_type, "data": data}
+        return {"format": format_type, "data": data}

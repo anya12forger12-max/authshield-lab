@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.entities.content import Quiz, QuizQuestion
 from ..domain.events.content_events import QuizCreated, QuizGraded
@@ -61,7 +61,7 @@ class QuizService:
         self._record_event(event)
         return quiz
 
-    async def get_quiz(self, quiz_id: str) -> Optional[Quiz]:
+    async def get_quiz(self, quiz_id: str) -> Quiz | None:
         """Retrieve a quiz by ID."""
         return await self._repo.find_by_id(quiz_id)
 
@@ -112,7 +112,9 @@ class QuizService:
         await self._repo.save(quiz)
         return quiz
 
-    async def update_question(self, quiz_id: str, question_id: str, updates: dict[str, Any]) -> Quiz:
+    async def update_question(
+        self, quiz_id: str, question_id: str, updates: dict[str, Any]
+    ) -> Quiz:
         """Update fields on an existing question within a quiz."""
         quiz = await self._repo.find_by_id(quiz_id)
         if quiz is None:
@@ -168,7 +170,7 @@ class QuizService:
             "passing_score": quiz.passing_score,
             "passed": passed,
             "details": details,
-            "graded_at": datetime.now(timezone.utc).isoformat(),
+            "graded_at": datetime.now(UTC).isoformat(),
         }
         self._results[result_id] = result
         event = QuizGraded(
@@ -177,7 +179,10 @@ class QuizService:
             passing_score=quiz.passing_score,
             passed=passed,
             correlation_id=quiz_id,
-            message=f"Quiz '{quiz.title}' graded: {percentage:.1f}% ({'PASSED' if passed else 'FAILED'}).",
+            message=(
+                f"Quiz '{quiz.title}' graded: {percentage:.1f}% "
+                f"({'PASSED' if passed else 'FAILED'})."
+            ),
         )
         self._record_event(event)
         return result

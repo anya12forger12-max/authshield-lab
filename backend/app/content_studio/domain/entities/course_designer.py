@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -303,31 +303,31 @@ class CourseDesign:
     version: int = 1
     status: CourseStatus = CourseStatus.DRAFT
     created_by: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_unit(self, unit: UnitDesign) -> None:
         unit.course_id = self.id
         unit.order = len(self.units)
         self.units.append(unit)
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def remove_unit(self, unit_id: str) -> bool:
         for i, unit in enumerate(self.units):
             if unit.id == unit_id:
                 self.units.pop(i)
                 self._reorder_units()
-                self.updated_at = datetime.now(timezone.utc)
+                self.updated_at = datetime.now(UTC)
                 return True
         return False
 
     def update_status(self, new_status: CourseStatus) -> None:
         self.status = new_status
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def increment_version(self) -> None:
         self.version += 1
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def get_total_modules(self) -> int:
         return sum(unit.get_module_count() for unit in self.units)
@@ -343,24 +343,24 @@ class CourseDesign:
     def add_learning_objective(self, objective: str) -> None:
         if objective not in self.learning_objectives:
             self.learning_objectives.append(objective)
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
 
     def remove_learning_objective(self, objective: str) -> bool:
         if objective in self.learning_objectives:
             self.learning_objectives.remove(objective)
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
             return True
         return False
 
     def add_competency(self, competency: str) -> None:
         if competency not in self.competencies:
             self.competencies.append(competency)
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
 
     def add_prerequisite(self, prerequisite: str) -> None:
         if prerequisite not in self.prerequisites:
             self.prerequisites.append(prerequisite)
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
 
     def _reorder_units(self) -> None:
         for i, unit in enumerate(self.units):
@@ -400,28 +400,28 @@ class Program:
     status: ProgramStatus = ProgramStatus.DRAFT
     version: int = 1
     courses: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_course(self, course_id: str) -> None:
         if course_id not in self.courses:
             self.courses.append(course_id)
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
 
     def remove_course(self, course_id: str) -> bool:
         if course_id in self.courses:
             self.courses.remove(course_id)
-            self.updated_at = datetime.now(timezone.utc)
+            self.updated_at = datetime.now(UTC)
             return True
         return False
 
     def update_status(self, new_status: ProgramStatus) -> None:
         self.status = new_status
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def increment_version(self) -> None:
         self.version += 1
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def get_course_count(self) -> int:
         return len(self.courses)

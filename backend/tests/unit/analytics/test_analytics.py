@@ -7,17 +7,16 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from app.analytics.domain.entities.analytics import LearningProgress
-from app.analytics.domain.entities.curriculum_evaluation import (
-    CurriculumEvaluationResult,
-    EvaluationRecommendation,
-    TopicAnalysis,
-    PrerequisiteGap,
-)
 from app.analytics.domain.entities.content_health import (
     ContentHealthDashboard,
     ContentHealthItem,
     MaintenanceSchedule,
-    MaintenanceScheduleItem,
+)
+from app.analytics.domain.entities.curriculum_evaluation import (
+    CurriculumEvaluationResult,
+    EvaluationRecommendation,
+    PrerequisiteGap,
+    TopicAnalysis,
 )
 from app.analytics.domain.entities.learning_quality import (
     LearningQualityDashboard,
@@ -33,7 +32,9 @@ class TestLearningProgress:
         assert p.competencies_achieved == 0
 
     def test_custom(self):
-        p = LearningProgress(learner_id="u1", courses_enrolled=5, courses_completed=3, avg_score=85.0)
+        p = LearningProgress(
+            learner_id="u1", courses_enrolled=5, courses_completed=3, avg_score=85.0
+        )
         assert p.learner_id == "u1"
         assert p.courses_enrolled == 5
         assert p.courses_completed == 3
@@ -61,7 +62,9 @@ class TestEvaluationRecommendation:
         assert r.priority == "medium"
 
     def test_high_priority(self):
-        r = EvaluationRecommendation(category="alignment", priority="high", recommendation="Fix alignment")
+        r = EvaluationRecommendation(
+            category="alignment", priority="high", recommendation="Fix alignment"
+        )
         assert r.priority == "high"
 
 
@@ -124,13 +127,16 @@ class TestAnalyticsCenterService:
     @pytest.fixture
     def service(self, repos):
         from app.analytics.services.analytics_center_service import AnalyticsCenterService
+
         return AnalyticsCenterService(*repos)
 
     @pytest.mark.asyncio
     async def test_record_learning_progress(self, service, repos):
         progress_repo = repos[1]
         progress_repo.get_by_learner_id = AsyncMock(return_value=None)
-        progress_repo.create = AsyncMock(return_value=LearningProgress(learner_id="u1", courses_enrolled=3))
+        progress_repo.create = AsyncMock(
+            return_value=LearningProgress(learner_id="u1", courses_enrolled=3)
+        )
         result = await service.record_learning_progress("u1", courses_enrolled=3)
         assert result.learner_id == "u1"
         assert result.courses_enrolled == 3
@@ -139,11 +145,20 @@ class TestAnalyticsCenterService:
     async def test_record_course_completion(self, service, repos):
         course_repo = repos[2]
         from app.analytics.domain.entities.analytics import CourseCompletion
+
         course_repo.get_by_course_id = AsyncMock(return_value=None)
-        course_repo.create = AsyncMock(return_value=CourseCompletion(
-            course_id="c1", course_name="Course1", enrolled=10, completed=5, completion_rate=50.0
-        ))
-        result = await service.record_course_completion("c1", course_name="Course1", enrolled=10, completed=5)
+        course_repo.create = AsyncMock(
+            return_value=CourseCompletion(
+                course_id="c1",
+                course_name="Course1",
+                enrolled=10,
+                completed=5,
+                completion_rate=50.0,
+            )
+        )
+        result = await service.record_course_completion(
+            "c1", course_name="Course1", enrolled=10, completed=5
+        )
         assert result.completion_rate == 50.0
 
     @pytest.mark.asyncio
@@ -161,6 +176,7 @@ class TestCurriculumEvaluationService:
     @pytest.mark.asyncio
     async def test_evaluate_curriculum(self):
         from app.analytics.services.curriculum_evaluation_service import CurriculumEvaluationService
+
         eval_repo = MagicMock()
         eval_repo.create = AsyncMock()
         rec_repo = MagicMock()
@@ -174,6 +190,7 @@ class TestCurriculumEvaluationService:
     @pytest.mark.asyncio
     async def test_generate_recommendations(self):
         from app.analytics.services.curriculum_evaluation_service import CurriculumEvaluationService
+
         eval_repo = MagicMock()
         rec_repo = MagicMock()
         rec_repo.create = AsyncMock()
@@ -191,26 +208,28 @@ class TestCurriculumEvaluationService:
     @pytest.mark.asyncio
     async def test_analyze_topics(self):
         from app.analytics.services.curriculum_evaluation_service import CurriculumEvaluationService
+
         eval_repo = MagicMock()
         rec_repo = MagicMock()
         service = CurriculumEvaluationService(eval_repo, rec_repo)
         topics = ["math", "science"]
         result = await service.analyze_topics(topics, [{"title": "math 101", "topic": "math"}])
         assert len(result) == 2
-        math_analysis = [r for r in result if r.topic == "math"][0]
+        math_analysis = next(r for r in result if r.topic == "math")
         assert math_analysis.coverage_pct > 0
 
 
 class TestContentHealthService:
     @pytest.mark.asyncio
     async def test_add_content_item(self):
-        from app.analytics.services.content_health_service import ContentHealthService
         from app.analytics.domain.entities.content_health import ContentHealthItem
+        from app.analytics.services.content_health_service import ContentHealthService
+
         content_repo = MagicMock()
         content_repo.get_by_content_id = AsyncMock(return_value=None)
-        content_repo.create = AsyncMock(return_value=ContentHealthItem(
-            content_id="c1", content_type="course", title="Test"
-        ))
+        content_repo.create = AsyncMock(
+            return_value=ContentHealthItem(content_id="c1", content_type="course", title="Test")
+        )
         service = ContentHealthService(content_repo, MagicMock(), MagicMock())
         result = await service.add_content_item("c1", content_type="course", title="Test")
         assert result.content_id == "c1"
@@ -218,11 +237,14 @@ class TestContentHealthService:
     @pytest.mark.asyncio
     async def test_generate_health_dashboard(self):
         from app.analytics.services.content_health_service import ContentHealthService
+
         content_repo = MagicMock()
-        content_repo.get_all = AsyncMock(return_value=[
-            ContentHealthItem(content_id="c1", broken_refs=0, doc_completeness=100.0),
-            ContentHealthItem(content_id="c2", broken_refs=5, doc_completeness=50.0),
-        ])
+        content_repo.get_all = AsyncMock(
+            return_value=[
+                ContentHealthItem(content_id="c1", broken_refs=0, doc_completeness=100.0),
+                ContentHealthItem(content_id="c2", broken_refs=5, doc_completeness=50.0),
+            ]
+        )
         dashboard_repo = MagicMock()
         dashboard_repo.create = AsyncMock()
         service = ContentHealthService(content_repo, dashboard_repo, MagicMock())
@@ -232,15 +254,22 @@ class TestContentHealthService:
     @pytest.mark.asyncio
     async def test_get_items_needing_attention(self):
         from app.analytics.services.content_health_service import ContentHealthService
+
         content_repo = MagicMock()
-        content_repo.get_all = AsyncMock(return_value=[
-            ContentHealthItem(
-                content_id="c1", broken_refs=0, doc_completeness=100.0,
-                publication_quality=100.0, dependency_health=100.0,
-                a11y_status="compliant", localization_status="complete",
-            ),
-            ContentHealthItem(content_id="c2", broken_refs=5, doc_completeness=50.0),
-        ])
+        content_repo.get_all = AsyncMock(
+            return_value=[
+                ContentHealthItem(
+                    content_id="c1",
+                    broken_refs=0,
+                    doc_completeness=100.0,
+                    publication_quality=100.0,
+                    dependency_health=100.0,
+                    a11y_status="compliant",
+                    localization_status="complete",
+                ),
+                ContentHealthItem(content_id="c2", broken_refs=5, doc_completeness=50.0),
+            ]
+        )
         service = ContentHealthService(content_repo, MagicMock(), MagicMock())
         items = await service.get_items_needing_attention()
         assert len(items) == 1
@@ -250,6 +279,7 @@ class TestLearningQualityService:
     @pytest.mark.asyncio
     async def test_generate_dashboard(self):
         from app.analytics.services.learning_quality_service import LearningQualityService
+
         repo = MagicMock()
         repo.create = AsyncMock()
         service = LearningQualityService(repo)
@@ -260,6 +290,7 @@ class TestLearningQualityService:
     @pytest.mark.asyncio
     async def test_generate_longitudinal_comparisons(self):
         from app.analytics.services.learning_quality_service import LearningQualityService
+
         repo = MagicMock()
         service = LearningQualityService(repo)
         current = LearningQualityDashboard(completion_rates=85.0, lab_completion=90.0)
@@ -270,6 +301,7 @@ class TestLearningQualityService:
     @pytest.mark.asyncio
     async def test_generate_quality_indicators(self):
         from app.analytics.services.learning_quality_service import LearningQualityService
+
         repo = MagicMock()
         service = LearningQualityService(repo)
         dashboard = LearningQualityDashboard(completion_rates=90.0, lab_completion=95.0)
@@ -280,13 +312,18 @@ class TestLearningQualityService:
     @pytest.mark.asyncio
     async def test_compute_overall_quality_score(self):
         from app.analytics.services.learning_quality_service import LearningQualityService
+
         repo = MagicMock()
         service = LearningQualityService(repo)
         dashboard = LearningQualityDashboard(
-            completion_rates=100.0, learning_objective_achievement=100.0,
-            competency_growth=100.0, lab_completion=100.0,
-            portfolio_progress=100.0, certification_progress=100.0,
-            reflection_participation=100.0, instructor_review_status=100.0,
+            completion_rates=100.0,
+            learning_objective_achievement=100.0,
+            competency_growth=100.0,
+            lab_completion=100.0,
+            portfolio_progress=100.0,
+            certification_progress=100.0,
+            reflection_participation=100.0,
+            instructor_review_status=100.0,
         )
         score = await service.compute_overall_quality_score(dashboard)
         assert score == 100.0

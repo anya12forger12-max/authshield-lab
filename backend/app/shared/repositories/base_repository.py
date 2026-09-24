@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any, Generic, Optional, Type, TypeVar
+from datetime import UTC
+from typing import Any, Generic, TypeVar
 
-from sqlalchemy import select, func, desc, asc, delete
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import asc, desc, func, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..base_model import Base
 from ..logging_config import get_logger
@@ -22,7 +23,7 @@ class BaseRepository(Generic[ModelType]):
     to gain type-safe access patterns for that entity.
     """
 
-    def __init__(self, model: Type[ModelType], session: AsyncSession) -> None:
+    def __init__(self, model: type[ModelType], session: AsyncSession) -> None:
         self._model = model
         self._session = session
 
@@ -60,7 +61,7 @@ class BaseRepository(Generic[ModelType]):
     # Read
     # ------------------------------------------------------------------
 
-    async def get_by_id(self, id: str) -> Optional[ModelType]:
+    async def get_by_id(self, id: str) -> ModelType | None:
         """Return the entity with the given primary key, or ``None``."""
         stmt = select(self._model).where(self._model.id == id)  # type: ignore[attr-defined]
         result = await self._session.execute(stmt)
@@ -111,7 +112,7 @@ class BaseRepository(Generic[ModelType]):
     # Update
     # ------------------------------------------------------------------
 
-    async def update(self, id: str, data: dict[str, Any]) -> Optional[ModelType]:
+    async def update(self, id: str, data: dict[str, Any]) -> ModelType | None:
         """Merge *data* into the row identified by *id*.
 
         Returns the updated instance or ``None`` if no row was found.
@@ -164,10 +165,10 @@ class BaseRepository(Generic[ModelType]):
         if hard or not hasattr(instance, "is_deleted"):
             await self._session.delete(instance)
         else:
-            from datetime import datetime, timezone
+            from datetime import datetime
 
             instance.is_deleted = True  # type: ignore[attr-defined]
-            instance.deleted_at = datetime.now(timezone.utc)  # type: ignore[attr-defined]
+            instance.deleted_at = datetime.now(UTC)  # type: ignore[attr-defined]
             self._session.add(instance)
 
         await self._session.flush()
@@ -177,7 +178,7 @@ class BaseRepository(Generic[ModelType]):
     # Queries
     # ------------------------------------------------------------------
 
-    async def count(self, filters: Optional[dict[str, Any]] = None) -> int:
+    async def count(self, filters: dict[str, Any] | None = None) -> int:
         """Return the row count, optionally filtered by *filters*."""
         stmt = select(func.count()).select_from(self._model)
         if filters:

@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any
 
 
 class IDeviceService(ABC):
     """Interface for trusted device management operations."""
 
     @abstractmethod
-    async def register_device(self, user_id: str, device_data: dict[str, Any]) -> Optional[dict]:
+    async def register_device(self, user_id: str, device_data: dict[str, Any]) -> dict | None:
         """Register a new device for a user."""
         ...
 
     @abstractmethod
-    async def get_device(self, device_id: str) -> Optional[dict]:
+    async def get_device(self, device_id: str) -> dict | None:
         """Retrieve a device by ID."""
         ...
 
@@ -25,7 +25,7 @@ class IDeviceService(ABC):
         ...
 
     @abstractmethod
-    async def update_device(self, device_id: str, data: dict[str, Any]) -> Optional[dict]:
+    async def update_device(self, device_id: str, data: dict[str, Any]) -> dict | None:
         """Update device metadata."""
         ...
 

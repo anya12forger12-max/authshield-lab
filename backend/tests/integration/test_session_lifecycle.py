@@ -1,16 +1,15 @@
 """Integration tests for session lifecycle: create -> validate -> renew -> expire -> cleanup."""
 
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 from app.authentication.domain.entities.session_status import (
     SessionStatus,
-    is_usable,
     is_terminal,
+    is_usable,
 )
 from app.authentication.domain.models.request_models import (
-    SessionValidationRequest,
     SessionRenewalRequest,
+    SessionValidationRequest,
 )
 from app.shared.validation.validator import Validator
 
@@ -48,20 +47,16 @@ class TestSessionValidation:
 
 class TestSessionRenewal:
     def test_renewal_extends_session(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         future = now + timedelta(hours=1)
         assert future > now
 
     def test_renewal_request_with_idle_extension(self):
-        req = SessionRenewalRequest(
-            session_id="sess-001", extend_idle_timeout=True
-        )
+        req = SessionRenewalRequest(session_id="sess-001", extend_idle_timeout=True)
         assert req.extend_idle_timeout is True
 
     def test_renewal_request_without_idle_extension(self):
-        req = SessionRenewalRequest(
-            session_id="sess-001", extend_idle_timeout=False
-        )
+        req = SessionRenewalRequest(session_id="sess-001", extend_idle_timeout=False)
         assert req.extend_idle_timeout is False
 
 
@@ -84,12 +79,22 @@ class TestSessionExpiry:
 
 class TestSessionCleanup:
     def test_all_terminal_statuses(self):
-        terminal = {SessionStatus.EXPIRED, SessionStatus.REVOKED, SessionStatus.TERMINATED, SessionStatus.INVALID}
+        terminal = {
+            SessionStatus.EXPIRED,
+            SessionStatus.REVOKED,
+            SessionStatus.TERMINATED,
+            SessionStatus.INVALID,
+        }
         for status in terminal:
             assert is_terminal(status) is True
 
     def test_non_terminal_statuses(self):
-        non_terminal = {SessionStatus.ACTIVE, SessionStatus.IDLE, SessionStatus.LOCKED, SessionStatus.UNKNOWN}
+        non_terminal = {
+            SessionStatus.ACTIVE,
+            SessionStatus.IDLE,
+            SessionStatus.LOCKED,
+            SessionStatus.UNKNOWN,
+        }
         for status in non_terminal:
             assert is_terminal(status) is False
 
@@ -99,6 +104,6 @@ class TestSessionCleanup:
         assert result.is_valid is True
 
     def test_all_sessions_eventually_expire(self):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         expires = now - timedelta(minutes=1)
         assert expires < now

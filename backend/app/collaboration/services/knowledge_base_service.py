@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import UTC
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from domain.entities.knowledge_base import ArticleCitation, KnowledgeArticle, KnowledgeCategory
     from domain.interfaces import KnowledgeBaseRepository
 
 
@@ -19,8 +21,9 @@ class KnowledgeBaseService:
         category: str,
         author: str,
         tags: list[str] | None = None,
-    ) -> "KnowledgeArticle":
+    ) -> KnowledgeArticle:
         from domain.entities.knowledge_base import KnowledgeArticle
+
         article = KnowledgeArticle(
             title=title,
             content=content,
@@ -55,8 +58,9 @@ class KnowledgeBaseService:
         if tags is not None:
             article.tags = tags
         article.version += 1
-        from datetime import datetime, timezone
-        article.updated_at = datetime.now(timezone.utc)
+        from datetime import datetime
+
+        article.updated_at = datetime.now(UTC)
         self._repo.update_article(article)
         if content is not None:
             self._record_version(article.id, article.version, content, article.author)
@@ -74,23 +78,25 @@ class KnowledgeBaseService:
     def list_articles_by_status(self, status: str) -> list:
         return [a for a in self._repo.all_articles() if a.status.value == status]
 
-    def publish_article(self, article_id: str) -> "KnowledgeArticle":
+    def publish_article(self, article_id: str) -> KnowledgeArticle:
         article = self._repo.get_article(article_id)
         if not article:
             raise ValueError(f"Article {article_id} not found")
         article.status = "published"
-        from datetime import datetime, timezone
-        article.updated_at = datetime.now(timezone.utc)
+        from datetime import datetime
+
+        article.updated_at = datetime.now(UTC)
         self._repo.update_article(article)
         return article
 
-    def archive_article(self, article_id: str) -> "KnowledgeArticle":
+    def archive_article(self, article_id: str) -> KnowledgeArticle:
         article = self._repo.get_article(article_id)
         if not article:
             raise ValueError(f"Article {article_id} not found")
         article.status = "archived"
-        from datetime import datetime, timezone
-        article.updated_at = datetime.now(timezone.utc)
+        from datetime import datetime
+
+        article.updated_at = datetime.now(UTC)
         self._repo.update_article(article)
         return article
 
@@ -98,9 +104,12 @@ class KnowledgeBaseService:
         results = []
         q = query.lower()
         for article in self._repo.all_articles():
-            if q in article.title.lower() or q in article.content.lower() or q in article.category.lower():
-                results.append(article)
-            elif any(q in tag.lower() for tag in article.tags):
+            if (
+                q in article.title.lower()
+                or q in article.content.lower()
+                or q in article.category.lower()
+                or any(q in tag.lower() for tag in article.tags)
+            ):
                 results.append(article)
         return results
 
@@ -109,8 +118,9 @@ class KnowledgeBaseService:
         name: str,
         description: str,
         parent_id: str | None = None,
-    ) -> "KnowledgeCategory":
+    ) -> KnowledgeCategory:
         from domain.entities.knowledge_base import KnowledgeCategory
+
         cat = KnowledgeCategory(
             name=name,
             description=description,
@@ -152,8 +162,9 @@ class KnowledgeBaseService:
         source_id: str,
         target_id: str,
         citation_type: str,
-    ) -> "ArticleCitation":
+    ) -> ArticleCitation:
         from domain.entities.knowledge_base import ArticleCitation
+
         citation = ArticleCitation(
             source_id=source_id,
             target_id=target_id,
@@ -167,6 +178,7 @@ class KnowledgeBaseService:
 
     def _record_version(self, article_id: str, version: int, content: str, author: str) -> None:
         from domain.entities.knowledge_base import ArticleVersion
+
         v = ArticleVersion(
             article_id=article_id,
             version=version,

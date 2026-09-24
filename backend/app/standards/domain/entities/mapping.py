@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -16,7 +16,7 @@ class MappingEvidence:
     evidence_type: str = ""
     description: str = ""
     reference_id: str = ""
-    added_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    added_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         return {
@@ -44,8 +44,8 @@ class CurriculumMapping:
     evidence: list[MappingEvidence] = field(default_factory=list)
     instructor_notes: str = ""
     related_competencies: list[str] = field(default_factory=list)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_evidence(self, evidence_item: MappingEvidence) -> None:
         evidence_item.mapping_id = self.id
@@ -93,7 +93,7 @@ class CurriculumMapping:
         return len(self.evidence)
 
     def _touch(self) -> None:
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def to_dict(self) -> dict:
         return {
@@ -166,7 +166,7 @@ class CoverageReport:
     mapped_items: int = 0
     coverage_pct: float = 0.0
     gaps: list[MappingGap] = field(default_factory=list)
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def calculate_coverage(self) -> None:
         if self.total_items == 0:

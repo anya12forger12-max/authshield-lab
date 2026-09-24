@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.entities.policy_entity import (
+    VALID_STATUS_TRANSITIONS,
     PolicyCategory,
     PolicyStatus,
     SecurityPolicy,
-    VALID_STATUS_TRANSITIONS,
 )
 from ..domain.interfaces.policy_engine_interface import IPolicyRegistry
 
@@ -62,7 +62,7 @@ class PolicyRegistry(IPolicyRegistry):
             )
             return False
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         policy.created_at = now
         policy.updated_at = now
 
@@ -90,7 +90,7 @@ class PolicyRegistry(IPolicyRegistry):
         logger.info("policy_unregistered", policy_id=policy_id)
         return True
 
-    async def get(self, policy_id: str) -> Optional[SecurityPolicy]:
+    async def get(self, policy_id: str) -> SecurityPolicy | None:
         """Return a policy by ID, or ``None``."""
         return self._policies.get(policy_id)
 
@@ -105,7 +105,7 @@ class PolicyRegistry(IPolicyRegistry):
     async def search(
         self,
         query: str,
-        category: Optional[PolicyCategory] = None,
+        category: PolicyCategory | None = None,
     ) -> list[SecurityPolicy]:
         """Search policies by name or description.
 
@@ -161,7 +161,7 @@ class PolicyRegistry(IPolicyRegistry):
             return False
 
         policy.status = PolicyStatus.ENABLED
-        policy.updated_at = datetime.now(timezone.utc)
+        policy.updated_at = datetime.now(UTC)
         logger.info("policy_enabled", policy_id=policy_id)
         return True
 
@@ -189,7 +189,7 @@ class PolicyRegistry(IPolicyRegistry):
             return False
 
         policy.status = PolicyStatus.DISABLED
-        policy.updated_at = datetime.now(timezone.utc)
+        policy.updated_at = datetime.now(UTC)
         logger.info("policy_disabled", policy_id=policy_id)
         return True
 
@@ -202,7 +202,7 @@ class PolicyRegistry(IPolicyRegistry):
         return {
             "policies": [p.to_dict() for p in self._policies.values()],
             "total": len(self._policies),
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": datetime.now(UTC).isoformat(),
         }
 
     async def import_policies(self, data: dict) -> int:
@@ -258,9 +258,7 @@ class PolicyRegistry(IPolicyRegistry):
     # Metrics
     # ------------------------------------------------------------------
 
-    def record_evaluation(
-        self, policy_id: str, result: str, duration_ms: float
-    ) -> None:
+    def record_evaluation(self, policy_id: str, result: str, duration_ms: float) -> None:
         """Record a policy evaluation for metrics purposes.
 
         Parameters
@@ -273,12 +271,8 @@ class PolicyRegistry(IPolicyRegistry):
             Evaluation duration in milliseconds.
         """
         self._evaluation_count += 1
-        self._evaluations_by_policy[policy_id] = (
-            self._evaluations_by_policy.get(policy_id, 0) + 1
-        )
-        self._evaluations_by_result[result] = (
-            self._evaluations_by_result.get(result, 0) + 1
-        )
+        self._evaluations_by_policy[policy_id] = self._evaluations_by_policy.get(policy_id, 0) + 1
+        self._evaluations_by_result[result] = self._evaluations_by_result.get(result, 0) + 1
         self._total_evaluation_time_ms += duration_ms
 
     def record_error(self) -> None:
@@ -292,10 +286,7 @@ class PolicyRegistry(IPolicyRegistry):
             if self._evaluation_count > 0
             else 0.0
         )
-        active_count = sum(
-            1 for p in self._policies.values()
-            if p.status == PolicyStatus.ENABLED
-        )
+        active_count = sum(1 for p in self._policies.values() if p.status == PolicyStatus.ENABLED)
         return {
             "total_policies": len(self._policies),
             "active_policies": active_count,
@@ -307,7 +298,7 @@ class PolicyRegistry(IPolicyRegistry):
         }
 
     # ------------------------------------------------------------------
-    # Count (convenience)
+    # Convenience count accessor
     # ------------------------------------------------------------------
 
     def count(self) -> int:

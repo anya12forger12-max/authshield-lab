@@ -2,25 +2,24 @@
 
 from __future__ import annotations
 
-from typing import Optional
 from pydantic import BaseModel, Field
 
 
 class UpdateProfileRequest(BaseModel):
     """Request body for updating a user profile."""
 
-    display_name: Optional[str] = Field(default=None, max_length=64)
-    email: Optional[str] = Field(default=None, max_length=254)
-    bio: Optional[str] = Field(default=None, max_length=1024)
-    profile_picture: Optional[str] = Field(default=None, max_length=512)
+    display_name: str | None = Field(default=None, max_length=64)
+    email: str | None = Field(default=None, max_length=254)
+    bio: str | None = Field(default=None, max_length=1024)
+    profile_picture: str | None = Field(default=None, max_length=512)
 
 
 class UserSearchRequest(BaseModel):
     """Request body for searching users."""
 
     query: str = Field(default="", max_length=128)
-    role: Optional[str] = None
-    status: Optional[str] = None
+    role: str | None = None
+    status: str | None = None
     page: int = Field(default=1, ge=1)
     per_page: int = Field(default=20, ge=1, le=100)
     sort_by: str = Field(default="created_at")
@@ -43,11 +42,11 @@ class AssignRoleRequest(BaseModel):
 class UpdatePreferencesRequest(BaseModel):
     """Request body for updating user preferences."""
 
-    theme: Optional[str] = Field(default=None, max_length=32)
-    accent_color: Optional[str] = Field(default=None, max_length=32)
-    language: Optional[str] = Field(default=None, max_length=10)
-    accessibility: Optional[dict] = None
-    notifications: Optional[dict] = None
+    theme: str | None = Field(default=None, max_length=32)
+    accent_color: str | None = Field(default=None, max_length=32)
+    language: str | None = Field(default=None, max_length=10)
+    accessibility: dict | None = None
+    notifications: dict | None = None
 
 
 class ExportRequest(BaseModel):
@@ -62,5 +61,5 @@ class AdminCreateUserRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=32)
     password: str = Field(..., min_length=8, max_length=128)
     display_name: str = Field(..., min_length=1, max_length=64)
-    email: Optional[str] = Field(default=None, max_length=254)
+    email: str | None = Field(default=None, max_length=254)
     role: str = Field(default="student", max_length=32)

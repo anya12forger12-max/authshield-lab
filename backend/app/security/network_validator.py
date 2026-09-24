@@ -137,9 +137,7 @@ class NetworkValidator:
         try:
             parsed = urlparse(url)
         except Exception as exc:
-            raise SecurityViolationError(
-                url, f"Unable to parse URL: {exc}"
-            ) from exc
+            raise SecurityViolationError(url, f"Unable to parse URL: {exc}") from exc
 
         scheme = parsed.scheme.lower()
         if scheme in BLOCKED_URL_SCHEMES and scheme in ("http", "https", "ftp", "ftps"):
@@ -170,7 +168,7 @@ class NetworkValidator:
         """Check whether *value* represents a loopback address."""
         value = value.lower().strip("[]")
 
-        if value in ("localhost", "0.0.0.0"):
+        if value in ("localhost", "0.0.0.0"):  # noqa: S104  # comparing a string, not binding
             return True
 
         try:

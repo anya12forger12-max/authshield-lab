@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -17,7 +17,7 @@ class ScenarioCreated:
     title: str = ""
     scenario_type: str = ""
     created_by: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -40,7 +40,7 @@ class ScenarioPublished:
     title: str = ""
     version: int = 1
     published_by: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -62,7 +62,7 @@ class ScenarioArchived:
     scenario_id: str = ""
     title: str = ""
     archived_by: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -84,7 +84,7 @@ class ExerciseLaunched:
     session_id: str = ""
     launched_by: str = ""
     session_type: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -108,7 +108,7 @@ class ExerciseCompleted:
     completed_by: str = ""
     overall_score: float = 0.0
     duration_seconds: float = 0.0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -133,7 +133,7 @@ class DatasetGenerated:
     seed: int = 0
     artifact_count: int = 0
     total_records: int = 0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -157,7 +157,7 @@ class TimelineCreated:
     scenario_id: str = ""
     event_count: int = 0
     total_duration_ms: int = 0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -181,7 +181,7 @@ class SubmissionReceived:
     exercise_id: str = ""
     learner_id: str = ""
     content_preview: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -207,7 +207,7 @@ class ResultsCalculated:
     overall_score: float = 0.0
     completion_status: str = ""
     recommendation_count: int = 0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -233,7 +233,7 @@ class ReplayStarted:
     initiated_by: str = ""
     speed_multiplier: float = 1.0
     highlighted_events: list[str] = field(default_factory=list)
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""

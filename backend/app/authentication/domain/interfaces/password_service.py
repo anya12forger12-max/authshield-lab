@@ -9,9 +9,7 @@ class IPasswordHashingService(ABC):
     """Interface for password hashing and verification."""
 
     @abstractmethod
-    async def hash_password(
-        self, password: str, algorithm: str | None = None
-    ) -> str:
+    async def hash_password(self, password: str, algorithm: str | None = None) -> str:
         """Hash a password using the specified (or default) algorithm."""
         ...
 

@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import select, func, desc, update
+from sqlalchemy import desc, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..models.session import Session
 from ..logging_config import get_logger
+from ..models.session import Session
 from .base_repository import BaseRepository
 
 logger = get_logger(__name__)
@@ -32,7 +32,7 @@ class SessionRepository(BaseRepository[Session]):
 
     async def get_active_by_user(self, user_id: str) -> list[Session]:
         """Return all active, non-expired sessions for *user_id*."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = (
             select(Session)
             .where(
@@ -49,9 +49,7 @@ class SessionRepository(BaseRepository[Session]):
     # Expiry management
     # ------------------------------------------------------------------
 
-    async def get_expired_sessions(
-        self, before_datetime: datetime | None = None
-    ) -> list[Session]:
+    async def get_expired_sessions(self, before_datetime: datetime | None = None) -> list[Session]:
         """Return sessions whose absolute expiry is before *before_datetime*.
 
         Parameters
@@ -59,7 +57,7 @@ class SessionRepository(BaseRepository[Session]):
         before_datetime:
             The cutoff.  Defaults to ``datetime.now(timezone.utc)``.
         """
-        cutoff = before_datetime or datetime.now(timezone.utc)
+        cutoff = before_datetime or datetime.now(UTC)
         stmt = (
             select(Session)
             .where(Session.expires_at <= cutoff, Session.status == "active")
@@ -73,7 +71,7 @@ class SessionRepository(BaseRepository[Session]):
 
         Returns the number of affected rows.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         stmt = (
             update(Session)
             .where(Session.expires_at <= now, Session.status == "active")
@@ -119,7 +117,7 @@ class SessionRepository(BaseRepository[Session]):
         if session is None:
             return None
 
-        session.last_activity = datetime.now(timezone.utc)
+        session.last_activity = datetime.now(UTC)
         self._session.add(session)
         await self._session.flush()
         return session
@@ -130,11 +128,15 @@ class SessionRepository(BaseRepository[Session]):
 
     async def count_active_sessions(self, user_id: str) -> int:
         """Count the active, non-expired sessions for *user_id*."""
-        now = datetime.now(timezone.utc)
-        stmt = select(func.count()).select_from(Session).where(
-            Session.user_id == user_id,
-            Session.status == "active",
-            Session.expires_at > now,
+        now = datetime.now(UTC)
+        stmt = (
+            select(func.count())
+            .select_from(Session)
+            .where(
+                Session.user_id == user_id,
+                Session.status == "active",
+                Session.expires_at > now,
+            )
         )
         result = await self._session.execute(stmt)
         return result.scalar()  # type: ignore[return-value]

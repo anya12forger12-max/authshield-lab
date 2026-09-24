@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.lts import (
     CompatibilityMatrix,
     DeprecationEntry,
@@ -20,7 +20,6 @@ from ..domain.interfaces import (
     ILtsVersionRepository,
     IMigrationStepRepository,
 )
-from ..domain.events.production_events import MigrationCompletedEvent
 
 logger = get_logger("production.lts_service")
 
@@ -48,7 +47,7 @@ class LtsService:
         migration_step_repo: IMigrationStepRepository,
         compat_repo: ICompatibilityMatrixRepository,
         deprecation_repo: IDeprecationEntryRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._lts_repo = lts_repo
         self._migration_step_repo = migration_step_repo
@@ -65,7 +64,7 @@ class LtsService:
         version: str,
         release_date: str,
         end_of_support: str,
-        compatible_versions: Optional[list[str]] = None,
+        compatible_versions: list[str] | None = None,
         migration_path: str = "",
         notes: str = "",
     ) -> LtsVersion:
@@ -84,23 +83,19 @@ class LtsService:
         logger.info("lts_version_created", lts_id=lts.id, version=version)
         return lts
 
-    async def get_lts_version(self, lts_id: str) -> Optional[LtsVersion]:
+    async def get_lts_version(self, lts_id: str) -> LtsVersion | None:
         """Retrieve an LTS version by ID."""
         return await self._lts_repo.get_by_id(lts_id)
 
-    async def get_lts_by_version(self, version: str) -> Optional[LtsVersion]:
+    async def get_lts_by_version(self, version: str) -> LtsVersion | None:
         """Retrieve an LTS version by its version string."""
         return await self._lts_repo.get_by_version(version)
 
-    async def list_lts_versions(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_lts_versions(self, page: int = 1, per_page: int = 20) -> dict:
         """List all LTS versions with pagination."""
         return await self._lts_repo.get_all(page=page, per_page=per_page)
 
-    async def update_lts_status(
-        self, lts_id: str, new_status: str
-    ) -> Optional[LtsVersion]:
+    async def update_lts_status(self, lts_id: str, new_status: str) -> LtsVersion | None:
         """Transition an LTS version to a new status."""
         lts = await self._lts_repo.get_by_id(lts_id)
         if lts is None:
@@ -112,9 +107,7 @@ class LtsService:
 
         return await self._lts_repo.update(lts_id, {"status": new_status})
 
-    async def update_lts(
-        self, lts_id: str, data: dict[str, Any]
-    ) -> Optional[LtsVersion]:
+    async def update_lts(self, lts_id: str, data: dict[str, Any]) -> LtsVersion | None:
         """Update arbitrary fields on an LTS version."""
         return await self._lts_repo.update(lts_id, data)
 
@@ -152,17 +145,11 @@ class LtsService:
         )
         return step
 
-    async def get_migration_steps(
-        self, from_version: str, to_version: str
-    ) -> list[MigrationStep]:
+    async def get_migration_steps(self, from_version: str, to_version: str) -> list[MigrationStep]:
         """Retrieve ordered migration steps for a version pair."""
-        return await self._migration_step_repo.get_by_version_pair(
-            from_version, to_version
-        )
+        return await self._migration_step_repo.get_by_version_pair(from_version, to_version)
 
-    async def get_migration_path(
-        self, from_version: str, to_version: str
-    ) -> dict:
+    async def get_migration_path(self, from_version: str, to_version: str) -> dict:
         """Return a complete migration plan for a version pair."""
         steps = await self.get_migration_steps(from_version, to_version)
         total_minutes = sum(s.estimated_minutes for s in steps)
@@ -188,13 +175,9 @@ class LtsService:
             "rollback_possible": rollback_possible,
         }
 
-    async def check_compatibility(
-        self, version_a: str, version_b: str
-    ) -> CompatibilityMatrix:
+    async def check_compatibility(self, version_a: str, version_b: str) -> CompatibilityMatrix:
         """Check and record compatibility between two versions."""
-        existing = await self._compat_repo.check_compatibility(
-            version_a, version_b
-        )
+        existing = await self._compat_repo.check_compatibility(version_a, version_b)
         if existing is not None:
             return existing
 
@@ -204,7 +187,7 @@ class LtsService:
             version_b=version_b,
             compatible=True,
             notes="Default compatibility check",
-            checked_at=datetime.now(timezone.utc),
+            checked_at=datetime.now(UTC),
         )
         await self._compat_repo.create(entry)
         logger.info(
@@ -222,13 +205,11 @@ class LtsService:
         notes: str = "",
     ) -> CompatibilityMatrix:
         """Update the compatibility status between two versions."""
-        existing = await self._compat_repo.check_compatibility(
-            version_a, version_b
-        )
+        existing = await self._compat_repo.check_compatibility(version_a, version_b)
         if existing is not None:
             existing.compatible = compatible
             existing.notes = notes
-            existing.checked_at = datetime.now(timezone.utc)
+            existing.checked_at = datetime.now(UTC)
             return existing
 
         entry = CompatibilityMatrix(
@@ -237,7 +218,7 @@ class LtsService:
             version_b=version_b,
             compatible=compatible,
             notes=notes,
-            checked_at=datetime.now(timezone.utc),
+            checked_at=datetime.now(UTC),
         )
         await self._compat_repo.create(entry)
         return entry
@@ -261,14 +242,13 @@ class LtsService:
             deprecated_in_version=deprecated_in_version,
             replacement=replacement,
             removal_version=removal_version,
-            announced_at=announced_at
-            or datetime.now(timezone.utc).isoformat(),
+            announced_at=announced_at or datetime.now(UTC).isoformat(),
         )
         await self._deprecation_repo.create(entry)
         logger.info("deprecation_added", feature=feature, version=deprecated_in_version)
         return entry
 
-    async def get_deprecation(self, feature: str) -> Optional[DeprecationEntry]:
+    async def get_deprecation(self, feature: str) -> DeprecationEntry | None:
         """Look up a deprecation by feature name."""
         return await self._deprecation_repo.get_by_feature(feature)
 

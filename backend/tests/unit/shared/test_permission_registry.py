@@ -1,8 +1,8 @@
 """Tests for PermissionRegistry: register, get, search, categories."""
 
+from dataclasses import dataclass
+
 import pytest
-from dataclasses import dataclass, field
-from typing import Optional
 
 
 @dataclass
@@ -21,7 +21,7 @@ class PermissionRegistry:
     def register(self, permission: Permission) -> None:
         self._permissions[permission.name] = permission
 
-    def get(self, name: str) -> Optional[Permission]:
+    def get(self, name: str) -> Permission | None:
         return self._permissions.get(name)
 
     def search(self, query: str = "", category: str = "") -> list[Permission]:
@@ -33,7 +33,7 @@ class PermissionRegistry:
         return results
 
     def get_categories(self) -> list[str]:
-        return sorted(set(p.category for p in self._permissions.values() if p.category))
+        return sorted({p.category for p in self._permissions.values() if p.category})
 
     def count(self) -> int:
         return len(self._permissions)
@@ -52,7 +52,9 @@ def populated_registry():
     reg = PermissionRegistry()
     reg.register(Permission(name="users.read", display_name="Read Users", category="users"))
     reg.register(Permission(name="users.write", display_name="Write Users", category="users"))
-    reg.register(Permission(name="sessions.read", display_name="Read Sessions", category="sessions"))
+    reg.register(
+        Permission(name="sessions.read", display_name="Read Sessions", category="sessions")
+    )
     reg.register(Permission(name="admin.manage", display_name="Admin Manage", category="admin"))
     return reg
 

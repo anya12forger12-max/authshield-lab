@@ -1,31 +1,31 @@
 """User domain layer."""
 
 from .entities import (
-    UserProfile,
-    RoleEntity,
-    PermissionEntity,
-    UserLifecycleState,
     LifecycleTransition,
+    PermissionEntity,
+    RoleEntity,
+    UserLifecycleState,
+    UserProfile,
     can_transition,
     validate_transition,
 )
 from .interfaces import (
-    IIdentityService,
-    IRoleService,
-    IPreferenceService,
     IDeviceService,
+    IIdentityService,
+    IPreferenceService,
+    IRoleService,
 )
 
 __all__ = [
-    "UserProfile",
-    "RoleEntity",
-    "PermissionEntity",
-    "UserLifecycleState",
+    "IDeviceService",
+    "IIdentityService",
+    "IPreferenceService",
+    "IRoleService",
     "LifecycleTransition",
+    "PermissionEntity",
+    "RoleEntity",
+    "UserLifecycleState",
+    "UserProfile",
     "can_transition",
     "validate_transition",
-    "IIdentityService",
-    "IRoleService",
-    "IPreferenceService",
-    "IDeviceService",
 ]

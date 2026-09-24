@@ -1,8 +1,8 @@
 """Tests for PolicyRegistry: register, unregister, search, enable, disable."""
 
-import pytest
 from dataclasses import dataclass, field
-from typing import Optional
+
+import pytest
 
 
 @dataclass
@@ -26,7 +26,7 @@ class PolicyRegistry:
             return True
         return False
 
-    def get(self, policy_id: str) -> Optional[Policy]:
+    def get(self, policy_id: str) -> Policy | None:
         return self._policies.get(policy_id)
 
     def search(self, query: str = "", enabled_only: bool = False) -> list[Policy]:

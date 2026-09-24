@@ -12,18 +12,12 @@ class RegistrationRequest(BaseModel):
 
     model_config = ConfigDict(str_strip_whitespace=True)
 
-    username: str = Field(
-        ..., min_length=4, max_length=32, description="Username"
-    )
-    password: str = Field(
-        ..., min_length=8, max_length=128, description="Password"
-    )
+    username: str = Field(..., min_length=4, max_length=32, description="Username")
+    password: str = Field(..., min_length=8, max_length=128, description="Password")
     confirm_password: str = Field(
         ..., min_length=8, max_length=128, description="Password confirmation"
     )
-    display_name: str = Field(
-        ..., min_length=1, max_length=64, description="Display name"
-    )
+    display_name: str = Field(..., min_length=1, max_length=64, description="Display name")
     email: str | None = Field(None, max_length=254, description="Optional email")
 
     @field_validator("username")
@@ -31,9 +25,7 @@ class RegistrationRequest(BaseModel):
     def validate_username_format(cls, v: str) -> str:
         """Username must be alphanumeric with underscores/hyphens only."""
         if not re.match(r"^[a-zA-Z0-9_-]+$", v):
-            raise ValueError(
-                "Username may only contain letters, digits, underscores, and hyphens."
-            )
+            raise ValueError("Username may only contain letters, digits, underscores, and hyphens.")
         return v
 
     @field_validator("password")

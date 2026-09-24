@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class PortfolioItemType(str, Enum):
@@ -44,7 +44,7 @@ class PortfolioItem:
     title: str = ""
     description: str = ""
     item_type: PortfolioItemType = PortfolioItemType.PROJECT
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def update_metadata(self, key: str, value: Any) -> None:
@@ -77,7 +77,7 @@ class CompetencyEvidence:
     item_id: str = ""
     competency_id: str = ""
     description: str = ""
-    date_earned: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    date_earned: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         return {
@@ -97,8 +97,8 @@ class Portfolio:
     learner_id: str = ""
     title: str = ""
     description: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     _items: list[PortfolioItem] = field(default_factory=list, repr=False)
 
     @property
@@ -109,18 +109,18 @@ class Portfolio:
         """Add an item to the portfolio."""
         item.portfolio_id = self.id
         self._items.append(item)
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def remove_item(self, item_id: str) -> bool:
         """Remove an item by ID. Returns ``True`` if found and removed."""
         for i, item in enumerate(self._items):
             if item.id == item_id:
                 self._items.pop(i)
-                self.updated_at = datetime.now(timezone.utc)
+                self.updated_at = datetime.now(UTC)
                 return True
         return False
 
-    def get_item(self, item_id: str) -> Optional[PortfolioItem]:
+    def get_item(self, item_id: str) -> PortfolioItem | None:
         for item in self._items:
             if item.id == item_id:
                 return item

@@ -1,15 +1,16 @@
 """Tests for AuthenticationEventPublisher."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
 
-from app.shared.events.event_bus import EventBus, EventType, DomainEvent, EventSeverity
-from app.authentication.events.event_publisher import AuthenticationEventPublisher
+import pytest
+
 from app.authentication.domain.entities.authentication_result import (
-    AuthenticationResult,
     AuthenticationOutcome,
+    AuthenticationResult,
     FailureReason,
 )
+from app.authentication.events.event_publisher import AuthenticationEventPublisher
+from app.shared.events.event_bus import EventBus, EventSeverity, EventType
 
 
 @pytest.fixture
@@ -154,7 +155,7 @@ class TestPublishSessionEvents:
 class TestPublisherErrorHandling:
     @pytest.mark.asyncio
     async def test_publish_does_not_raise_on_handler_failure(self, publisher, event_bus):
-        async def failing_handler(event):
+        async def failing_handler(_event):
             raise RuntimeError("handler broke")
 
         event_bus.subscribe(EventType.AUTHENTICATION_REQUESTED, failing_handler)

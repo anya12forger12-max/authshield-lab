@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-from datetime import datetime, timezone
 
 from app.developer.domain.entities.extension import (
     Extension,
@@ -15,7 +14,9 @@ from app.developer.domain.entities.extension import (
 
 
 class ExtensionService:
-    """Manages the full lifecycle of extensions: install, uninstall, update, enable, disable, search, validate."""
+    """Manages the full lifecycle of extensions: install, uninstall, update,"""
+
+    """enable, disable, search, validate."""
 
     def __init__(self) -> None:
         self._extensions: dict[str, Extension] = {}
@@ -132,7 +133,7 @@ class ExtensionService:
         ext = self._extensions.get(extension_id)
         if ext is None:
             return None
-        old_version = ext.version
+
         ext.version = new_version
         for inst in self._installed.values():
             if inst.extension_id == extension_id:

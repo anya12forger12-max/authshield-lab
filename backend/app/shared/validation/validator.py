@@ -6,7 +6,7 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class ValidationSeverity(str, Enum):
@@ -107,9 +107,7 @@ class ValidationResult:
 # Pre-compiled patterns ------------------------------------------------
 
 _USERNAME_RE = re.compile(r"^[a-zA-Z0-9_.-]+$")
-_EMAIL_RE = re.compile(
-    r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-)
+_EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
 
 
 class Validator:
@@ -151,7 +149,7 @@ class Validator:
         return result
 
     def validate_password(
-        self, password: str, policy: Optional[dict[str, Any]] = None
+        self, password: str, policy: dict[str, Any] | None = None
     ) -> ValidationResult:
         """Validate a password against a (configurable) policy.
 
@@ -315,20 +313,19 @@ class Validator:
         """Normalize a username: lowercase, strip, collapse separators."""
         username = username.strip().lower()
         username = re.sub(r"[_.-]+", ".", username)
-        username = username.strip(".")
-        return username
+        return username.strip(".")
 
 
 # ------------------------------------------------------------------
 # Module-level singleton
 # ------------------------------------------------------------------
 
-_validator: Optional[Validator] = None
+_validator: Validator | None = None
 
 
 def get_validator() -> Validator:
     """Return the global :class:`Validator` instance."""
-    global _validator  # noqa: PLW0603
+    global _validator
     if _validator is None:
         _validator = Validator()
     return _validator

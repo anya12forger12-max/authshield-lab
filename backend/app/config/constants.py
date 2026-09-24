@@ -4,12 +4,17 @@ from __future__ import annotations
 
 from enum import Enum
 
-
 # ---------------------------------------------------------------------------
 # Network constants
 # ---------------------------------------------------------------------------
 
-LOCALHOST_ADDRESSES: list[str] = ["127.0.0.1", "localhost", "::1", "[::1]", "0.0.0.0"]
+LOCALHOST_ADDRESSES: list[str] = [
+    "127.0.0.1",
+    "localhost",
+    "::1",
+    "[::1]",
+    "0.0.0.0",  # noqa: S104  # validation string, not a bind
+]
 
 BLOCKED_NETWORK_TARGETS: list[str] = [
     # Public DNS resolvers
@@ -21,7 +26,7 @@ BLOCKED_NETWORK_TARGETS: list[str] = [
     "208.67.222.222",
     "208.67.220.220",
     # Common public IPs
-    "0.0.0.0",
+    "0.0.0.0",  # noqa: S104  # blocked target string, not a bind
     "255.255.255.255",
     "10.0.0.1",
     "10.0.0.0",
@@ -73,6 +78,7 @@ class ApplicationMode(str, Enum):
 # ---------------------------------------------------------------------------
 # Log level names
 # ---------------------------------------------------------------------------
+
 
 class LogTagName(str, Enum):
     """Structlog tag names for event classification."""

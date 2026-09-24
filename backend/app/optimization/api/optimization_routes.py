@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -28,7 +28,7 @@ _observability_service: Any = None
 
 
 def _get_performance_service() -> Any:
-    global _performance_service  # noqa: PLW0603
+    global _performance_service
     if _performance_service is None:
         from ..repositories.optimization_repository_impl import (
             InMemoryBenchmarkRepository,
@@ -36,6 +36,7 @@ def _get_performance_service() -> Any:
             InMemoryPerformanceMetricRepository,
         )
         from ..services.performance_service import PerformanceService
+
         _performance_service = PerformanceService(
             InMemoryPerformanceMetricRepository(),
             InMemoryBenchmarkRepository(),
@@ -45,49 +46,54 @@ def _get_performance_service() -> Any:
 
 
 def _get_ai_assistant_service() -> Any:
-    global _ai_assistant_service  # noqa: PLW0603
+    global _ai_assistant_service
     if _ai_assistant_service is None:
         from ..repositories.optimization_repository_impl import InMemoryAIAssistantRepository
         from ..services.ai_assistant_service import AIAssistantService
+
         _ai_assistant_service = AIAssistantService(InMemoryAIAssistantRepository())
     return _ai_assistant_service
 
 
 def _get_sustainability_service() -> Any:
-    global _sustainability_service  # noqa: PLW0603
+    global _sustainability_service
     if _sustainability_service is None:
         from ..repositories.optimization_repository_impl import InMemorySustainabilityRepository
         from ..services.sustainability_service import SustainabilityService
+
         _sustainability_service = SustainabilityService(InMemorySustainabilityRepository())
     return _sustainability_service
 
 
 def _get_release_governance_service() -> Any:
-    global _release_governance_service  # noqa: PLW0603
+    global _release_governance_service
     if _release_governance_service is None:
         from ..repositories.optimization_repository_impl import InMemoryReleaseRepository
         from ..services.release_governance_service import ReleaseGovernanceService
+
         _release_governance_service = ReleaseGovernanceService(InMemoryReleaseRepository())
     return _release_governance_service
 
 
 def _get_compatibility_service() -> Any:
-    global _compatibility_service  # noqa: PLW0603
+    global _compatibility_service
     if _compatibility_service is None:
         from ..repositories.optimization_repository_impl import InMemoryCompatibilityRepository
         from ..services.compatibility_service import CompatibilityService
+
         _compatibility_service = CompatibilityService(InMemoryCompatibilityRepository())
     return _compatibility_service
 
 
 def _get_feature_flag_service() -> Any:
-    global _feature_flag_service  # noqa: PLW0603
+    global _feature_flag_service
     if _feature_flag_service is None:
         from ..repositories.optimization_repository_impl import (
             InMemoryConfigProfileRepository,
             InMemoryFeatureFlagRepository,
         )
         from ..services.feature_flag_service import FeatureFlagService
+
         _feature_flag_service = FeatureFlagService(
             InMemoryFeatureFlagRepository(),
             InMemoryConfigProfileRepository(),
@@ -96,10 +102,11 @@ def _get_feature_flag_service() -> Any:
 
 
 def _get_observability_service() -> Any:
-    global _observability_service  # noqa: PLW0603
+    global _observability_service
     if _observability_service is None:
         from ..repositories.optimization_repository_impl import InMemoryDiagnosticTraceRepository
         from ..services.observability_extended_service import ObservabilityExtendedService
+
         _observability_service = ObservabilityExtendedService(InMemoryDiagnosticTraceRepository())
     return _observability_service
 
@@ -107,6 +114,7 @@ def _get_observability_service() -> Any:
 # ---------------------------------------------------------------------------
 # Request models
 # ---------------------------------------------------------------------------
+
 
 class PerformanceMetricRequest(BaseModel):
     name: str
@@ -197,7 +205,7 @@ class ReleaseWorkflowRequest(BaseModel):
     release_id: str
     version: str
     created_by: str = ""
-    initial_stage: Optional[str] = None
+    initial_stage: str | None = None
 
 
 class ReleaseApprovalRequest(BaseModel):
@@ -245,6 +253,7 @@ class StorageAnalysisRequest(BaseModel):
 # Performance endpoints
 # ===================================================================
 
+
 @router.post("/metrics", status_code=201)
 async def collect_metric(request: PerformanceMetricRequest) -> dict[str, Any]:
     service = _get_performance_service()
@@ -255,7 +264,7 @@ async def collect_metric(request: PerformanceMetricRequest) -> dict[str, Any]:
 async def list_metrics(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    category: Optional[str] = Query(None),
+    category: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_performance_service()
     return service.list_metrics(page=page, per_page=per_page, category=category)
@@ -288,6 +297,7 @@ async def get_metrics_by_category(category: str) -> dict[str, Any]:
 # Benchmark endpoints
 # ===================================================================
 
+
 @router.post("/benchmarks", status_code=201)
 async def run_benchmark(request: BenchmarkRequest) -> dict[str, Any]:
     service = _get_performance_service()
@@ -298,7 +308,7 @@ async def run_benchmark(request: BenchmarkRequest) -> dict[str, Any]:
 async def list_benchmarks(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    category: Optional[str] = Query(None),
+    category: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_performance_service()
     return service.list_benchmarks(page=page, per_page=per_page, category=category)
@@ -320,6 +330,7 @@ async def detect_regressions() -> dict[str, Any]:
 # ===================================================================
 # Dashboard endpoints
 # ===================================================================
+
 
 @router.post("/dashboard", status_code=201)
 async def generate_dashboard(request: DashboardRequest) -> dict[str, Any]:
@@ -356,6 +367,7 @@ async def delete_dashboard(dashboard_id: str) -> SuccessResponse:
 # Feature Flag endpoints
 # ===================================================================
 
+
 @router.post("/feature-flags", status_code=201)
 async def create_feature_flag(request: FeatureFlagRequest) -> dict[str, Any]:
     service = _get_feature_flag_service()
@@ -366,11 +378,13 @@ async def create_feature_flag(request: FeatureFlagRequest) -> dict[str, Any]:
 async def list_feature_flags(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    category: Optional[str] = Query(None),
+    category: str | None = Query(None),
     enabled_only: bool = Query(False),
 ) -> dict[str, Any]:
     service = _get_feature_flag_service()
-    return service.list_flags(page=page, per_page=per_page, category=category, enabled_only=enabled_only)
+    return service.list_flags(
+        page=page, per_page=per_page, category=category, enabled_only=enabled_only
+    )
 
 
 @router.get("/feature-flags/{flag_id}")
@@ -426,6 +440,7 @@ async def delete_feature_flag(flag_id: str) -> SuccessResponse:
 # Config Profile endpoints
 # ===================================================================
 
+
 @router.post("/config-profiles", status_code=201)
 async def create_config_profile(request: ConfigProfileRequest) -> dict[str, Any]:
     service = _get_feature_flag_service()
@@ -436,7 +451,7 @@ async def create_config_profile(request: ConfigProfileRequest) -> dict[str, Any]
 async def list_config_profiles(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    target_audience: Optional[str] = Query(None),
+    target_audience: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_feature_flag_service()
     return service.list_profiles(page=page, per_page=per_page, target_audience=target_audience)
@@ -471,6 +486,7 @@ async def delete_config_profile(profile_id: str) -> SuccessResponse:
 # AI Assistant endpoints
 # ===================================================================
 
+
 @router.post("/ai/suggestions", status_code=201)
 async def generate_ai_suggestion(request: AISuggestionRequest) -> dict[str, Any]:
     service = _get_ai_assistant_service()
@@ -481,7 +497,7 @@ async def generate_ai_suggestion(request: AISuggestionRequest) -> dict[str, Any]
 async def list_ai_suggestions(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    suggestion_type: Optional[str] = Query(None),
+    suggestion_type: str | None = Query(None),
 ) -> dict[str, Any]:
     service = _get_ai_assistant_service()
     return service.list_suggestions(page=page, per_page=per_page, suggestion_type=suggestion_type)
@@ -564,6 +580,7 @@ async def review_audit(audit_id: str, approved: bool = Query(...)) -> dict[str, 
 # Compatibility endpoints
 # ===================================================================
 
+
 @router.post("/compatibility/reports", status_code=201)
 async def generate_compatibility_report(request: CompatibilityCheckRequest) -> dict[str, Any]:
     service = _get_compatibility_service()
@@ -614,6 +631,7 @@ async def matrix_compatibility_check(request: CompatibilityCheckRequest) -> dict
 # Sustainability endpoints
 # ===================================================================
 
+
 @router.post("/sustainability/metrics", status_code=201)
 async def create_sustainability_metric(request: SustainabilityMetricRequest) -> dict[str, Any]:
     service = _get_sustainability_service()
@@ -650,7 +668,7 @@ async def create_technical_debt(request: TechnicalDebtRequest) -> dict[str, Any]
 
 @router.get("/sustainability/debt")
 async def list_technical_debt(
-    resolved: Optional[bool] = Query(None),
+    resolved: bool | None = Query(None),
 ) -> list[dict[str, Any]]:
     service = _get_sustainability_service()
     return service.list_debt_items(resolved=resolved)
@@ -694,6 +712,7 @@ async def assess_api_stability(request: DashboardRequest) -> dict[str, Any]:
 # Release Governance endpoints
 # ===================================================================
 
+
 @router.post("/release/workflows", status_code=201)
 async def create_release_workflow(request: ReleaseWorkflowRequest) -> dict[str, Any]:
     service = _get_release_governance_service()
@@ -719,9 +738,7 @@ async def get_release_workflow(workflow_id: str) -> dict[str, Any]:
 
 
 @router.put("/release/workflows/{workflow_id}/advance")
-async def advance_release_workflow(
-    workflow_id: str, notes: str = Query("")
-) -> dict[str, Any]:
+async def advance_release_workflow(workflow_id: str, notes: str = Query("")) -> dict[str, Any]:
     service = _get_release_governance_service()
     try:
         return service.advance_workflow(workflow_id, notes=notes)
@@ -824,6 +841,7 @@ async def check_release_readiness(release_id: str) -> dict[str, Any]:
 # Observability endpoints
 # ===================================================================
 
+
 @router.post("/observability/traces", status_code=201)
 async def create_diagnostic_trace(request: TraceRequest) -> dict[str, Any]:
     service = _get_observability_service()
@@ -861,9 +879,7 @@ async def record_event(timeline_id: str, event_data: dict[str, Any]) -> dict[str
 
 
 @router.get("/observability/events/{timeline_id}")
-async def get_timeline(
-    timeline_id: str, limit: int = Query(100, ge=1, le=1000)
-) -> dict[str, Any]:
+async def get_timeline(timeline_id: str, limit: int = Query(100, ge=1, le=1000)) -> dict[str, Any]:
     service = _get_observability_service()
     return service.get_timeline(timeline_id, limit=limit)
 
@@ -887,7 +903,7 @@ async def register_background_task(
 
 @router.get("/observability/tasks")
 async def list_background_tasks(
-    status: Optional[str] = Query(None),
+    status: str | None = Query(None),
 ) -> list[dict[str, Any]]:
     service = _get_observability_service()
     return service.list_tasks(status=status)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -17,7 +17,7 @@ class CertificationCompleted:
     name: str = ""
     approved_by: str = ""
     module: str = "certification"
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -42,7 +42,7 @@ class CertificationFailed:
     name: str = ""
     reason: str = ""
     module: str = "certification"
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -67,7 +67,7 @@ class PlatformValidated:
     subsystems_passed: int = 0
     subsystems_failed: int = 0
     module: str = "certification"
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -92,7 +92,7 @@ class ReleaseEngineered:
     code_name: str = ""
     status: str = ""
     module: str = "certification"
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -118,7 +118,7 @@ class RecoveryTested:
     data_integrity: bool = True
     duration_ms: int = 0
     module: str = "certification"
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -143,7 +143,7 @@ class SustainabilityReportGenerated:
     technical_debt_hours: float = 0.0
     deprecated_deps: int = 0
     module: str = "certification"
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -167,7 +167,7 @@ class ValidationCompleted:
     checks_failed: int = 0
     compliance_pct: float = 0.0
     module: str = "certification"
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""

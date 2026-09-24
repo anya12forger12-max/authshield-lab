@@ -9,7 +9,8 @@ Provides the complete authentication engine including:
 - API routes (FastAPI router)
 """
 
-from .api import configure_dependencies, router as auth_router
+from .api import configure_dependencies
+from .api import router as auth_router
 from .domain.entities import (
     AccountStatus,
     AuthenticationOutcome,
@@ -52,19 +53,13 @@ from .services import (
 )
 
 __all__ = [
-    # API
-    "auth_router",
-    "configure_dependencies",
     # Entities
     "AccountStatus",
     "AuthenticationOutcome",
     "AuthenticationResult",
+    # Services
+    "AuthenticationService",
     "FailureReason",
-    "SessionStatus",
-    "can_transition",
-    "is_terminal",
-    "is_usable",
-    "validate_transition",
     # Interfaces
     "IAuthenticationEventPublisher",
     "IAuthenticationService",
@@ -76,19 +71,25 @@ __all__ = [
     # Models
     "LoginRequest",
     "LoginResponse",
+    "LoginService",
     "LogoutRequest",
     "LogoutResponse",
-    "PasswordChangeRequest",
-    "RegistrationRequest",
-    "RegistrationResponse",
-    "SessionResponse",
-    "SessionValidationRequest",
-    # Services
-    "AuthenticationService",
-    "LoginService",
     "LogoutService",
+    "PasswordChangeRequest",
     "PasswordPolicyService",
     "PasswordVerificationService",
+    "RegistrationRequest",
+    "RegistrationResponse",
     "RegistrationService",
+    "SessionResponse",
     "SessionService",
+    "SessionStatus",
+    "SessionValidationRequest",
+    # API
+    "auth_router",
+    "can_transition",
+    "configure_dependencies",
+    "is_terminal",
+    "is_usable",
+    "validate_transition",
 ]

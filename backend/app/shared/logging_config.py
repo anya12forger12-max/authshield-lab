@@ -25,7 +25,7 @@ def setup_logging(
     json_output:
         When ``True`` emit JSON; otherwise emit human-readable console output.
     """
-    global _initialized  # noqa: PLW0603
+    global _initialized
     if _initialized:
         return
     _initialized = True
@@ -63,9 +63,7 @@ def setup_logging(
 
     if not root.handlers:
         handler = logging.StreamHandler(sys.stderr)
-        handler.setFormatter(
-            logging.Formatter("%(message)s")
-        )
+        handler.setFormatter(logging.Formatter("%(message)s"))
         root.addHandler(handler)
 
 
@@ -180,10 +178,10 @@ class RequestLoggingMiddleware:
     app as raw ASGI middleware.
     """
 
-    def __init__(self, app: Any) -> None:  # noqa: ANN401
+    def __init__(self, app: Any) -> None:
         self.app = app
 
-    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:  # noqa: ANN401
+    async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return

@@ -95,26 +95,35 @@ class ComparisonService:
         self._comparisons.save(comparison)
         migration_steps: list[dict] = []
         for added in comparison.added_competencies:
-            migration_steps.append({
-                "action": "add",
-                "element": "competency",
-                "name": added,
-                "description": f"Add new competency '{added}' from {fw_b.name}",
-            })
+            migration_steps.append(
+                {
+                    "action": "add",
+                    "element": "competency",
+                    "name": added,
+                    "description": f"Add new competency '{added}' from {fw_b.name}",
+                }
+            )
         for removed in comparison.removed_competencies:
-            migration_steps.append({
-                "action": "remove",
-                "element": "competency",
-                "name": removed,
-                "description": f"Remove competency '{removed}' no longer in {fw_b.name}",
-            })
+            migration_steps.append(
+                {
+                    "action": "remove",
+                    "element": "competency",
+                    "name": removed,
+                    "description": f"Remove competency '{removed}' no longer in {fw_b.name}",
+                }
+            )
         for changed in comparison.changed_relationships:
-            migration_steps.append({
-                "action": "update",
-                "element": "competency",
-                "name": changed.get("name", ""),
-                "description": f"Update {changed.get('field', '')} from '{changed.get('old', '')}' to '{changed.get('new', '')}'",
-            })
+            migration_steps.append(
+                {
+                    "action": "update",
+                    "element": "competency",
+                    "name": changed.get("name", ""),
+                    "description": (
+                        f"Update {changed.get('field', '')} "
+                        f"from '{changed.get('old', '')}' to '{changed.get('new', '')}'"
+                    ),
+                }
+            )
         return {
             "comparison_id": comparison.id,
             "framework_a": {"id": fw_a.id, "name": fw_a.name, "version": fw_a.version},
@@ -150,26 +159,32 @@ class ComparisonService:
             a_comp = next(c for c in fw_a.competencies if c.name == name)
             b_comp = next(c for c in fw_b.competencies if c.name == name)
             if a_comp.description != b_comp.description:
-                changed_rels.append({
-                    "name": name,
-                    "field": "description",
-                    "old": a_comp.description,
-                    "new": b_comp.description,
-                })
+                changed_rels.append(
+                    {
+                        "name": name,
+                        "field": "description",
+                        "old": a_comp.description,
+                        "new": b_comp.description,
+                    }
+                )
             if a_comp.level != b_comp.level:
-                changed_rels.append({
-                    "name": name,
-                    "field": "level",
-                    "old": a_comp.level,
-                    "new": b_comp.level,
-                })
+                changed_rels.append(
+                    {
+                        "name": name,
+                        "field": "level",
+                        "old": a_comp.level,
+                        "new": b_comp.level,
+                    }
+                )
             if set(a_comp.skills) != set(b_comp.skills):
-                changed_rels.append({
-                    "name": name,
-                    "field": "skills",
-                    "old": a_comp.skills,
-                    "new": b_comp.skills,
-                })
+                changed_rels.append(
+                    {
+                        "name": name,
+                        "field": "skills",
+                        "old": a_comp.skills,
+                        "new": b_comp.skills,
+                    }
+                )
         coverage_diffs: dict[str, float] = {}
         total_a = len(fw_a.competencies)
         total_b = len(fw_b.competencies)
@@ -203,33 +218,42 @@ class ComparisonService:
         )
         for comp in fw.competencies:
             from app.standards.domain.entities.framework import FrameworkCompetency
-            clone.competencies.append(FrameworkCompetency(
-                id=comp.id,
-                framework_id=clone.id,
-                name=comp.name,
-                description=comp.description,
-                domain_id=comp.domain_id,
-                level=comp.level,
-                skills=list(comp.skills),
-            ))
+
+            clone.competencies.append(
+                FrameworkCompetency(
+                    id=comp.id,
+                    framework_id=clone.id,
+                    name=comp.name,
+                    description=comp.description,
+                    domain_id=comp.domain_id,
+                    level=comp.level,
+                    skills=list(comp.skills),
+                )
+            )
         for skill in fw.skills:
             from app.standards.domain.entities.framework import Skill
-            clone.skills.append(Skill(
-                id=skill.id,
-                framework_id=clone.id,
-                name=skill.name,
-                description=skill.description,
-                parent_id=skill.parent_id,
-                aliases=list(skill.aliases),
-                category=skill.category,
-            ))
+
+            clone.skills.append(
+                Skill(
+                    id=skill.id,
+                    framework_id=clone.id,
+                    name=skill.name,
+                    description=skill.description,
+                    parent_id=skill.parent_id,
+                    aliases=list(skill.aliases),
+                    category=skill.category,
+                )
+            )
         for dom in fw.domains:
             from app.standards.domain.entities.framework import FrameworkDomain
-            clone.domains.append(FrameworkDomain(
-                id=dom.id,
-                framework_id=clone.id,
-                name=dom.name,
-                description=dom.description,
-                category_ids=list(dom.category_ids),
-            ))
+
+            clone.domains.append(
+                FrameworkDomain(
+                    id=dom.id,
+                    framework_id=clone.id,
+                    name=dom.name,
+                    description=dom.description,
+                    category_ids=list(dom.category_ids),
+                )
+            )
         return clone

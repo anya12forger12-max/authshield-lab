@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.events.lms_events import GradeSubmitted
 from ..domain.interfaces.lms_interfaces import IGradebookRepository
@@ -24,13 +24,13 @@ class GradebookService:
             raise ValueError(f"Gradebook already exists for course '{course_id}'.")
         return self._repo.create({"course_id": course_id})
 
-    def get_gradebook(self, entry_id: str) -> Optional[dict[str, Any]]:
+    def get_gradebook(self, entry_id: str) -> dict[str, Any] | None:
         return self._repo.get_by_id(entry_id)
 
-    def get_gradebook_by_course(self, course_id: str) -> Optional[dict[str, Any]]:
+    def get_gradebook_by_course(self, course_id: str) -> dict[str, Any] | None:
         return self._repo.get_by_course(course_id)
 
-    def update_gradebook(self, entry_id: str, data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def update_gradebook(self, entry_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         if not self._repo.get_by_id(entry_id):
             raise ValueError(f"Gradebook '{entry_id}' not found.")
         return self._repo.update(entry_id, data)
@@ -52,9 +52,7 @@ class GradebookService:
 
         return self._repo.add_grade_item(gradebook_id, item_data)
 
-    def add_grade_entry(
-        self, item_id: str, entry_data: dict[str, Any]
-    ) -> dict[str, Any]:
+    def add_grade_entry(self, item_id: str, entry_data: dict[str, Any]) -> dict[str, Any]:
         validation = validate_grade_data(entry_data)
         if not validation.is_valid:
             raise ValueError(f"Validation failed: {validation.to_dict()}")
@@ -74,20 +72,16 @@ class GradebookService:
 
     def get_grade_entries(
         self,
-        gradebook_id: Optional[str] = None,
-        item_id: Optional[str] = None,
-        learner_id: Optional[str] = None,
+        _gradebook_id: str | None = None,
+        item_id: str | None = None,
+        learner_id: str | None = None,
     ) -> list[dict[str, Any]]:
         return self._repo.get_grade_entries(item_id=item_id, learner_id=learner_id)
 
-    def get_learner_grades(
-        self, gradebook_id: str, learner_id: str
-    ) -> list[dict[str, Any]]:
+    def get_learner_grades(self, _gradebook_id: str, learner_id: str) -> list[dict[str, Any]]:
         return self._repo.get_grade_entries(learner_id=learner_id)
 
-    def calculate_learner_average(
-        self, gradebook_id: str, learner_id: str
-    ) -> float:
+    def calculate_learner_average(self, gradebook_id: str, learner_id: str) -> float:
         gradebook = self._repo.get_by_id(gradebook_id)
         if not gradebook:
             raise ValueError(f"Gradebook '{gradebook_id}' not found.")

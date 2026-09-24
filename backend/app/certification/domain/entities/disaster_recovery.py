@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -17,7 +17,7 @@ class BackupValidation:
     size_bytes: int = 0
     integrity: bool = True
     restorable: bool = True
-    validated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    validated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def is_healthy(self) -> bool:
         """Return ``True`` when both integrity and restorability pass."""
@@ -50,21 +50,21 @@ class RestoreTest:
     status: str = "pending"
     duration_ms: int = 0
     data_integrity: bool = True
-    completed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def mark_success(self, duration: int = 0) -> None:
         """Record a successful restore."""
         self.status = "success"
         self.duration_ms = duration
         self.data_integrity = True
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
 
     def mark_failure(self, duration: int = 0, integrity: bool = False) -> None:
         """Record a failed restore."""
         self.status = "failed"
         self.duration_ms = duration
         self.data_integrity = integrity
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -88,19 +88,19 @@ class ArchiveRecovery:
     status: str = "pending"
     items_recovered: int = 0
     completeness: float = 0.0
-    completed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    completed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def mark_complete(self, recovered: int, total: int) -> None:
         """Mark recovery as complete with final counts."""
         self.status = "complete"
         self.items_recovered = recovered
         self.completeness = (recovered / total * 100.0) if total > 0 else 0.0
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
 
     def mark_failed(self) -> None:
         """Mark recovery as failed."""
         self.status = "failed"
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -125,7 +125,7 @@ class RecoveryReadinessReport:
     config_recovery: float = 0.0
     doc_recovery: float = 0.0
     overall_readiness: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def compute_overall(self) -> float:
         """Derive ``overall_readiness`` as the average of sub-scores."""

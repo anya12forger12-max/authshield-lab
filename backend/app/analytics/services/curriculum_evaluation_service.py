@@ -3,22 +3,22 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.curriculum_evaluation import (
     CurriculumEvaluationResult,
     EvaluationRecommendation,
     PrerequisiteGap,
     TopicAnalysis,
 )
+from ..domain.events.analytics_events import CurriculumEvaluated
 from ..domain.interfaces import (
     ICurriculumEvaluationRepository,
     IEvaluationRecommendationRepository,
 )
-from ..domain.events.analytics_events import CurriculumEvaluated
 
 logger = get_logger("analytics.curriculum_evaluation_service")
 
@@ -40,7 +40,7 @@ class CurriculumEvaluationService:
         self,
         evaluation_repo: ICurriculumEvaluationRepository,
         recommendation_repo: IEvaluationRecommendationRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._evaluation_repo = evaluation_repo
         self._recommendation_repo = recommendation_repo
@@ -53,9 +53,10 @@ class CurriculumEvaluationService:
     async def evaluate_curriculum(
         self,
         topics: list[str],
-        competencies: list[str],
-        mapped_competencies: Optional[list[str]] = None,
-        existing_content: Optional[list[dict[str, Any]]] = None,
+        # Interface parameters (keyword-called by routes/tests); intentionally unused.
+        competencies: list[str],  # noqa: ARG002
+        mapped_competencies: list[str] | None = None,  # noqa: ARG002
+        existing_content: list[dict[str, Any]] | None = None,
         review_frequency_days: int = 30,
     ) -> CurriculumEvaluationResult:
         """Run a full curriculum evaluation.
@@ -67,10 +68,6 @@ class CurriculumEvaluationService:
         topic_coverage = self._compute_topic_coverage(topics, existing_content or [])
         redundant_content = self._detect_redundancy(existing_content or [])
         missing_prerequisites = self._detect_missing_prerequisites(existing_content or [])
-        total_comps = len(competencies)
-        mapped = len(mapped_competencies) if mapped_competencies else 0
-        coverage_pct = (mapped / total_comps * 100) if total_comps > 0 else 0.0
-
         result = CurriculumEvaluationResult(
             id=str(uuid.uuid4()),
             curriculum_balance=curriculum_balance,
@@ -82,7 +79,7 @@ class CurriculumEvaluationService:
             localization_coverage=self._compute_localization_coverage(existing_content or []),
             content_freshness=self._compute_content_freshness(existing_content or []),
             review_frequency_days=review_frequency_days,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
         await self._evaluation_repo.create(result)
@@ -97,13 +94,11 @@ class CurriculumEvaluationService:
 
         return result
 
-    async def get_evaluation(self, evaluation_id: str) -> Optional[CurriculumEvaluationResult]:
+    async def get_evaluation(self, evaluation_id: str) -> CurriculumEvaluationResult | None:
         """Retrieve a specific curriculum evaluation by ID."""
         return await self._evaluation_repo.get_by_id(evaluation_id)
 
-    async def list_evaluations(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_evaluations(self, page: int = 1, per_page: int = 20) -> dict:
         """List all curriculum evaluations with pagination."""
         return await self._evaluation_repo.get_all(page=page, per_page=per_page)
 
@@ -120,7 +115,10 @@ class CurriculumEvaluationService:
                 category="alignment",
                 priority="high",
                 recommendation="Increase assessment alignment with learning objectives",
-                rationale=f"Current alignment score is {evaluation.assessment_alignment}%, below 70% threshold",
+                rationale=(
+                    f"Current alignment score is {evaluation.assessment_alignment}%, "
+                    "below 70% threshold"
+                ),
                 impact="Improved learner outcomes and clearer competency mapping",
                 effort="medium",
             )
@@ -133,7 +131,9 @@ class CurriculumEvaluationService:
                 category="accessibility",
                 priority="high",
                 recommendation="Improve accessibility coverage across curriculum content",
-                rationale=f"Current a11y coverage is {evaluation.a11y_coverage}%, below 80% threshold",
+                rationale=(
+                    f"Current a11y coverage is {evaluation.a11y_coverage}%, below 80% threshold"
+                ),
                 impact="Broader learner inclusivity and regulatory compliance",
                 effort="high",
             )
@@ -146,7 +146,10 @@ class CurriculumEvaluationService:
                 category="localization",
                 priority="medium",
                 recommendation="Expand localization coverage for multilingual support",
-                rationale=f"Current localization is {evaluation.localization_coverage}%, below 75% threshold",
+                rationale=(
+                    f"Current localization is {evaluation.localization_coverage}%, "
+                    "below 75% threshold"
+                ),
                 impact="Wider reach for non-native-English-speaking learners",
                 effort="high",
             )
@@ -159,7 +162,10 @@ class CurriculumEvaluationService:
                 category="freshness",
                 priority="medium",
                 recommendation="Review and update outdated content assets",
-                rationale=f"Content freshness score is {evaluation.content_freshness}%, below 80% threshold",
+                rationale=(
+                    f"Content freshness score is {evaluation.content_freshness}%, "
+                    "below 80% threshold"
+                ),
                 impact="Up-to-date and relevant learning materials",
                 effort="medium",
             )
@@ -185,7 +191,9 @@ class CurriculumEvaluationService:
                 category="prerequisites",
                 priority="high",
                 recommendation="Address missing prerequisite relationships in curriculum",
-                rationale=f"Detected {len(evaluation.missing_prerequisites)} missing prerequisite gaps",
+                rationale=(
+                    f"Detected {len(evaluation.missing_prerequisites)} missing prerequisite gaps"
+                ),
                 impact="Improved learner preparedness and reduced frustration",
                 effort="medium",
             )
@@ -214,7 +222,7 @@ class CurriculumEvaluationService:
     async def analyze_topics(
         self,
         topics: list[str],
-        existing_content: Optional[list[dict[str, Any]]] = None,
+        existing_content: list[dict[str, Any]] | None = None,
     ) -> list[TopicAnalysis]:
         """Analyze individual topics for coverage and redundancy."""
         content = existing_content or []
@@ -222,7 +230,8 @@ class CurriculumEvaluationService:
 
         for topic in topics:
             topic_items = [
-                c for c in content
+                c
+                for c in content
                 if topic.lower() in c.get("title", "").lower()
                 or topic.lower() in c.get("topic", "").lower()
             ]
@@ -230,18 +239,20 @@ class CurriculumEvaluationService:
             redundancy = self._topic_redundancy_score(topic_items)
             gaps = self._topic_gaps(topic, topic_items)
 
-            analyses.append(TopicAnalysis(
-                topic=topic,
-                coverage_pct=round(coverage, 2),
-                redundancy_score=round(redundancy, 2),
-                gaps=gaps,
-            ))
+            analyses.append(
+                TopicAnalysis(
+                    topic=topic,
+                    coverage_pct=round(coverage, 2),
+                    redundancy_score=round(redundancy, 2),
+                    gaps=gaps,
+                )
+            )
 
         return analyses
 
     async def analyze_prerequisite_gaps(
         self,
-        existing_content: Optional[list[dict[str, Any]]] = None,
+        existing_content: list[dict[str, Any]] | None = None,
     ) -> list[PrerequisiteGap]:
         """Analyze missing prerequisite relationships."""
         raw_gaps = self._detect_missing_prerequisites(existing_content or [])
@@ -262,7 +273,8 @@ class CurriculumEvaluationService:
         total = len(content) if content else 1
         for topic in topics:
             count = sum(
-                1 for c in content
+                1
+                for c in content
                 if topic.lower() in c.get("topic", "").lower()
                 or topic.lower() in c.get("title", "").lower()
             )
@@ -275,9 +287,7 @@ class CurriculumEvaluationService:
         """Compute coverage percentage per topic."""
         return self._compute_curriculum_balance(topics, content)
 
-    def _detect_redundancy(
-        self, content: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def _detect_redundancy(self, content: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Detect potentially redundant content items."""
         redundant: list[dict[str, Any]] = []
         titles = [c.get("title", "") for c in content]
@@ -285,19 +295,19 @@ class CurriculumEvaluationService:
         for i, title in enumerate(titles):
             normalized = title.lower().strip()
             if normalized in seen:
-                redundant.append({
-                    "original_index": seen[normalized],
-                    "duplicate_index": i,
-                    "title": title,
-                    "reason": "duplicate_title",
-                })
+                redundant.append(
+                    {
+                        "original_index": seen[normalized],
+                        "duplicate_index": i,
+                        "title": title,
+                        "reason": "duplicate_title",
+                    }
+                )
             else:
                 seen[normalized] = i
         return redundant
 
-    def _detect_missing_prerequisites(
-        self, content: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def _detect_missing_prerequisites(self, content: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Detect missing prerequisite relationships."""
         gaps: list[dict[str, Any]] = []
         for item in content:
@@ -305,59 +315,38 @@ class CurriculumEvaluationService:
             available_titles = {c.get("title", "") for c in content}
             for prereq in declared_prereqs:
                 if prereq not in available_titles:
-                    gaps.append({
-                        "missing_from": prereq,
-                        "needed_by": item.get("title", ""),
-                        "severity": "high",
-                    })
+                    gaps.append(
+                        {
+                            "missing_from": prereq,
+                            "needed_by": item.get("title", ""),
+                            "severity": "high",
+                        }
+                    )
         return gaps
 
-    def _compute_assessment_alignment(
-        self, content: list[dict[str, Any]]
-    ) -> float:
+    def _compute_assessment_alignment(self, content: list[dict[str, Any]]) -> float:
         """Compute assessment alignment score."""
-        with_assessments = sum(
-            1 for c in content if c.get("has_assessment", False)
-        )
-        return round(
-            (with_assessments / len(content) * 100) if content else 0.0, 2
-        )
+        with_assessments = sum(1 for c in content if c.get("has_assessment", False))
+        return round((with_assessments / len(content) * 100) if content else 0.0, 2)
 
-    def _compute_a11y_coverage(
-        self, content: list[dict[str, Any]]
-    ) -> float:
+    def _compute_a11y_coverage(self, content: list[dict[str, Any]]) -> float:
         """Compute accessibility coverage percentage."""
-        accessible = sum(
-            1 for c in content if c.get("a11y_compliant", False)
-        )
-        return round(
-            (accessible / len(content) * 100) if content else 0.0, 2
-        )
+        accessible = sum(1 for c in content if c.get("a11y_compliant", False))
+        return round((accessible / len(content) * 100) if content else 0.0, 2)
 
-    def _compute_localization_coverage(
-        self, content: list[dict[str, Any]]
-    ) -> float:
+    def _compute_localization_coverage(self, content: list[dict[str, Any]]) -> float:
         """Compute localization coverage percentage."""
-        localized = sum(
-            1 for c in content if c.get("localized", False)
-        )
-        return round(
-            (localized / len(content) * 100) if content else 0.0, 2
-        )
+        localized = sum(1 for c in content if c.get("localized", False))
+        return round((localized / len(content) * 100) if content else 0.0, 2)
 
-    def _compute_content_freshness(
-        self, content: list[dict[str, Any]]
-    ) -> float:
+    def _compute_content_freshness(self, content: list[dict[str, Any]]) -> float:
         """Compute content freshness score based on last review dates."""
-        now = datetime.now(timezone.utc)
         fresh_count = 0
         for item in content:
             last_reviewed = item.get("last_reviewed_days", 0)
             if isinstance(last_reviewed, (int, float)) and last_reviewed <= 90:
                 fresh_count += 1
-        return round(
-            (fresh_count / len(content) * 100) if content else 0.0, 2
-        )
+        return round((fresh_count / len(content) * 100) if content else 0.0, 2)
 
     def _topic_redundancy_score(self, items: list[dict[str, Any]]) -> float:
         """Compute a redundancy score for a set of topic items."""
@@ -367,15 +356,11 @@ class CurriculumEvaluationService:
         unique = len(set(titles))
         return round(((len(items) - unique) / len(items)) * 100, 2)
 
-    def _topic_gaps(
-        self, topic: str, items: list[dict[str, Any]]
-    ) -> list[str]:
+    def _topic_gaps(self, topic: str, items: list[dict[str, Any]]) -> list[str]:
         """Identify gaps in topic coverage."""
         gaps: list[str] = []
         expected_components = ["introduction", "practice", "assessment", "review"]
-        covered = {
-            i.get("type", "").lower() for i in items
-        }
+        covered = {i.get("type", "").lower() for i in items}
         for component in expected_components:
             if component not in covered:
                 gaps.append(f"Missing {component} for topic '{topic}'")

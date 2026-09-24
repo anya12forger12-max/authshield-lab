@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.quality.domain.entities.accessibility_a11y import (
     A11yAudit,
-    A11yAuditResult,
-    A11yFeature,
     A11yProfile,
     A11yScorecard,
     KeyboardShortcut,
@@ -56,7 +54,7 @@ class AccessibilityService:
         audit.na_count = na
         total = len(audit.results)
         audit.overall_score = ((passed / total) * 100.0) if total > 0 else 0.0
-        audit.generated_at = datetime.now(timezone.utc)
+        audit.generated_at = datetime.now(UTC)
         return self._audit_repo.save(audit)
 
     def get_audit(self, audit_id: str) -> A11yAudit | None:

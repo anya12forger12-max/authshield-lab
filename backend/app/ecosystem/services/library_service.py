@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from domain.entities.library import Annotation, Bookmark, Citation, LibraryItem
     from domain.interfaces import LibraryRepository
-    from domain.entities.library import LibraryItem, Bookmark, Annotation, Citation
 
 
 class LibraryService:
@@ -17,7 +17,9 @@ class LibraryService:
         self._repo.add_item(item)
         return item
 
-    def search_items(self, query: str = "", item_type: str = "", tag: str = "") -> list[LibraryItem]:
+    def search_items(
+        self, query: str = "", item_type: str = "", tag: str = ""
+    ) -> list[LibraryItem]:
         return self._repo.search_items(query, item_type, tag)
 
     def get_item(self, item_id: str) -> LibraryItem | None:
@@ -31,13 +33,30 @@ class LibraryService:
         self._repo.add_bookmark(bm)
         return bm
 
-    def add_annotation(self, item_id: str, user_id: str, text: str, highlight: str = "", page: int = 0) -> Annotation:
-        ann = Annotation(item_id=item_id, user_id=user_id, text=text, highlight=highlight, page=page)
+    def add_annotation(
+        self, item_id: str, user_id: str, text: str, highlight: str = "", page: int = 0
+    ) -> Annotation:
+        ann = Annotation(
+            item_id=item_id, user_id=user_id, text=text, highlight=highlight, page=page
+        )
         self._repo.add_annotation(ann)
         return ann
 
-    def add_citation(self, source_item_id: str, target_item_id: str, citation_type: str, page: int = 0, note: str = "") -> Citation:
-        cit = Citation(source_item_id=source_item_id, target_item_id=target_item_id, citation_type=citation_type, page=page, note=note)
+    def add_citation(
+        self,
+        source_item_id: str,
+        target_item_id: str,
+        citation_type: str,
+        page: int = 0,
+        note: str = "",
+    ) -> Citation:
+        cit = Citation(
+            source_item_id=source_item_id,
+            target_item_id=target_item_id,
+            citation_type=citation_type,
+            page=page,
+            note=note,
+        )
         self._repo.add_citation(cit)
         return cit
 
@@ -57,7 +76,10 @@ class LibraryService:
             if not item:
                 continue
             if format == "apa":
-                lines.append(f"{item.author} ({item.created_at.year}). {item.title}. [{item.item_type.value}].")
+                lines.append(
+                    f"{item.author} ({item.created_at.year}). "
+                    f"{item.title}. [{item.item_type.value}]."
+                )
             elif format == "mla":
                 lines.append(f"{item.author}. {item.title}. {item.created_at.year}.")
             elif format == "chicago":

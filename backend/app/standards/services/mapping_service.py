@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.standards.domain.entities.mapping import (
     CoverageReport,
@@ -110,7 +110,7 @@ class MappingService:
             mapping.update_notes(instructor_notes)
         if review_status is not None:
             mapping.set_review_status(review_status)
-        mapping.updated_at = datetime.now(timezone.utc)
+        mapping.updated_at = datetime.now(UTC)
         self._mappings.save(mapping)
         return mapping
 
@@ -184,7 +184,9 @@ class MappingService:
             gaps=unmapped,
         )
         self._bus.dispatch(event)
-        logger.info("Bulk mapping: total=%d mapped=%d unmapped=%d", total, mapped_count, len(unmapped))
+        logger.info(
+            "Bulk mapping: total=%d mapped=%d unmapped=%d", total, mapped_count, len(unmapped)
+        )
         return result
 
     # ------------------------------------------------------------------
@@ -206,13 +208,15 @@ class MappingService:
         for item_id in fw_item_ids - mapped_ids:
             item = fw.find_competency(item_id) or fw.find_skill(item_id)
             item_name = item.name if item else item_id
-            gaps.append(MappingGap(
-                item_id=item_id,
-                item_name=item_name,
-                gap_type="unmapped",
-                severity="medium",
-                recommendation=f"Map {item_name} to a target element",
-            ))
+            gaps.append(
+                MappingGap(
+                    item_id=item_id,
+                    item_name=item_name,
+                    gap_type="unmapped",
+                    severity="medium",
+                    recommendation=f"Map {item_name} to a target element",
+                )
+            )
         report = CoverageReport(
             framework_id=framework_id,
             total_items=total,
@@ -236,20 +240,24 @@ class MappingService:
         for item_id in fw_item_ids - mapped_ids:
             item = fw.find_competency(item_id) or fw.find_skill(item_id)
             item_name = item.name if item else item_id
-            gaps.append(MappingGap(
-                item_id=item_id,
-                item_name=item_name,
-                gap_type="unmapped",
-                severity="medium",
-                recommendation=f"Map {item_name} to a target element",
-            ))
+            gaps.append(
+                MappingGap(
+                    item_id=item_id,
+                    item_name=item_name,
+                    gap_type="unmapped",
+                    severity="medium",
+                    recommendation=f"Map {item_name} to a target element",
+                )
+            )
         for m in self._mappings.list_all():
             if m.confidence < 0.5:
-                gaps.append(MappingGap(
-                    item_id=m.id,
-                    item_name=f"Low-confidence mapping {m.source_id} -> {m.target_id}",
-                    gap_type="low_confidence",
-                    severity="low",
-                    recommendation="Review and increase confidence score",
-                ))
+                gaps.append(
+                    MappingGap(
+                        item_id=m.id,
+                        item_name=f"Low-confidence mapping {m.source_id} -> {m.target_id}",
+                        gap_type="low_confidence",
+                        severity="low",
+                        recommendation="Review and increase confidence score",
+                    )
+                )
         return gaps

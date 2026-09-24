@@ -95,7 +95,10 @@ class TestCurriculumMapping:
 
     def test_default_values(self):
         m = CurriculumMapping(
-            source_id="s", source_type="t", target_id="t", target_type="t",
+            source_id="s",
+            source_type="t",
+            target_id="t",
+            target_type="t",
         )
         assert m.evidence == []
         assert m.related_competencies == []
@@ -199,7 +202,7 @@ class _FakeCoverageRepo:
     def save(self, report):
         return report
 
-    def find_latest(self, framework_id):
+    def find_latest(self, _framework_id):
         return None
 
     def find_all(self):

@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.review import (
     EditorialReview,
     ReviewComment,
     ReviewDecision,
     ReviewDecisionType,
-    ReviewEvent,
     ReviewStage,
 )
 from ..domain.events.content_studio_events import ReviewAdvanced
@@ -51,24 +50,28 @@ class ReviewCenterService:
             content_type=content_type,
             submitter=submitter,
         )
-        result = self._review_repo.create({
-            "id": review.id,
-            "content_id": content_id,
-            "content_type": content_type,
-            "current_stage": review.current_stage.value,
-            "submitter": submitter,
-        })
-        logger.info("editorial_review_created", extra={"review_id": result["id"], "content_id": content_id})
+        result = self._review_repo.create(
+            {
+                "id": review.id,
+                "content_id": content_id,
+                "content_type": content_type,
+                "current_stage": review.current_stage.value,
+                "submitter": submitter,
+            }
+        )
+        logger.info(
+            "editorial_review_created", extra={"review_id": result["id"], "content_id": content_id}
+        )
         return result
 
-    def get_review(self, review_id: str) -> Optional[dict[str, Any]]:
+    def get_review(self, review_id: str) -> dict[str, Any] | None:
         return self._review_repo.get_by_id(review_id)
 
-    def get_review_by_content(self, content_id: str) -> Optional[dict[str, Any]]:
+    def get_review_by_content(self, content_id: str) -> dict[str, Any] | None:
         return self._review_repo.get_by_content(content_id)
 
     def list_reviews(
-        self, page: int = 1, per_page: int = 20, stage: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, stage: str | None = None
     ) -> dict[str, Any]:
         return self._review_repo.get_all(page=page, per_page=per_page, stage=stage)
 
@@ -83,10 +86,7 @@ class ReviewCenterService:
 
         stages = sorted(ReviewStage.__members__.values(), key=lambda s: list(ReviewStage).index(s))
         current_idx = stages.index(current_stage) if current_stage in stages else -1
-        if current_idx < len(stages) - 1:
-            next_stage = stages[current_idx + 1]
-        else:
-            next_stage = current_stage
+        next_stage = stages[current_idx + 1] if current_idx < len(stages) - 1 else current_stage
 
         updated = self._review_repo.update(review_id, {"current_stage": next_stage.value})
 
@@ -96,12 +96,15 @@ class ReviewCenterService:
             from_stage=current_stage.value,
             to_stage=next_stage.value,
         )
-        logger.info("review_advanced", extra={
-            "review_id": review_id,
-            "from_stage": current_stage.value,
-            "to_stage": next_stage.value,
-            "event_id": event.event_id,
-        })
+        logger.info(
+            "review_advanced",
+            extra={
+                "review_id": review_id,
+                "from_stage": current_stage.value,
+                "to_stage": next_stage.value,
+                "event_id": event.event_id,
+            },
+        )
         return updated or existing
 
     def set_stage(self, review_id: str, stage: str) -> dict[str, Any]:
@@ -135,15 +138,19 @@ class ReviewCenterService:
             comment=comment_text,
             severity=severity,
         )
-        result = self._comment_repo.create({
-            "id": comment.id,
-            "review_id": review_id,
-            "author": author,
-            "stage": current_stage.value,
-            "comment": comment_text,
-            "severity": severity,
-        })
-        logger.info("review_comment_added", extra={"review_id": review_id, "comment_id": result["id"]})
+        result = self._comment_repo.create(
+            {
+                "id": comment.id,
+                "review_id": review_id,
+                "author": author,
+                "stage": current_stage.value,
+                "comment": comment_text,
+                "severity": severity,
+            }
+        )
+        logger.info(
+            "review_comment_added", extra={"review_id": review_id, "comment_id": result["id"]}
+        )
         return result
 
     def get_comments(self, review_id: str) -> list[dict[str, Any]]:
@@ -162,7 +169,9 @@ class ReviewCenterService:
 
         valid_decisions = {d.value for d in ReviewDecisionType}
         if decision_type not in valid_decisions:
-            raise ValueError(f"Invalid decision '{decision_type}'. Must be one of: {valid_decisions}")
+            raise ValueError(
+                f"Invalid decision '{decision_type}'. Must be one of: {valid_decisions}"
+            )
 
         current_stage = ReviewStage(existing.get("current_stage", "draft"))
         decision = ReviewDecision(
@@ -172,32 +181,37 @@ class ReviewCenterService:
             decision=ReviewDecisionType(decision_type),
             comments=comments,
         )
-        result = self._decision_repo.create({
-            "id": decision.id,
-            "review_id": review_id,
-            "stage": current_stage.value,
-            "reviewer": reviewer,
-            "decision": decision_type,
-            "comments": comments,
-            "decided_at": decision.decided_at.isoformat(),
-        })
+        result = self._decision_repo.create(
+            {
+                "id": decision.id,
+                "review_id": review_id,
+                "stage": current_stage.value,
+                "reviewer": reviewer,
+                "decision": decision_type,
+                "comments": comments,
+                "decided_at": decision.decided_at.isoformat(),
+            }
+        )
 
         if decision_type == "approved":
             self.advance_review(review_id)
         elif decision_type == "needs_revision":
             self._review_repo.update(review_id, {"current_stage": ReviewStage.DRAFT.value})
 
-        logger.info("review_decision_added", extra={
-            "review_id": review_id,
-            "decision": decision_type,
-            "reviewer": reviewer,
-        })
+        logger.info(
+            "review_decision_added",
+            extra={
+                "review_id": review_id,
+                "decision": decision_type,
+                "reviewer": reviewer,
+            },
+        )
         return result
 
     def get_decisions(self, review_id: str) -> list[dict[str, Any]]:
         return self._decision_repo.get_by_review(review_id)
 
-    def get_latest_decision(self, review_id: str) -> Optional[dict[str, Any]]:
+    def get_latest_decision(self, review_id: str) -> dict[str, Any] | None:
         return self._decision_repo.get_latest(review_id)
 
     def get_review_progress(self, review_id: str) -> dict[str, Any]:
@@ -218,7 +232,9 @@ class ReviewCenterService:
             "current_stage": current_stage.value,
             "total_stages": len(stages_order),
             "completed_stages": current_idx,
-            "progress_pct": round(current_idx / (len(stages_order) - 1) * 100, 1) if len(stages_order) > 1 else 0,
+            "progress_pct": round(current_idx / (len(stages_order) - 1) * 100, 1)
+            if len(stages_order) > 1
+            else 0,
             "total_comments": len(comments),
             "critical_comments": len(critical_comments),
             "total_decisions": len(decisions),

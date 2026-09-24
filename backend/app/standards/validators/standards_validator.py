@@ -76,9 +76,7 @@ class StandardsValidator:
         if valid_levels is None:
             valid_levels = ["beginner", "intermediate", "advanced", "expert"]
         if level not in valid_levels:
-            raise StandardsValidationError(
-                f"Invalid level: {level}. Must be one of {valid_levels}"
-            )
+            raise StandardsValidationError(f"Invalid level: {level}. Must be one of {valid_levels}")
         return level
 
     @staticmethod
@@ -88,7 +86,9 @@ class StandardsValidator:
         return value
 
     @staticmethod
-    def validate_score_range(score: float, field_name: str, min_val: float = 0.0, max_val: float = 1.0) -> float:
+    def validate_score_range(
+        score: float, field_name: str, min_val: float = 0.0, max_val: float = 1.0
+    ) -> float:
         if not min_val <= score <= max_val:
             raise StandardsValidationError(
                 f"{field_name} must be between {min_val} and {max_val}, got {score}"

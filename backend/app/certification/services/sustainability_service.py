@@ -1,10 +1,8 @@
-"""Sustainability service: dependency tracking, API stability, ownership, docs freshness, roadmaps."""
+"Sustainability service: dependency tracking, API stability, ownership, docs freshness, roadmaps."
 
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
 
 from ..domain.entities.sustainability import (
     APIStabilityReport,
@@ -79,7 +77,7 @@ class SustainabilityService:
         )
         return self._dep_repo.save(dep)
 
-    async def get_dependency(self, name: str) -> Optional[DependencyLifecycle]:
+    async def get_dependency(self, name: str) -> DependencyLifecycle | None:
         """Retrieve a dependency by name."""
         return self._dep_repo.find_by_name(name)
 
@@ -110,15 +108,13 @@ class SustainabilityService:
         report.recalculate_score()
         return self._api_repo.save(report)  # type: ignore[return-value]
 
-    async def get_latest_api_stability(self) -> Optional[APIStabilityReport]:
+    async def get_latest_api_stability(self) -> APIStabilityReport | None:
         """Return the most recent API stability report."""
-        result = self._api_repo.find_latest()
-        return result  # type: ignore[return-value]
+        return self._api_repo.find_latest()
 
-    async def get_api_stability_by_version(self, version: str) -> Optional[APIStabilityReport]:
+    async def get_api_stability_by_version(self, version: str) -> APIStabilityReport | None:
         """Return API stability for a specific version."""
-        result = self._api_repo.find_by_version(version)
-        return result  # type: ignore[return-value]
+        return self._api_repo.find_by_version(version)
 
     # ── Module Ownership ────────────────────────────────────────────
 
@@ -133,12 +129,12 @@ class SustainabilityService:
         if existing is not None:
             existing.owner = owner
             existing.health = health
-            existing.last_reviewed = datetime.now(timezone.utc)
+            existing.last_reviewed = datetime.now(UTC)
             return self._ownership_repo.save(existing)
         ownership = ModuleOwnership(module=module, owner=owner, health=health)
         return self._ownership_repo.save(ownership)
 
-    async def get_module_ownership(self, module: str) -> Optional[ModuleOwnership]:
+    async def get_module_ownership(self, module: str) -> ModuleOwnership | None:
         """Retrieve ownership for a module."""
         return self._ownership_repo.find_by_module(module)
 
@@ -156,7 +152,7 @@ class SustainabilityService:
         """Record or refresh documentation freshness for a component."""
         doc = DocumentationFreshness(
             component=component,
-            last_updated=last_updated or datetime.now(timezone.utc),
+            last_updated=last_updated or datetime.now(UTC),
         )
         doc.recalculate()
         existing = self._doc_repo.find_by_component(component)
@@ -167,7 +163,7 @@ class SustainabilityService:
             return self._doc_repo.save(existing)
         return self._doc_repo.save(doc)
 
-    async def get_doc_freshness(self, component: str) -> Optional[DocumentationFreshness]:
+    async def get_doc_freshness(self, component: str) -> DocumentationFreshness | None:
         """Retrieve freshness for a component."""
         return self._doc_repo.find_by_component(component)
 
@@ -197,7 +193,7 @@ class SustainabilityService:
         dashboard.compute_maintenance_score()
         return self._dashboard_repo.save(dashboard)
 
-    async def get_latest_dashboard(self) -> Optional[SustainabilityDashboard]:
+    async def get_latest_dashboard(self) -> SustainabilityDashboard | None:
         """Return the most recent sustainability dashboard."""
         return self._dashboard_repo.find_latest()
 
@@ -212,7 +208,7 @@ class SustainabilityService:
         roadmap = MaintenanceRoadmap(title=title, priority=priority)
         return self._roadmap_repo.save(roadmap)
 
-    async def get_roadmap(self, roadmap_id: str) -> Optional[MaintenanceRoadmap]:
+    async def get_roadmap(self, roadmap_id: str) -> MaintenanceRoadmap | None:
         """Retrieve a roadmap by ID."""
         return self._roadmap_repo.find_by_id(roadmap_id)
 
@@ -228,7 +224,7 @@ class SustainabilityService:
         effort_hours: float = 0.0,
         status: str = "planned",
         target_date: str = "",
-    ) -> Optional[MaintenanceRoadmap]:
+    ) -> MaintenanceRoadmap | None:
         """Add an item to an existing roadmap."""
         roadmap = self._roadmap_repo.find_by_id(roadmap_id)
         if roadmap is None:
@@ -248,7 +244,7 @@ class SustainabilityService:
         roadmap_id: str,
         item_index: int,
         new_status: str,
-    ) -> Optional[MaintenanceRoadmap]:
+    ) -> MaintenanceRoadmap | None:
         """Update the status of a specific roadmap item."""
         roadmap = self._roadmap_repo.find_by_id(roadmap_id)
         if roadmap is None:

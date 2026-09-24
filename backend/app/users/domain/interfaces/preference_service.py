@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any
+from typing import Any
 
 
 class IPreferenceService(ABC):
     """Interface for user preference management operations."""
 
     @abstractmethod
-    async def get_preferences(self, user_id: str) -> Optional[dict]:
+    async def get_preferences(self, user_id: str) -> dict | None:
         """Retrieve all preferences for a user."""
         ...
 
     @abstractmethod
-    async def update_preferences(self, user_id: str, data: dict[str, Any]) -> Optional[dict]:
+    async def update_preferences(self, user_id: str, data: dict[str, Any]) -> dict | None:
         """Update user preferences with the given data."""
         ...
 

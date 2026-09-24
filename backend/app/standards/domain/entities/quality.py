@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -33,7 +33,7 @@ class ReadinessReviewEvent:
     actor: str = ""
     action: str = ""
     comments: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         return {
@@ -60,7 +60,7 @@ class AcademicQualityDashboard:
     localization_readiness: float = 0.0
     content_freshness: float = 0.0
     review_completion: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def overall_score(self) -> float:
         scores = [
@@ -108,7 +108,7 @@ class ReadinessReview:
     framework_id: str = ""
     current_stage: ReadinessStage = ReadinessStage.DRAFT
     created_by: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
     events: list[ReadinessReviewEvent] = field(default_factory=list)
 
@@ -127,7 +127,7 @@ class ReadinessReview:
         self.current_stage = next_stage
         self.events.append(event)
         if next_stage == ReadinessStage.PUBLICATION:
-            self.completed_at = datetime.now(timezone.utc)
+            self.completed_at = datetime.now(UTC)
         return event
 
     def reject(self, actor: str, comments: str = "") -> ReadinessReviewEvent:
@@ -180,7 +180,7 @@ class FrameworkComparison:
     renamed_elements: list[dict] = field(default_factory=list)
     changed_relationships: list[dict] = field(default_factory=list)
     coverage_differences: dict[str, float] = field(default_factory=dict)
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def has_changes(self) -> bool:
         return bool(
@@ -226,7 +226,7 @@ class LearningOutcomeValidation:
     doc_gaps: int = 0
     a11y_gaps: int = 0
     recommendations: list[str] = field(default_factory=list)
-    validated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    validated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def total_issues(self) -> int:
         return (

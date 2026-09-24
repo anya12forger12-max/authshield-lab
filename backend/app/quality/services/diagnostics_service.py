@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.quality.domain.entities.diagnostics import (
     DiagnosticBundle,
@@ -23,7 +23,7 @@ class DiagnosticsService:
         self._bundle_repo = bundle_repo
 
     def run_check(self, check: DiagnosticCheck) -> DiagnosticCheck:
-        check.checked_at = datetime.now(timezone.utc)
+        check.checked_at = datetime.now(UTC)
         return self._check_repo.save(check)
 
     def get_checks_by_category(self, category: str) -> list[DiagnosticCheck]:
@@ -53,7 +53,7 @@ class DiagnosticsService:
             platform=platform,
             version=version,
             includes_sensitive=includes_sensitive,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
         return self._bundle_repo.save(bundle)
 
@@ -67,7 +67,14 @@ class DiagnosticsService:
         cat_map: dict[str, dict] = {}
         for c in checks:
             if c.category not in cat_map:
-                cat_map[c.category] = {"name": c.category, "description": "", "checks_count": 0, "passed": 0, "failed": 0, "warnings": 0}
+                cat_map[c.category] = {
+                    "name": c.category,
+                    "description": "",
+                    "checks_count": 0,
+                    "passed": 0,
+                    "failed": 0,
+                    "warnings": 0,
+                }
             cat_map[c.category]["checks_count"] += 1
             if c.status == "pass":
                 cat_map[c.category]["passed"] += 1

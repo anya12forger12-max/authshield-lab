@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from .strings import STRINGS
 
@@ -41,8 +41,7 @@ class LocalizationManager:
         if language not in self._strings:
             available = ", ".join(sorted(self._strings.keys()))
             raise KeyError(
-                f"Language '{language}' is not available. "
-                f"Available languages: {available}"
+                f"Language '{language}' is not available. Available languages: {available}"
             )
         self._current_language = language
 
@@ -81,13 +80,11 @@ class LocalizationManager:
             try:
                 return translated.format_map(kwargs)
             except (KeyError, IndexError):
-                logger.warning(
-                    "Failed to interpolate kwargs for key '%s': %s", key, kwargs
-                )
+                logger.warning("Failed to interpolate kwargs for key '%s': %s", key, kwargs)
                 return translated
         return translated
 
-    def _resolve(self, key: str, language: str) -> Optional[str]:
+    def _resolve(self, key: str, language: str) -> str | None:
         """Return the raw string for *key* under *language*, or ``None``."""
         lang_strings = self._strings.get(language)
         if lang_strings is None:
@@ -98,7 +95,7 @@ class LocalizationManager:
         """Return a sorted list of language codes that have translations."""
         return sorted(self._strings.keys())
 
-    def has_translation(self, key: str, language: Optional[str] = None) -> bool:
+    def has_translation(self, key: str, language: str | None = None) -> bool:
         """Check whether a translation exists for *key*.
 
         Parameters
@@ -131,12 +128,12 @@ class LocalizationManager:
 # Module-level singleton
 # ------------------------------------------------------------------
 
-_localization_manager: Optional[LocalizationManager] = None
+_localization_manager: LocalizationManager | None = None
 
 
 def get_localization() -> LocalizationManager:
     """Return the global :class:`LocalizationManager`, creating it lazily."""
-    global _localization_manager  # noqa: PLW0603
+    global _localization_manager
     if _localization_manager is None:
         _localization_manager = LocalizationManager()
     return _localization_manager

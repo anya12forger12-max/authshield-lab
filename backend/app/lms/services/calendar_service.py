@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.events.lms_events import CalendarEventCreated
 from ..domain.interfaces.lms_interfaces import ICalendarRepository
@@ -19,22 +19,20 @@ class CalendarService:
     def __init__(self, calendar_repo: ICalendarRepository) -> None:
         self._repo = calendar_repo
 
-    def create_calendar(self, name: str, year: Optional[int] = None) -> dict[str, Any]:
+    def create_calendar(self, name: str, year: int | None = None) -> dict[str, Any]:
         if not name or not name.strip():
             raise ValueError("Calendar name is required.")
         if year is None:
-            year = datetime.now(timezone.utc).year
+            year = datetime.now(UTC).year
         return self._repo.create({"name": name.strip(), "year": year})
 
-    def get_calendar(self, calendar_id: str) -> Optional[dict[str, Any]]:
+    def get_calendar(self, calendar_id: str) -> dict[str, Any] | None:
         return self._repo.get_by_id(calendar_id)
 
     def list_calendars(self) -> list[dict[str, Any]]:
         return self._repo.get_all()
 
-    def update_calendar(
-        self, calendar_id: str, data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def update_calendar(self, calendar_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         if not self._repo.get_by_id(calendar_id):
             raise ValueError(f"Calendar '{calendar_id}' not found.")
         return self._repo.update(calendar_id, data)
@@ -82,7 +80,11 @@ class CalendarService:
         )
         logger.info(
             "calendar_event_created",
-            extra={"calendar_id": calendar_id, "event_id": event.get("id"), "event_id_event": event_created.event_id},
+            extra={
+                "calendar_id": calendar_id,
+                "event_id": event.get("id"),
+                "event_id_event": event_created.event_id,
+            },
         )
         return event
 
@@ -96,9 +98,7 @@ class CalendarService:
             raise ValueError(f"Calendar '{calendar_id}' not found.")
         return self._repo.remove_event(calendar_id, event_id)
 
-    def get_events_by_type(
-        self, calendar_id: str, event_type: str
-    ) -> list[dict[str, Any]]:
+    def get_events_by_type(self, calendar_id: str, event_type: str) -> list[dict[str, Any]]:
         events = self._repo.get_events(calendar_id)
         return [e for e in events if e.get("event_type") == event_type]
 
@@ -144,7 +144,7 @@ class CalendarService:
         return self._repo.get_important_dates()
 
     def get_upcoming_events(self, calendar_id: str) -> list[dict[str, Any]]:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         events = self._repo.get_events(calendar_id)
         upcoming: list[dict[str, Any]] = []
         for e in events:

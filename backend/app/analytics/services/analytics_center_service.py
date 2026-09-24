@@ -3,29 +3,29 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.analytics import (
     AssessmentOutcome,
     ContentUsage,
+    CourseCompletion,
     CurriculumCoverage,
     EducationalAnalyticsDashboard,
     FilterOptions,
     LearningProgress,
-    CourseCompletion,
 )
+from ..domain.events.analytics_events import AnalyticsDashboardGenerated
 from ..domain.interfaces import (
     IAnalyticsDashboardRepository,
     IAssessmentOutcomeRepository,
     IContentUsageRepository,
-    ICurriculumCoverageRepository,
     ICourseCompletionRepository,
+    ICurriculumCoverageRepository,
     ILearningProgressRepository,
 )
-from ..domain.events.analytics_events import AnalyticsDashboardGenerated
 
 logger = get_logger("analytics.center_service")
 
@@ -59,7 +59,7 @@ class AnalyticsCenterService:
         assessment_repo: IAssessmentOutcomeRepository,
         coverage_repo: ICurriculumCoverageRepository,
         content_repo: IContentUsageRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._dashboard_repo = dashboard_repo
         self._progress_repo = progress_repo
@@ -75,7 +75,7 @@ class AnalyticsCenterService:
 
     async def generate_dashboard(
         self,
-        filters: Optional[FilterOptions] = None,
+        filters: FilterOptions | None = None,
     ) -> EducationalAnalyticsDashboard:
         """Generate a comprehensive analytics dashboard.
 
@@ -94,8 +94,12 @@ class AnalyticsCenterService:
         aggregated_progress = self._aggregate_progress(progress_items)
         aggregated_content = self._aggregate_content_usage(content_items)
 
-        coverage = coverage_items[0] if coverage_items else CurriculumCoverage(
-            framework_id=str(uuid.uuid4()),
+        coverage = (
+            coverage_items[0]
+            if coverage_items
+            else CurriculumCoverage(
+                framework_id=str(uuid.uuid4()),
+            )
         )
 
         dashboard = EducationalAnalyticsDashboard(
@@ -107,7 +111,7 @@ class AnalyticsCenterService:
             content_usage=aggregated_content,
             a11y_metrics=self._compute_a11y_metrics(),
             doc_quality=self._compute_doc_quality(),
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
         await self._dashboard_repo.create(dashboard)
@@ -122,17 +126,15 @@ class AnalyticsCenterService:
 
         return dashboard
 
-    async def get_dashboard(self, dashboard_id: str) -> Optional[EducationalAnalyticsDashboard]:
+    async def get_dashboard(self, dashboard_id: str) -> EducationalAnalyticsDashboard | None:
         """Retrieve a specific dashboard by ID."""
         return await self._dashboard_repo.get_by_id(dashboard_id)
 
-    async def get_latest_dashboard(self) -> Optional[EducationalAnalyticsDashboard]:
+    async def get_latest_dashboard(self) -> EducationalAnalyticsDashboard | None:
         """Retrieve the most recently generated dashboard."""
         return await self._dashboard_repo.get_latest()
 
-    async def list_dashboards(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_dashboards(self, page: int = 1, per_page: int = 20) -> dict:
         """List all dashboards with pagination."""
         return await self._dashboard_repo.get_all(page=page, per_page=per_page)
 
@@ -148,14 +150,17 @@ class AnalyticsCenterService:
         """Record or update a learner's progress."""
         existing = await self._progress_repo.get_by_learner_id(learner_id)
         if existing is not None:
-            updated = await self._progress_repo.update(learner_id, {
-                "courses_enrolled": courses_enrolled,
-                "courses_completed": courses_completed,
-                "competencies_achieved": competencies_achieved,
-                "avg_score": avg_score,
-                "total_time_hours": total_time_hours,
-                "last_active": datetime.now(timezone.utc),
-            })
+            updated = await self._progress_repo.update(
+                learner_id,
+                {
+                    "courses_enrolled": courses_enrolled,
+                    "courses_completed": courses_completed,
+                    "competencies_achieved": competencies_achieved,
+                    "avg_score": avg_score,
+                    "total_time_hours": total_time_hours,
+                    "last_active": datetime.now(UTC),
+                },
+            )
             logger.info("learning_progress_updated", learner_id=learner_id)
             return updated if updated else existing
 
@@ -166,7 +171,7 @@ class AnalyticsCenterService:
             competencies_achieved=competencies_achieved,
             avg_score=avg_score,
             total_time_hours=total_time_hours,
-            last_active=datetime.now(timezone.utc),
+            last_active=datetime.now(UTC),
         )
         created = await self._progress_repo.create(progress)
         logger.info("learning_progress_recorded", learner_id=learner_id)
@@ -187,14 +192,17 @@ class AnalyticsCenterService:
 
         existing = await self._course_repo.get_by_course_id(course_id)
         if existing is not None:
-            updated = await self._course_repo.update(course_id, {
-                "course_name": course_name,
-                "enrolled": enrolled,
-                "completed": completed,
-                "in_progress": in_progress,
-                "dropped": dropped,
-                "completion_rate": completion_rate,
-            })
+            updated = await self._course_repo.update(
+                course_id,
+                {
+                    "course_name": course_name,
+                    "enrolled": enrolled,
+                    "completed": completed,
+                    "in_progress": in_progress,
+                    "dropped": dropped,
+                    "completion_rate": completion_rate,
+                },
+            )
             return updated if updated else existing
 
         completion = CourseCompletion(
@@ -209,9 +217,7 @@ class AnalyticsCenterService:
         )
         return await self._course_repo.create(completion)
 
-    async def get_aggregate_metrics(
-        self, filters: Optional[FilterOptions] = None
-    ) -> dict[str, Any]:
+    async def get_aggregate_metrics(self, filters: FilterOptions | None = None) -> dict[str, Any]:
         """Compute aggregate metrics across all data sources."""
         progress_items = await self._progress_repo.get_all()
         course_items = await self._course_repo.get_all()
@@ -227,7 +233,9 @@ class AnalyticsCenterService:
 
         avg_completion_rate = 0.0
         if filtered_courses:
-            avg_completion_rate = sum(c.completion_rate for c in filtered_courses) / len(filtered_courses)
+            avg_completion_rate = sum(c.completion_rate for c in filtered_courses) / len(
+                filtered_courses
+            )
 
         avg_pass_rate = 0.0
         if assessment_items:
@@ -250,11 +258,7 @@ class AnalyticsCenterService:
         total_enrolled = sum(p.courses_enrolled for p in items)
         total_completed = sum(p.courses_completed for p in items)
         total_competencies = sum(p.competencies_achieved for p in items)
-        avg_score = (
-            sum(p.avg_score for p in items) / len(items)
-            if items
-            else 0.0
-        )
+        avg_score = sum(p.avg_score for p in items) / len(items) if items else 0.0
         total_time = sum(p.total_time_hours for p in items)
 
         return LearningProgress(
@@ -264,7 +268,7 @@ class AnalyticsCenterService:
             competencies_achieved=total_competencies,
             avg_score=round(avg_score, 2),
             total_time_hours=round(total_time, 2),
-            last_active=datetime.now(timezone.utc),
+            last_active=datetime.now(UTC),
         )
 
     def _aggregate_content_usage(self, items: list[ContentUsage]) -> list[ContentUsage]:
@@ -272,22 +276,20 @@ class AnalyticsCenterService:
         return sorted(items, key=lambda c: c.access_count, reverse=True)
 
     def _apply_course_filters(
-        self, courses: list[CourseCompletion], filters: Optional[FilterOptions]
+        self, courses: list[CourseCompletion], filters: FilterOptions | None
     ) -> list[CourseCompletion]:
         """Apply optional filters to course completion data."""
         if filters is None:
             return courses
-        result = courses
-        return result
+        return courses
 
     def _apply_assessment_filters(
-        self, assessments: list[AssessmentOutcome], filters: Optional[FilterOptions]
+        self, assessments: list[AssessmentOutcome], filters: FilterOptions | None
     ) -> list[AssessmentOutcome]:
         """Apply optional filters to assessment outcome data."""
         if filters is None:
             return assessments
-        result = assessments
-        return result
+        return assessments
 
     def _compute_a11y_metrics(self) -> dict[str, Any]:
         """Compute accessibility metrics summary."""

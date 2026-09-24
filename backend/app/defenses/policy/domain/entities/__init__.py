@@ -1,13 +1,13 @@
 """Domain entities for the security policy engine."""
 
 from .policy_entity import (
+    VALID_STATUS_TRANSITIONS,
     PolicyCategory,
+    PolicyConfiguration,
     PolicyDecision,
     PolicyDecisionResult,
     PolicyStatus,
-    PolicyConfiguration,
     SecurityPolicy,
-    VALID_STATUS_TRANSITIONS,
 )
 from .rule_entity import (
     RuleAction,
@@ -18,6 +18,7 @@ from .rule_entity import (
 )
 
 __all__ = [
+    "VALID_STATUS_TRANSITIONS",
     "PolicyCategory",
     "PolicyConfiguration",
     "PolicyDecision",
@@ -29,5 +30,4 @@ __all__ = [
     "RuleExecutionMode",
     "SecurityPolicy",
     "SecurityRule",
-    "VALID_STATUS_TRANSITIONS",
 ]

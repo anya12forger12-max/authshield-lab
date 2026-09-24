@@ -5,15 +5,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from domain.entities.marketplace import InstallationRecord, LocalPackage, PackageSearch
     from domain.interfaces import MarketplaceRepository
-    from domain.entities.marketplace import LocalPackage, PackageSearch, InstallationRecord
 
 
 class MarketplaceService:
     def __init__(self, repo: MarketplaceRepository) -> None:
         self._repo = repo
 
-    def install_package(self, package_id: str, installed_by: str, config: dict | None = None) -> InstallationRecord:
+    def install_package(
+        self, package_id: str, installed_by: str, config: dict | None = None
+    ) -> InstallationRecord:
         pkg = self._repo.get_package(package_id)
         if not pkg:
             raise ValueError(f"Package {package_id} not found")

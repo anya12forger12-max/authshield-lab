@@ -1,8 +1,8 @@
 """Authentication domain entities."""
 
 from .account_status import (
-    AccountStatus,
     VALID_TRANSITIONS,
+    AccountStatus,
     can_transition,
     validate_transition,
 )
@@ -14,8 +14,8 @@ from .authentication_result import (
 from .session_status import SessionStatus, is_terminal, is_usable
 
 __all__ = [
-    "AccountStatus",
     "VALID_TRANSITIONS",
+    "AccountStatus",
     "AuthenticationOutcome",
     "AuthenticationResult",
     "FailureReason",

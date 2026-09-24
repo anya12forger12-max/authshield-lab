@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ..domain.entities.timeline import Timeline, TimelineEvent, BranchPath
+from ...shared.events.event_bus import DomainEvent, EventBus, EventType, get_event_bus
+from ..domain.entities.timeline import BranchPath, Timeline, TimelineEvent
 from ..domain.interfaces import TimelineRepositoryInterface
-from ...shared.events.event_bus import EventBus, DomainEvent, EventType, get_event_bus
 
 
 class TimelineService:
@@ -36,7 +36,7 @@ class TimelineService:
             id=str(uuid.uuid4()),
             name=name,
             scenario_id=scenario_id,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         created = await self._repo.create(timeline)
 
@@ -49,19 +49,15 @@ class TimelineService:
         await self._event_bus.publish(event)
         return created
 
-    async def get_timeline(self, timeline_id: str) -> Optional[Timeline]:
+    async def get_timeline(self, timeline_id: str) -> Timeline | None:
         """Retrieve a timeline by ID."""
         return await self._repo.get_by_id(timeline_id)
 
-    async def list_timelines(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def list_timelines(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """List all timelines with pagination."""
         return await self._repo.get_all(page=page, per_page=per_page)
 
-    async def update_timeline(
-        self, timeline_id: str, data: dict[str, Any]
-    ) -> Optional[Timeline]:
+    async def update_timeline(self, timeline_id: str, data: dict[str, Any]) -> Timeline | None:
         """Update an existing timeline."""
         return await self._repo.update(timeline_id, data)
 
@@ -124,9 +120,7 @@ class TimelineService:
             )
         return removed
 
-    async def reorder_events(
-        self, timeline_id: str, event_ids: list[str]
-    ) -> Timeline:
+    async def reorder_events(self, timeline_id: str, event_ids: list[str]) -> Timeline:
         """Reorder events in a timeline."""
         timeline = await self._repo.get_by_id(timeline_id)
         if timeline is None:

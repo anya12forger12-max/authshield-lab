@@ -1,9 +1,9 @@
-"""Tests for DeterministicGenerator — seed determinism, generate_auth_logs, generate_audit_logs, generate_user_profiles."""
+"Tests for DeterministicGenerator — seed determinism, generate_auth_logs, generate_audit_logs, generate_user_profiles."
 
 from __future__ import annotations
 
-from app.simulation.services.dataset_generator import DeterministicGenerator
 from app.simulation.domain.entities.dataset import DatasetArtifactType
+from app.simulation.services.dataset_generator import DeterministicGenerator
 
 
 class TestDeterministicGenerator:

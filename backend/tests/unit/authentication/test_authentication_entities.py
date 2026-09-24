@@ -1,23 +1,24 @@
 """Tests for authentication domain entities: AccountStatus, SessionStatus, AuthenticationResult."""
 
+from datetime import UTC, datetime
+
 import pytest
-from datetime import datetime, timezone
 
 from app.authentication.domain.entities.account_status import (
-    AccountStatus,
     VALID_TRANSITIONS,
+    AccountStatus,
     can_transition,
     validate_transition,
 )
-from app.authentication.domain.entities.session_status import (
-    SessionStatus,
-    is_usable,
-    is_terminal,
-)
 from app.authentication.domain.entities.authentication_result import (
     AuthenticationOutcome,
-    FailureReason,
     AuthenticationResult,
+    FailureReason,
+)
+from app.authentication.domain.entities.session_status import (
+    SessionStatus,
+    is_terminal,
+    is_usable,
 )
 
 
@@ -143,7 +144,7 @@ class TestAuthenticationResult:
 
     def test_default_timestamp_is_recent(self):
         result = self._make_result()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         assert abs((now - result.timestamp).total_seconds()) < 5
 
     def test_to_response_dict_success(self):

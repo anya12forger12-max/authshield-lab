@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 from app.content.domain.entities.content import (
     Course,
     CourseStatus,
@@ -37,7 +35,9 @@ class TestCourse:
         assert c.status == CourseStatus.ARCHIVED.value
 
     def test_clone_creates_draft_copy(self):
-        c = Course(title="Original", description="Desc", learning_objectives=["obj1"], estimated_hours=10)
+        c = Course(
+            title="Original", description="Desc", learning_objectives=["obj1"], estimated_hours=10
+        )
         cloned = c.clone()
         assert cloned.id != c.id
         assert cloned.status == CourseStatus.DRAFT.value
@@ -83,7 +83,9 @@ class TestLesson:
         assert l.version == 1
 
     def test_custom_lesson(self):
-        l = Lesson(title="Intro", lesson_type="lab", order=1, estimated_minutes=45, accessible=False)
+        l = Lesson(
+            title="Intro", lesson_type="lab", order=1, estimated_minutes=45, accessible=False
+        )
         assert l.title == "Intro"
         assert l.lesson_type == "lab"
         assert l.estimated_minutes == 45
@@ -140,7 +142,9 @@ class TestMediaAsset:
         assert m.alt_text == ""
 
     def test_custom_asset(self):
-        m = MediaAsset(title="Logo", media_type="video", uri="/videos/logo.mp4", alt_text="Company logo")
+        m = MediaAsset(
+            title="Logo", media_type="video", uri="/videos/logo.mp4", alt_text="Company logo"
+        )
         assert m.title == "Logo"
         assert m.uri == "/videos/logo.mp4"
 
@@ -151,7 +155,9 @@ class TestKnowledgeNode:
         assert kn.node_type == KnowledgeNodeType.CONCEPT.value
 
     def test_with_competencies(self):
-        kn = KnowledgeNode(title="Encryption", node_type="principle", competencies=["SEC-101", "SEC-102"])
+        kn = KnowledgeNode(
+            title="Encryption", node_type="principle", competencies=["SEC-101", "SEC-102"]
+        )
         assert kn.title == "Encryption"
         assert len(kn.competencies) == 2
 

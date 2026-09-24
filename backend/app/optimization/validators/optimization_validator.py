@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from ...shared.validation.validator import ValidationResult
+from ..domain.entities.release_governance import ReleaseStage
 
 
 def validate_performance_metric_data(data: dict[str, Any]) -> ValidationResult:
@@ -69,7 +70,9 @@ def validate_feature_flag_data(data: dict[str, Any]) -> ValidationResult:
         result.add_error("name", "Flag name must be at most 255 characters", "MAX_LENGTH")
     elif not all(c.isalnum() or c in "._-" for c in str(name).strip()):
         result.add_error(
-            "name", "Flag name may only contain letters, digits, dots, hyphens, underscores", "INVALID_CHARS"
+            "name",
+            "Flag name may only contain letters, digits, dots, hyphens, underscores",
+            "INVALID_CHARS",
         )
 
     category = data.get("category", "")
@@ -114,7 +117,9 @@ def validate_release_workflow_data(data: dict[str, Any]) -> ValidationResult:
 
     created_by = data.get("created_by", "")
     if not created_by or not str(created_by).strip():
-        result.add_warning("created_by", "Created-by is recommended for accountability", "MISSING_AUTHOR")
+        result.add_warning(
+            "created_by", "Created-by is recommended for accountability", "MISSING_AUTHOR"
+        )
 
     return result
 
@@ -132,8 +137,8 @@ def validate_release_approval_data(data: dict[str, Any]) -> ValidationResult:
         result.add_error("approver", "Approver is required", "REQUIRED")
 
     stage = data.get("stage", "")
-    from ..domain.entities.release_governance import ReleaseStage as _RS
-    valid_stages = {s.value for s in _RS}
+
+    valid_stages = {s.value for s in ReleaseStage}
     if stage and stage not in valid_stages:
         result.add_error("stage", f"Stage must be one of: {valid_stages}", "INVALID_VALUE")
 
@@ -187,7 +192,9 @@ def validate_technical_debt_data(data: dict[str, Any]) -> ValidationResult:
     severity = data.get("severity", "low")
     valid_severities = {"low", "medium", "high", "critical"}
     if severity not in valid_severities:
-        result.add_error("severity", f"Severity must be one of: {valid_severities}", "INVALID_VALUE")
+        result.add_error(
+            "severity", f"Severity must be one of: {valid_severities}", "INVALID_VALUE"
+        )
 
     estimated_hours = data.get("estimated_hours")
     if estimated_hours is not None:

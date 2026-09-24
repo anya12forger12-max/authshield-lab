@@ -5,9 +5,8 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from ...shared.exceptions import ConflictError, ValidationError
-from ...shared.logging_config import get_logger, log_audit_event, log_security_event
 from ...config.constants import MODULE_AUTH
+from ...shared.logging_config import get_logger, log_audit_event, log_security_event
 from ..domain.entities.authentication_result import (
     AuthenticationOutcome,
     AuthenticationResult,
@@ -15,8 +14,8 @@ from ..domain.entities.authentication_result import (
 )
 from ..domain.interfaces.event_publisher import IAuthenticationEventPublisher
 from ..domain.interfaces.password_service import IPasswordHashingService, IPasswordPolicyService
-from ..domain.interfaces.repository_interfaces import IUserRepository
 from ..domain.interfaces.registration_service import IRegistrationService
+from ..domain.interfaces.repository_interfaces import IUserRepository
 from ..domain.models.request_models import RegistrationRequest
 
 logger = get_logger(MODULE_AUTH)
@@ -77,9 +76,7 @@ class RegistrationService(IRegistrationService):
         )
 
         # Publish registration requested event
-        await self._event_publisher.publish_registration_requested(
-            request.username, correlation_id
-        )
+        await self._event_publisher.publish_registration_requested(request.username, correlation_id)
 
         # Validate passwords match
         if request.password != request.confirm_password:
@@ -98,7 +95,9 @@ class RegistrationService(IRegistrationService):
         )
         if not policy_result.get("is_valid", True):
             errors = policy_result.get("errors", [])
-            error_messages = [e.get("message", str(e)) if isinstance(e, dict) else str(e) for e in errors]
+            error_messages = [
+                e.get("message", str(e)) if isinstance(e, dict) else str(e) for e in errors
+            ]
             return self._build_failure(
                 FailureReason.PASSWORD_POLICY_VIOLATION,
                 "Password does not meet policy requirements.",
@@ -127,22 +126,19 @@ class RegistrationService(IRegistrationService):
             )
 
         # Check email availability if provided
-        if request.email:
-            if await self._user_repo.exists_by_email(request.email):
-                return self._build_failure(
-                    FailureReason.VALIDATION_FAILED,
-                    "An account with this email already exists.",
-                    username=request.username,
-                    correlation_id=correlation_id,
-                    start_time=start_time,
-                    error_code="EMAIL_TAKEN",
-                )
+        if request.email and await self._user_repo.exists_by_email(request.email):
+            return self._build_failure(
+                FailureReason.VALIDATION_FAILED,
+                "An account with this email already exists.",
+                username=request.username,
+                correlation_id=correlation_id,
+                start_time=start_time,
+                error_code="EMAIL_TAKEN",
+            )
 
         # Hash password
         try:
-            hashed_password = await self._password_hasher.hash_password(
-                request.password
-            )
+            hashed_password = await self._password_hasher.hash_password(request.password)
         except Exception:
             logger.exception("password_hash_error", correlation_id=correlation_id)
             return self._build_failure(

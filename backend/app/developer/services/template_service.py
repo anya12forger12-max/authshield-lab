@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class _TemplateRecord:
@@ -72,7 +72,7 @@ class TemplateService:
             category=category,
             version=version,
             author=author,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         self._templates[record.id] = record
         return record
@@ -97,9 +97,7 @@ class TemplateService:
         """Search templates by name or description."""
         q = query.lower()
         return [
-            t
-            for t in self._templates.values()
-            if q in t.name.lower() or q in t.description.lower()
+            t for t in self._templates.values() if q in t.name.lower() or q in t.description.lower()
         ]
 
     def update(
@@ -151,7 +149,7 @@ class TemplateService:
             category=original.category,
             version=original.version,
             author=original.author,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         self._templates[copy.id] = copy
         return copy

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -23,7 +23,7 @@ class ProgramEvaluation:
     a11y_readiness: float = 0.0
     governance_compliance: float = 0.0
     doc_health: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -34,4 +34,4 @@ class ExecutiveSummary:
     key_findings: list[str] = field(default_factory=list)
     recommendations: list[str] = field(default_factory=list)
     priorities: list[str] = field(default_factory=list)
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))

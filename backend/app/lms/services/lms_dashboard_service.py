@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from .classroom_service import ClassroomService
-from .enrollment_service import EnrollmentService
-from .gradebook_service import GradebookService
-from .competency_service import CompetencyService
 from .assessment_service import AssessmentLmsService
 from .calendar_service import CalendarService
+from .classroom_service import ClassroomService
+from .competency_service import CompetencyService
+from .enrollment_service import EnrollmentService
+from .gradebook_service import GradebookService
 from .portfolio_service import PortfolioService
 
 logger = logging.getLogger(__name__)
@@ -42,10 +42,9 @@ class LmsDashboardService:
         """Return a high-level summary for the LMS dashboard."""
         classrooms = self._classrooms.list_classrooms(per_page=10000)
         total_classrooms = classrooms.get("total", 0)
-        active_classrooms = len([
-            c for c in classrooms.get("items", [])
-            if c.get("status") == "active"
-        ])
+        active_classrooms = len(
+            [c for c in classrooms.get("items", []) if c.get("status") == "active"]
+        )
 
         all_enrollments_result = self._enrollments.list_enrollments(per_page=10000)
         all_enrollments = all_enrollments_result.get("items", [])
@@ -55,7 +54,7 @@ class LmsDashboardService:
         total_learners = len({e.get("learner_id") for e in all_enrollments if e.get("learner_id")})
 
         return {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "classrooms": {
                 "total": total_classrooms,
                 "active": active_classrooms,
@@ -73,21 +72,22 @@ class LmsDashboardService:
         """Dashboard view for a specific instructor."""
         classrooms = self._classrooms.list_classrooms(per_page=10000)
         my_classrooms = [
-            c for c in classrooms.get("items", [])
-            if c.get("instructor_id") == instructor_id
+            c for c in classrooms.get("items", []) if c.get("instructor_id") == instructor_id
         ]
 
         classroom_summaries: list[dict[str, Any]] = []
         for classroom in my_classrooms:
             cid = classroom.get("id", "")
             members = self._classrooms.get_members(cid)
-            classroom_summaries.append({
-                "classroom_id": cid,
-                "name": classroom.get("name", ""),
-                "status": classroom.get("status", ""),
-                "member_count": len(members),
-                "capacity": classroom.get("capacity", 0),
-            })
+            classroom_summaries.append(
+                {
+                    "classroom_id": cid,
+                    "name": classroom.get("name", ""),
+                    "status": classroom.get("status", ""),
+                    "member_count": len(members),
+                    "capacity": classroom.get("capacity", 0),
+                }
+            )
 
         return {
             "instructor_id": instructor_id,
@@ -109,12 +109,14 @@ class LmsDashboardService:
             avg = 0.0
             if gradebook:
                 avg = self._gradebook.calculate_learner_average(gradebook["id"], learner_id)
-            grades_summary.append({
-                "course_id": course_id,
-                "enrollment_status": enrollment.get("status", ""),
-                "average": avg,
-                "grade": enrollment.get("grade"),
-            })
+            grades_summary.append(
+                {
+                    "course_id": course_id,
+                    "enrollment_status": enrollment.get("status", ""),
+                    "average": avg,
+                    "grade": enrollment.get("grade"),
+                }
+            )
 
         return {
             "learner_id": learner_id,
@@ -125,13 +127,13 @@ class LmsDashboardService:
         }
 
     def get_upcoming_deadlines(
-        self, calendar_id: Optional[str] = None, days_ahead: int = 30
+        self, calendar_id: str | None = None, _days_ahead: int = 30
     ) -> list[dict[str, Any]]:
         """Return upcoming events and deadlines across calendars."""
         calendars = self._calendar.list_calendars()
         upcoming: list[dict[str, Any]] = []
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for cal in calendars:
             cal_id = cal.get("id", "")
             if calendar_id and cal_id != calendar_id:
@@ -145,11 +147,13 @@ class LmsDashboardService:
                     except ValueError:
                         continue
                 if start_time and start_time > now:
-                    upcoming.append({
-                        "calendar_id": cal_id,
-                        "event": event,
-                        "start_time": start_time.isoformat(),
-                    })
+                    upcoming.append(
+                        {
+                            "calendar_id": cal_id,
+                            "event": event,
+                            "start_time": start_time.isoformat(),
+                        }
+                    )
 
         upcoming.sort(key=lambda x: x.get("start_time", ""))
         return upcoming[:50]
@@ -161,17 +165,19 @@ class LmsDashboardService:
 
         activity: list[dict[str, Any]] = []
         for item in items:
-            activity.append({
-                "type": "enrollment",
-                "learner_id": item.get("learner_id", ""),
-                "course_id": item.get("course_id", ""),
-                "status": item.get("status", ""),
-                "timestamp": item.get("enrolled_at", ""),
-            })
+            activity.append(
+                {
+                    "type": "enrollment",
+                    "learner_id": item.get("learner_id", ""),
+                    "course_id": item.get("course_id", ""),
+                    "status": item.get("status", ""),
+                    "timestamp": item.get("enrolled_at", ""),
+                }
+            )
 
         activity.sort(key=lambda a: a.get("timestamp", ""), reverse=True)
         return {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "activities": activity[:limit],
             "total": len(activity),
         }

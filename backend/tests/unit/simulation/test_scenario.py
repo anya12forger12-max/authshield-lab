@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from app.simulation.domain.entities.scenario import Scenario, ScenarioDifficulty, ScenarioStatus, ScenarioType
+from app.simulation.domain.entities.scenario import (
+    Scenario,
+    ScenarioDifficulty,
+    ScenarioStatus,
+    ScenarioType,
+)
 
 
 class TestScenarioEntity:
@@ -79,7 +84,9 @@ class TestScenarioEntity:
         assert d["difficulty"] == "beginner"
 
     def test_custom_difficulty_and_type(self):
-        s = Scenario(difficulty=ScenarioDifficulty.ADVANCED, scenario_type=ScenarioType.AUDIT_LOG_ANALYSIS)
+        s = Scenario(
+            difficulty=ScenarioDifficulty.ADVANCED, scenario_type=ScenarioType.AUDIT_LOG_ANALYSIS
+        )
         assert s.difficulty == ScenarioDifficulty.ADVANCED
         assert s.scenario_type == ScenarioType.AUDIT_LOG_ANALYSIS
 
@@ -100,17 +107,26 @@ class TestScenarioService:
     @pytest.fixture
     def service(self, repo):
         from app.simulation.services.scenario_service import ScenarioService
+
         return ScenarioService(repository=repo, event_bus=MagicMock(publish=AsyncMock()))
 
     @pytest.mark.asyncio
     async def test_create_scenario(self, service, repo):
-        created = Scenario(id="s1", title="Test", description="Desc", target_audience="All", learning_objectives=["LO1"])
+        created = Scenario(
+            id="s1",
+            title="Test",
+            description="Desc",
+            target_audience="All",
+            learning_objectives=["LO1"],
+        )
         repo.create.return_value = created
-        result = await service.create_scenario("Test", "Desc", target_audience="All", learning_objectives=["LO1"])
+        result = await service.create_scenario(
+            "Test", "Desc", target_audience="All", learning_objectives=["LO1"]
+        )
         assert result.title == "Test"
 
     @pytest.mark.asyncio
-    async def test_create_scenario_validation_fails(self, service, repo):
+    async def test_create_scenario_validation_fails(self, service):
         with pytest.raises(ValueError, match="validation failed"):
             await service.create_scenario("", "")
 
@@ -155,7 +171,13 @@ class TestScenarioService:
 
     @pytest.mark.asyncio
     async def test_clone_scenario(self, service, repo):
-        s = Scenario(id="s1", title="Original", description="Desc", target_audience="All", learning_objectives=["LO1"])
+        s = Scenario(
+            id="s1",
+            title="Original",
+            description="Desc",
+            target_audience="All",
+            learning_objectives=["LO1"],
+        )
         repo.get_by_id.return_value = s
         cloned = s.clone()
         repo.create.return_value = cloned

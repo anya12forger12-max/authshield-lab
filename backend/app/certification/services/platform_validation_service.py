@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 from ..domain.entities.platform_validation import (
     FinalAcceptanceTest,
     PlatformValidationReport,
@@ -75,7 +73,7 @@ class PlatformValidationService:
             check.mark_skipped(details)
         return self._check_repo.save(check)
 
-    async def get_check(self, check_id: str) -> Optional[ValidationCheck]:
+    async def get_check(self, check_id: str) -> ValidationCheck | None:
         """Retrieve a validation check by ID."""
         return self._check_repo.find_by_id(check_id)
 
@@ -101,10 +99,7 @@ class PlatformValidationService:
         and ``evidence`` keys.
         """
         existing = self._subsystem_repo.find_by_subsystem(subsystem)
-        if existing is not None:
-            sv = existing
-        else:
-            sv = SubsystemValidation(subsystem=subsystem)
+        sv = existing if existing is not None else SubsystemValidation(subsystem=subsystem)
 
         if check_results:
             for cr in check_results:
@@ -131,7 +126,7 @@ class PlatformValidationService:
 
         return self._subsystem_repo.save(sv)
 
-    async def get_subsystem_validation(self, subsystem: str) -> Optional[SubsystemValidation]:
+    async def get_subsystem_validation(self, subsystem: str) -> SubsystemValidation | None:
         """Retrieve the validation record for a subsystem."""
         return self._subsystem_repo.find_by_subsystem(subsystem)
 
@@ -156,7 +151,7 @@ class PlatformValidationService:
         report.aggregate()
         return self._report_repo.save(report)
 
-    async def get_latest_report(self) -> Optional[PlatformValidationReport]:
+    async def get_latest_report(self) -> PlatformValidationReport | None:
         """Return the most recent validation report."""
         return self._report_repo.find_latest()
 
@@ -187,11 +182,11 @@ class PlatformValidationService:
         fat.run()
         return self._fat_repo.save(fat)
 
-    async def get_acceptance_test(self, fat_id: str) -> Optional[FinalAcceptanceTest]:
+    async def get_acceptance_test(self, fat_id: str) -> FinalAcceptanceTest | None:
         """Retrieve a final acceptance test by ID."""
         return self._fat_repo.find_by_id(fat_id)
 
-    async def get_acceptance_test_by_version(self, version: str) -> Optional[FinalAcceptanceTest]:
+    async def get_acceptance_test_by_version(self, version: str) -> FinalAcceptanceTest | None:
         """Retrieve the acceptance test for a version."""
         return self._fat_repo.find_by_version(version)
 

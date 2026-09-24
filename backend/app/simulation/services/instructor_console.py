@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
+from ...shared.events.event_bus import DomainEvent, EventBus, EventType, get_event_bus
 from ..domain.entities.console import InstructorSession, SessionStatus
 from ..domain.entities.results import ExerciseResult, ImprovementRecommendation
 from ..domain.interfaces import (
     InstructorSessionRepositoryInterface,
     ResultsRepositoryInterface,
 )
-from ...shared.events.event_bus import EventBus, DomainEvent, EventType, get_event_bus
 
 
 class InstructorConsoleService:
@@ -59,13 +59,11 @@ class InstructorConsoleService:
         await self._event_bus.publish(event)
         return created
 
-    async def get_session(self, session_id: str) -> Optional[InstructorSession]:
+    async def get_session(self, session_id: str) -> InstructorSession | None:
         """Retrieve an instructor session by ID."""
         return await self._session_repo.get_by_id(session_id)
 
-    async def list_sessions(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def list_sessions(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """List all instructor sessions with pagination."""
         return await self._session_repo.get_all(page=page, per_page=per_page)
 
@@ -118,22 +116,18 @@ class InstructorConsoleService:
             raise ValueError(f"Session {session_id} not found")
         updated = await self._session_repo.update(
             session_id,
-            {"notes": notes, "updated_at": datetime.now(timezone.utc)},
+            {"notes": notes, "updated_at": datetime.now(UTC)},
         )
         if updated is None:
             raise ValueError("Failed to update notes")
         return updated
 
-    async def get_active_sessions(
-        self, instructor_id: str
-    ) -> list[InstructorSession]:
+    async def get_active_sessions(self, instructor_id: str) -> list[InstructorSession]:
         """Return all active sessions for an instructor."""
         sessions = await self._session_repo.get_by_instructor(instructor_id)
         return [s for s in sessions if s.status == SessionStatus.ACTIVE]
 
-    async def monitor_session(
-        self, session_id: str
-    ) -> dict[str, Any]:
+    async def monitor_session(self, session_id: str) -> dict[str, Any]:
         """Get monitoring data for an active session."""
         session = await self._session_repo.get_by_id(session_id)
         if session is None:

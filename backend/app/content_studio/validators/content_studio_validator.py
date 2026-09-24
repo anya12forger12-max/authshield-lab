@@ -73,7 +73,9 @@ def validate_lesson_data(data: dict[str, Any]) -> ValidationResult:
         if not isinstance(estimated_minutes, int):
             result.add_error("estimated_minutes", "Estimated minutes must be an integer", "TYPE")
         elif estimated_minutes < 1:
-            result.add_error("estimated_minutes", "Estimated minutes must be at least 1", "MIN_VALUE")
+            result.add_error(
+                "estimated_minutes", "Estimated minutes must be at least 1", "MIN_VALUE"
+            )
 
     return result
 
@@ -84,8 +86,16 @@ def validate_content_block_data(data: dict[str, Any]) -> ValidationResult:
 
     block_type = data.get("block_type", "text")
     valid_types = {
-        "text", "image", "diagram", "table", "code_sample",
-        "question", "reflection", "glossary_ref", "simulation", "resource",
+        "text",
+        "image",
+        "diagram",
+        "table",
+        "code_sample",
+        "question",
+        "reflection",
+        "glossary_ref",
+        "simulation",
+        "resource",
     }
     if block_type not in valid_types:
         result.add_error("block_type", f"Block type must be one of: {valid_types}", "INVALID_VALUE")
@@ -103,12 +113,21 @@ def validate_activity_data(data: dict[str, Any]) -> ValidationResult:
 
     activity_type = data.get("activity_type", "mcq")
     valid_types = {
-        "mcq", "matching", "drag_drop", "timeline_ordering",
-        "scenario_analysis", "log_analysis", "policy_review",
-        "config_review", "architecture_review", "reflection",
+        "mcq",
+        "matching",
+        "drag_drop",
+        "timeline_ordering",
+        "scenario_analysis",
+        "log_analysis",
+        "policy_review",
+        "config_review",
+        "architecture_review",
+        "reflection",
     }
     if activity_type not in valid_types:
-        result.add_error("activity_type", f"Activity type must be one of: {valid_types}", "INVALID_VALUE")
+        result.add_error(
+            "activity_type", f"Activity type must be one of: {valid_types}", "INVALID_VALUE"
+        )
 
     title = data.get("title", "")
     if not title or not str(title).strip():
@@ -142,7 +161,9 @@ def validate_virtual_lab_data(data: dict[str, Any]) -> ValidationResult:
         if not isinstance(estimated_minutes, int):
             result.add_error("estimated_minutes", "Estimated minutes must be an integer", "TYPE")
         elif estimated_minutes < 1:
-            result.add_error("estimated_minutes", "Estimated minutes must be at least 1", "MIN_VALUE")
+            result.add_error(
+                "estimated_minutes", "Estimated minutes must be at least 1", "MIN_VALUE"
+            )
 
     return result
 
@@ -172,8 +193,16 @@ def validate_multimedia_asset_data(data: dict[str, Any]) -> ValidationResult:
 
     asset_type = data.get("asset_type", "image")
     valid_types = {
-        "image", "svg", "audio", "caption", "transcript",
-        "pdf", "sample_doc", "synthetic_log", "config_file", "icon",
+        "image",
+        "svg",
+        "audio",
+        "caption",
+        "transcript",
+        "pdf",
+        "sample_doc",
+        "synthetic_log",
+        "config_file",
+        "icon",
     }
     if asset_type not in valid_types:
         result.add_error("asset_type", f"Asset type must be one of: {valid_types}", "INVALID_VALUE")
@@ -198,7 +227,9 @@ def validate_template_data(data: dict[str, Any]) -> ValidationResult:
     template_type = data.get("template_type", "lesson")
     valid_types = {"course", "lesson", "assessment", "lab", "doc", "report", "a11y", "curriculum"}
     if template_type not in valid_types:
-        result.add_error("template_type", f"Template type must be one of: {valid_types}", "INVALID_VALUE")
+        result.add_error(
+            "template_type", f"Template type must be one of: {valid_types}", "INVALID_VALUE"
+        )
 
     return result
 
@@ -257,6 +288,8 @@ def validate_review_comment_data(data: dict[str, Any]) -> ValidationResult:
     if severity is not None:
         valid_severities = {"info", "suggestion", "warning", "critical"}
         if severity not in valid_severities:
-            result.add_error("severity", f"Severity must be one of: {valid_severities}", "INVALID_VALUE")
+            result.add_error(
+                "severity", f"Severity must be one of: {valid_severities}", "INVALID_VALUE"
+            )
 
     return result

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ..domain.entities.competency import CompetencyLevel, CompetencyStatus
 from ..domain.events.lms_events import CompetencyAchieved
 from ..domain.interfaces.lms_interfaces import ICompetencyRepository
 from ..validators.lms_validator import validate_competency_data
@@ -31,7 +30,7 @@ class CompetencyService:
             raise ValueError("Framework name is required.")
         return self._repo.create_framework(data)
 
-    def get_framework(self, framework_id: str) -> Optional[dict[str, Any]]:
+    def get_framework(self, framework_id: str) -> dict[str, Any] | None:
         return self._repo.get_framework(framework_id)
 
     def list_frameworks(self) -> list[dict[str, Any]]:
@@ -47,15 +46,13 @@ class CompetencyService:
             raise ValueError(f"Validation failed: {validation.to_dict()}")
         return self._repo.create_competency(data)
 
-    def get_competency(self, competency_id: str) -> Optional[dict[str, Any]]:
+    def get_competency(self, competency_id: str) -> dict[str, Any] | None:
         return self._repo.get_competency(competency_id)
 
     def list_competencies(self) -> list[dict[str, Any]]:
         return self._repo.get_all_competencies()
 
-    def update_competency(
-        self, competency_id: str, data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def update_competency(self, competency_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         existing = self._repo.get_competency(competency_id)
         if not existing:
             raise ValueError(f"Competency '{competency_id}' not found.")
@@ -77,7 +74,7 @@ class CompetencyService:
     # ------------------------------------------------------------------
 
     def get_learner_progress(
-        self, learner_id: str, competency_id: Optional[str] = None
+        self, learner_id: str, competency_id: str | None = None
     ) -> list[dict[str, Any]]:
         return self._repo.get_progress(learner_id, competency_id)
 
@@ -86,22 +83,28 @@ class CompetencyService:
         if existing_progress:
             progress = existing_progress[0]
             if progress.get("status") == "not_started":
-                return self._repo.update_progress(progress["id"], {"status": "in_progress"}) or progress
-            raise ValueError(f"Learner already has competency in '{progress.get('status')}' status.")
+                return (
+                    self._repo.update_progress(progress["id"], {"status": "in_progress"})
+                    or progress
+                )
+            raise ValueError(
+                f"Learner already has competency in '{progress.get('status')}' status."
+            )
 
-        now = datetime.now(timezone.utc).isoformat()
-        return self._repo.update_progress("", {}) or self._repo.create_competency_progress({
-            "learner_id": learner_id,
-            "competency_id": competency_id,
-            "status": "in_progress",
-        })
+        return self._repo.update_progress("", {}) or self._repo.create_competency_progress(
+            {
+                "learner_id": learner_id,
+                "competency_id": competency_id,
+                "status": "in_progress",
+            }
+        )
 
     def achieve_competency(
         self,
         learner_id: str,
         competency_id: str,
-        assessor_id: Optional[str] = None,
-        evidence: Optional[str] = None,
+        assessor_id: str | None = None,
+        evidence: str | None = None,
     ) -> dict[str, Any]:
         existing_progress = self._repo.get_progress(learner_id, competency_id)
         if not existing_progress:
@@ -112,7 +115,7 @@ class CompetencyService:
         if current_status in ("achieved", "mastered"):
             raise ValueError(f"Competency already in '{current_status}' status.")
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         update_data: dict[str, Any] = {
             "status": "achieved",
             "assessed_at": now,
@@ -142,8 +145,8 @@ class CompetencyService:
         self,
         learner_id: str,
         competency_id: str,
-        assessor_id: Optional[str] = None,
-        evidence: Optional[str] = None,
+        assessor_id: str | None = None,
+        evidence: str | None = None,
     ) -> dict[str, Any]:
         existing_progress = self._repo.get_progress(learner_id, competency_id)
         if not existing_progress:
@@ -156,7 +159,7 @@ class CompetencyService:
         if current_status not in ("in_progress", "achieved"):
             raise ValueError(f"Cannot master competency in '{current_status}' status.")
 
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         update_data: dict[str, Any] = {
             "status": "mastered",
             "assessed_at": now,
@@ -236,5 +239,4 @@ class CompetencyService:
         }
 
     def _get_all_progress_for_learner(self, learner_id: str) -> list[dict[str, Any]]:
-        all_progress = self._repo.get_progress(learner_id, None)
-        return all_progress
+        return self._repo.get_progress(learner_id, None)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -63,7 +63,7 @@ class Extension:
     def install(self) -> None:
         """Mark the extension as installed."""
         self.status = ExtensionStatus.INSTALLED
-        self.installed_at = datetime.now(timezone.utc)
+        self.installed_at = datetime.now(UTC)
 
     def uninstall(self) -> None:
         """Mark the extension as uninstalled."""
@@ -124,7 +124,7 @@ class ExtensionVersion:
         self.extension_id: str = extension_id
         self.version: str = version
         self.changes: list[str] = changes if changes is not None else []
-        self.released_at: datetime = released_at or datetime.now(timezone.utc)
+        self.released_at: datetime = released_at or datetime.now(UTC)
         self.compatibility: str = compatibility
 
     def add_change(self, change: str) -> None:
@@ -164,7 +164,7 @@ class InstalledExtension:
         self.extension_id: str = extension_id
         self.version: str = version
         self.installed_by: str = installed_by
-        self.installed_at: datetime = installed_at or datetime.now(timezone.utc)
+        self.installed_at: datetime = installed_at or datetime.now(UTC)
         self.enabled: bool = enabled
         self.config: dict = config if config is not None else {}
 

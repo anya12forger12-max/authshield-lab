@@ -5,7 +5,6 @@ from __future__ import annotations
 import secrets
 from enum import Enum
 from functools import lru_cache
-from pathlib import Path
 from typing import Any
 
 from pydantic import field_validator, model_validator
@@ -100,7 +99,7 @@ class SecurityConfig(BaseSettings):
     argon2_parallelism: int = 4
 
     @model_validator(mode="after")
-    def _ensure_secret_key(self) -> "SecurityConfig":
+    def _ensure_secret_key(self) -> SecurityConfig:
         if not self.secret_key:
             self.secret_key = secrets.token_urlsafe(64)
         return self

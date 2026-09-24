@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import String, Integer, Text, Index, JSON, ForeignKey
+from sqlalchemy import JSON, ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..base_model import Base, UUIDPrimaryKeyMixin
@@ -26,17 +26,17 @@ class AuditEvent(UUIDPrimaryKeyMixin, Base):
     event_id: Mapped[str] = mapped_column(
         String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4())
     )
-    correlation_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    correlation_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     timestamp: Mapped[datetime] = mapped_column(
         nullable=False,
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
         index=True,
     )
 
     # --- Who ---
-    user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id"), nullable=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("users.id"), nullable=True, index=True
+    )
     username: Mapped[str | None] = mapped_column(String(32), nullable=True)
     administrator_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 
@@ -57,14 +57,10 @@ class AuditEvent(UUIDPrimaryKeyMixin, Base):
 
     # --- Result ---
     result: Mapped[str] = mapped_column(String(16), nullable=False, default="success")
-    ip_address: Mapped[str] = mapped_column(
-        String(45), nullable=False, default="127.0.0.1"
-    )
+    ip_address: Mapped[str] = mapped_column(String(45), nullable=False, default="127.0.0.1")
 
     # --- Relationships ---
-    user: Mapped[User | None] = relationship(
-        "User", back_populates="audit_events", lazy="selectin"
-    )
+    user: Mapped[User | None] = relationship("User", back_populates="audit_events", lazy="selectin")
 
     __table_args__ = (
         Index("ix_audit_module_timestamp", "module", "timestamp"),
@@ -104,10 +100,9 @@ class AuditEvent(UUIDPrimaryKeyMixin, Base):
 
     def __repr__(self) -> str:
         return (
-            f"<AuditEvent id={self.id!r} event_type={self.event_type!r} "
-            f"severity={self.severity!r}>"
+            f"<AuditEvent id={self.id!r} event_type={self.event_type!r} severity={self.severity!r}>"
         )
 
 
 # Forward reference for the User relationship.
-from ..models.user import User  # noqa: E402, F401
+from ..models.user import User  # noqa: E402

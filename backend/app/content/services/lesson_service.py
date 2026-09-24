@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.content import Lesson
 from ..domain.events.content_events import LessonCreated
@@ -72,7 +71,7 @@ class LessonService:
         self._record_event(event)
         return lesson
 
-    async def get_lesson(self, lesson_id: str) -> Optional[Lesson]:
+    async def get_lesson(self, lesson_id: str) -> Lesson | None:
         """Retrieve a single lesson by ID."""
         return await self._repo.find_by_id(lesson_id)
 
@@ -117,8 +116,7 @@ class LessonService:
         existing_ids = [l.id for l in existing]
         missing = [lid for lid in existing_ids if lid not in ordered_ids]
         full_order = ordered_ids + missing
-        success = await self._repo.reorder(course_id, full_order)
-        return success
+        return await self._repo.reorder(course_id, full_order)
 
     async def attach_media(self, lesson_id: str, media_id: str) -> Lesson:
         """Attach a media asset reference to a lesson."""

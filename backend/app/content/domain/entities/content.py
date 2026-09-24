@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -66,8 +66,8 @@ class Course:
     version: int = 1
     tags: list[str] = field(default_factory=list)
     created_by: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def clone(self, new_title: str | None = None) -> Course:
         """Return a deep copy of this course with a fresh ID and draft status."""
@@ -76,26 +76,26 @@ class Course:
         cloned.title = new_title or f"{self.title} (Copy)"
         cloned.status = CourseStatus.DRAFT.value
         cloned.version = 1
-        cloned.created_at = datetime.now(timezone.utc)
-        cloned.updated_at = datetime.now(timezone.utc)
+        cloned.created_at = datetime.now(UTC)
+        cloned.updated_at = datetime.now(UTC)
         return cloned
 
     def publish(self) -> Course:
         """Transition the course to published status."""
         self.status = CourseStatus.PUBLISHED.value
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
         return self
 
     def archive(self) -> Course:
         """Transition the course to archived status."""
         self.status = CourseStatus.ARCHIVED.value
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
         return self
 
     def update_version(self) -> Course:
         """Increment the version counter and touch the updated_at timestamp."""
         self.version += 1
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
         return self
 
     def validate(self) -> list[str]:
@@ -135,7 +135,7 @@ class Lesson:
     accessible: bool = True
     localized: bool = False
     version: int = 1
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -181,7 +181,7 @@ class MediaAsset:
     transcript: str = ""
     accessible: bool = True
     version: int = 1
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass

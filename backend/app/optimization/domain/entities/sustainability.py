@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -17,7 +17,7 @@ class SustainabilityMetric:
     score: float = 0.0
     max_score: float = 100.0
     trend: str = "stable"
-    last_checked: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_checked: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def percentage(self) -> float:
         """Return the score as a percentage of max_score."""
@@ -51,14 +51,14 @@ class TechnicalDebtItem:
     description: str = ""
     severity: str = "low"
     estimated_hours: float = 0.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     resolved: bool = False
     resolved_at: datetime | None = None
 
     def resolve(self) -> None:
         """Mark this debt item as resolved."""
         self.resolved = True
-        self.resolved_at = datetime.now(timezone.utc)
+        self.resolved_at = datetime.now(UTC)
 
     def reopen(self) -> None:
         """Reopen a resolved debt item."""
@@ -67,7 +67,7 @@ class TechnicalDebtItem:
 
     def age_days(self) -> float:
         """Return the number of days since this item was created."""
-        delta = datetime.now(timezone.utc) - self.created_at
+        delta = datetime.now(UTC) - self.created_at
         return delta.total_seconds() / 86400.0
 
     def is_stale(self, days: int = 90) -> bool:
@@ -179,7 +179,7 @@ class LocalizationHealth:
     completeness: float = 0.0
     missing_keys: int = 0
     total_keys: int = 0
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def completeness_pct(self) -> float:
         """Return completeness as a percentage."""
@@ -239,7 +239,7 @@ class MaintenancePlan:
     items: list[MaintenanceItem] = field(default_factory=list)
     priority: str = "medium"
     estimated_hours: float = 0.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     target_date: str = ""
 
     def add_item(self, item: MaintenanceItem) -> None:
@@ -275,7 +275,7 @@ class MaintenancePlan:
             return False
         try:
             target = datetime.fromisoformat(self.target_date)
-            return datetime.now(timezone.utc) > target
+            return datetime.now(UTC) > target
         except ValueError:
             return False
 
@@ -305,7 +305,7 @@ class SustainabilityDashboard:
     test_coverage: float = 0.0
     doc_freshness: float = 0.0
     overall_score: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def calculate_overall(self) -> float:
         """Compute the weighted overall score."""

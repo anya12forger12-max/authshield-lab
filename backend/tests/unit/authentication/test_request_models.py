@@ -4,12 +4,12 @@ import pytest
 from pydantic import ValidationError
 
 from app.authentication.domain.models.request_models import (
-    RegistrationRequest,
     LoginRequest,
     LogoutRequest,
     PasswordChangeRequest,
-    SessionValidationRequest,
+    RegistrationRequest,
     SessionRenewalRequest,
+    SessionValidationRequest,
 )
 
 

@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.events.lms_events import PortfolioItemAdded
 from ..domain.interfaces.lms_interfaces import IPortfolioRepository
@@ -30,18 +29,16 @@ class PortfolioService:
 
         return self._repo.create(data)
 
-    def get_portfolio(self, portfolio_id: str) -> Optional[dict[str, Any]]:
+    def get_portfolio(self, portfolio_id: str) -> dict[str, Any] | None:
         return self._repo.get_by_id(portfolio_id)
 
-    def get_portfolio_by_learner(self, learner_id: str) -> Optional[dict[str, Any]]:
+    def get_portfolio_by_learner(self, learner_id: str) -> dict[str, Any] | None:
         return self._repo.get_by_learner(learner_id)
 
     def list_portfolios(self) -> list[dict[str, Any]]:
         return self._repo.get_all()
 
-    def update_portfolio(
-        self, portfolio_id: str, data: dict[str, Any]
-    ) -> Optional[dict[str, Any]]:
+    def update_portfolio(self, portfolio_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         if not self._repo.get_by_id(portfolio_id):
             raise ValueError(f"Portfolio '{portfolio_id}' not found.")
         return self._repo.update(portfolio_id, data)
@@ -70,7 +67,11 @@ class PortfolioService:
         )
         logger.info(
             "portfolio_item_added",
-            extra={"portfolio_id": portfolio_id, "item_id": item.get("id"), "event_id": event.event_id},
+            extra={
+                "portfolio_id": portfolio_id,
+                "item_id": item.get("id"),
+                "event_id": event.event_id,
+            },
         )
         return item
 
@@ -85,9 +86,7 @@ class PortfolioService:
             raise ValueError(f"Portfolio '{portfolio_id}' not found.")
         return self._repo.remove_item(portfolio_id, item_id)
 
-    def add_evidence(
-        self, item_id: str, evidence_data: dict[str, Any]
-    ) -> dict[str, Any]:
+    def add_evidence(self, item_id: str, evidence_data: dict[str, Any]) -> dict[str, Any]:
         if not evidence_data.get("competency_id"):
             raise ValueError("Competency ID is required for evidence.")
         if not evidence_data.get("description"):
@@ -120,7 +119,7 @@ class PortfolioService:
 
     def update_item_metadata(
         self, portfolio_id: str, item_id: str, key: str, value: Any
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         if not self._repo.get_by_id(portfolio_id):
             raise ValueError(f"Portfolio '{portfolio_id}' not found.")
         if not key:

@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-from sqlalchemy import String, Integer, Float, Index, JSON
+from sqlalchemy import JSON, Float, Index, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..base_model import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -18,13 +16,9 @@ class AuthenticationAttempt(TimestampMixin, UUIDPrimaryKeyMixin, Base):
 
     __tablename__ = "authentication_attempts"
 
-    correlation_id: Mapped[str] = mapped_column(
-        String(36), nullable=False, index=True
-    )
+    correlation_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     user_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    username_attempted: Mapped[str] = mapped_column(
-        String(32), nullable=False, index=True
-    )
+    username_attempted: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
 
     outcome: Mapped[str] = mapped_column(
         String(32), nullable=False, index=True
@@ -34,13 +28,9 @@ class AuthenticationAttempt(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     authentication_method: Mapped[str] = mapped_column(
         String(32), nullable=False, default="password"
     )
-    authentication_duration_ms: Mapped[float] = mapped_column(
-        Float, nullable=False, default=0.0
-    )
+    authentication_duration_ms: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
-    ip_address: Mapped[str] = mapped_column(
-        String(45), nullable=False, default="127.0.0.1"
-    )
+    ip_address: Mapped[str] = mapped_column(String(45), nullable=False, default="127.0.0.1")
     platform: Mapped[str | None] = mapped_column(String(64), nullable=True)
     device_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
 

@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ...shared.logging_config import get_logger
-from ..domain.entities.content_health import ContentHealthItem
 from ..domain.interfaces import IContentHealthRepository
 
 logger = get_logger("analytics.a11y_analytics_service")
@@ -86,14 +85,14 @@ class A11yAnalyticsService:
         for idx, item in enumerate(items_sorted, start=1):
             if item.a11y_status == "compliant":
                 cumulative_compliant += 1
-            trend.append({
-                "position": idx,
-                "content_id": item.content_id,
-                "a11y_status": item.a11y_status,
-                "cumulative_compliance_pct": round(
-                    (cumulative_compliant / idx) * 100, 2
-                ),
-            })
+            trend.append(
+                {
+                    "position": idx,
+                    "content_id": item.content_id,
+                    "a11y_status": item.a11y_status,
+                    "cumulative_compliance_pct": round((cumulative_compliant / idx) * 100, 2),
+                }
+            )
 
         return trend
 
@@ -117,41 +116,54 @@ class A11yAnalyticsService:
         actions: list[dict[str, str]] = []
 
         if non_compliant_items:
-            actions.append({
-                "action": "Remediate non-compliant content",
-                "priority": "high",
-                "description": (
-                    f"{len(non_compliant_items)} content items require accessibility remediation. "
-                    "Focus on adding alt text, ensuring keyboard navigation, and improving contrast."
-                ),
-            })
+            actions.append(
+                {
+                    "action": "Remediate non-compliant content",
+                    "priority": "high",
+                    "description": (
+                        f"{len(non_compliant_items)} content items require "
+                        "accessibility remediation. "
+                        "Focus on adding alt text, ensuring keyboard navigation, and "
+                        "improving contrast."
+                    ),
+                }
+            )
 
         if unknown_items:
-            actions.append({
-                "action": "Audit unknown-status content",
-                "priority": "medium",
-                "description": (
-                    f"{len(unknown_items)} content items have not been assessed for accessibility. "
-                    "Run WCAG 2.1 AA compliance scans."
-                ),
-            })
+            actions.append(
+                {
+                    "action": "Audit unknown-status content",
+                    "priority": "medium",
+                    "description": (
+                        f"{len(unknown_items)} content items have not been "
+                        "assessed for accessibility. "
+                        "Run WCAG 2.1 AA compliance scans."
+                    ),
+                }
+            )
 
         if overview["compliance_pct"] < 80.0:
-            actions.append({
-                "action": "Establish a11y review process",
-                "priority": "high",
-                "description": (
-                    f"Current compliance is {overview['compliance_pct']:.1f}%, below 80% target. "
-                    "Implement mandatory accessibility review before publication."
-                ),
-            })
+            actions.append(
+                {
+                    "action": "Establish a11y review process",
+                    "priority": "high",
+                    "description": (
+                        f"Current compliance is {overview['compliance_pct']:.1f}%, "
+                        "below 80% target. "
+                        "Implement mandatory accessibility review before publication."
+                    ),
+                }
+            )
 
         if not actions:
-            actions.append({
-                "action": "Maintain current standards",
-                "priority": "low",
-                "description": "Accessibility compliance is above target. Continue periodic audits.",
-            })
+            actions.append(
+                {
+                    "action": "Maintain current standards",
+                    "priority": "low",
+                    "description": "Accessibility compliance is above target. "
+                    "Continue periodic audits.",
+                }
+            )
 
         plan = {
             "id": str(uuid.uuid4()),
@@ -159,7 +171,7 @@ class A11yAnalyticsService:
             "non_compliant_count": len(non_compliant_items),
             "unknown_count": len(unknown_items),
             "actions": actions,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
         }
 
         logger.info(
@@ -169,9 +181,7 @@ class A11yAnalyticsService:
         )
         return plan
 
-    async def get_item_a11y_detail(
-        self, content_id: str
-    ) -> Optional[dict[str, Any]]:
+    async def get_item_a11y_detail(self, content_id: str) -> dict[str, Any] | None:
         """Get detailed a11y information for a specific content item."""
         item = await self._content_health_repo.get_by_content_id(content_id)
         if item is None:

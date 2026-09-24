@@ -3,23 +3,23 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.content_health import (
     ContentHealthDashboard,
     ContentHealthItem,
     MaintenanceSchedule,
     MaintenanceScheduleItem,
 )
+from ..domain.events.analytics_events import ContentHealthChecked
 from ..domain.interfaces import (
     IContentHealthDashboardRepository,
     IContentHealthRepository,
     IMaintenanceScheduleRepository,
 )
-from ..domain.events.analytics_events import ContentHealthChecked
 
 logger = get_logger("analytics.content_health_service")
 
@@ -44,7 +44,7 @@ class ContentHealthService:
         content_repo: IContentHealthRepository,
         dashboard_repo: IContentHealthDashboardRepository,
         schedule_repo: IMaintenanceScheduleRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._content_repo = content_repo
         self._dashboard_repo = dashboard_repo
@@ -73,19 +73,22 @@ class ContentHealthService:
         """Add or update a content health item."""
         existing = await self._content_repo.get_by_content_id(content_id)
         if existing is not None:
-            updated = await self._content_repo.update(existing.id, {
-                "content_type": content_type,
-                "title": title,
-                "version_status": version_status,
-                "broken_refs": broken_refs,
-                "missing_metadata": missing_metadata,
-                "doc_completeness": doc_completeness,
-                "localization_status": localization_status,
-                "a11y_status": a11y_status,
-                "last_reviewed_days": last_reviewed_days,
-                "publication_quality": publication_quality,
-                "dependency_health": dependency_health,
-            })
+            updated = await self._content_repo.update(
+                existing.id,
+                {
+                    "content_type": content_type,
+                    "title": title,
+                    "version_status": version_status,
+                    "broken_refs": broken_refs,
+                    "missing_metadata": missing_metadata,
+                    "doc_completeness": doc_completeness,
+                    "localization_status": localization_status,
+                    "a11y_status": a11y_status,
+                    "last_reviewed_days": last_reviewed_days,
+                    "publication_quality": publication_quality,
+                    "dependency_health": dependency_health,
+                },
+            )
             return updated if updated else existing
 
         item = ContentHealthItem(
@@ -107,7 +110,7 @@ class ContentHealthService:
         logger.info("content_health_item_added", content_id=content_id)
         return created
 
-    async def get_content_item(self, content_id: str) -> Optional[ContentHealthItem]:
+    async def get_content_item(self, content_id: str) -> ContentHealthItem | None:
         """Retrieve a content health item by content ID."""
         return await self._content_repo.get_by_content_id(content_id)
 
@@ -143,7 +146,7 @@ class ContentHealthService:
             needs_attention=needs_attention,
             critical=critical,
             by_type=by_type,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
         await self._dashboard_repo.create(dashboard)
@@ -165,7 +168,7 @@ class ContentHealthService:
 
         return dashboard
 
-    async def get_latest_dashboard(self) -> Optional[ContentHealthDashboard]:
+    async def get_latest_dashboard(self) -> ContentHealthDashboard | None:
         """Retrieve the most recent content health dashboard."""
         return await self._dashboard_repo.get_latest()
 
@@ -177,13 +180,15 @@ class ContentHealthService:
         for item in items:
             actions = self._determine_maintenance_actions(item)
             for action, priority in actions:
-                schedule_items.append(MaintenanceScheduleItem(
-                    content_id=item.content_id,
-                    title=item.title,
-                    action=action,
-                    priority=priority,
-                    due_date=self._compute_due_date(priority),
-                ))
+                schedule_items.append(
+                    MaintenanceScheduleItem(
+                        content_id=item.content_id,
+                        title=item.title,
+                        action=action,
+                        priority=priority,
+                        due_date=self._compute_due_date(priority),
+                    )
+                )
 
         priority_order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
         schedule_items.sort(key=lambda s: priority_order.get(s.priority, 4))
@@ -191,7 +196,7 @@ class ContentHealthService:
         schedule = MaintenanceSchedule(
             id=str(uuid.uuid4()),
             items=schedule_items,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
 
         await self._schedule_repo.create(schedule)
@@ -210,18 +215,12 @@ class ContentHealthService:
     async def get_items_needing_attention(self) -> list[ContentHealthItem]:
         """Retrieve content items that need attention."""
         items = await self._content_repo.get_all()
-        return [
-            item for item in items
-            if self._compute_health_score(item) < 80.0
-        ]
+        return [item for item in items if self._compute_health_score(item) < 80.0]
 
     async def get_critical_items(self) -> list[ContentHealthItem]:
         """Retrieve critically unhealthy content items."""
         items = await self._content_repo.get_all()
-        return [
-            item for item in items
-            if self._compute_health_score(item) < 50.0
-        ]
+        return [item for item in items if self._compute_health_score(item) < 50.0]
 
     def _compute_health_score(self, item: ContentHealthItem) -> float:
         """Compute a health score (0-100) for a content item."""
@@ -252,9 +251,7 @@ class ContentHealthService:
 
         return max(0.0, min(100.0, round(score, 2)))
 
-    def _determine_maintenance_actions(
-        self, item: ContentHealthItem
-    ) -> list[tuple[str, str]]:
+    def _determine_maintenance_actions(self, item: ContentHealthItem) -> list[tuple[str, str]]:
         """Determine maintenance actions and priorities for a content item."""
         actions: list[tuple[str, str]] = []
 
@@ -301,16 +298,19 @@ class ContentHealthService:
 
     def _compute_due_date(self, priority: str) -> str:
         """Compute a due date string based on priority."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if priority == "critical":
             due = now
         elif priority == "high":
             from datetime import timedelta
+
             due = now + timedelta(days=7)
         elif priority == "medium":
             from datetime import timedelta
+
             due = now + timedelta(days=30)
         else:
             from datetime import timedelta
+
             due = now + timedelta(days=90)
         return due.strftime("%Y-%m-%d")

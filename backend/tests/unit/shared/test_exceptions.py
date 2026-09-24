@@ -1,28 +1,26 @@
 """Tests for exception hierarchy and to_dict()."""
 
-import pytest
-
 from app.shared.exceptions import (
-    AuthShieldException,
+    AccountLockedError,
     AuthenticationError,
     AuthorizationError,
-    SecurityViolationError,
-    ValidationError,
-    NotFoundError,
-    ConflictError,
-    RateLimitExceededError,
-    AccountLockedError,
-    SessionExpiredError,
+    AuthShieldException,
     ConfigurationError,
+    ConflictError,
+    NotFoundError,
+    RateLimitExceededError,
+    SecurityViolationError,
+    SessionExpiredError,
+    ValidationError,
 )
 from app.shared.exceptions_v2 import (
-    HashingException,
-    SessionException,
-    RepositoryException,
-    PolicyException,
-    LocalizationException,
     AccessibilityException,
     EventBusException,
+    HashingException,
+    LocalizationException,
+    PolicyException,
+    RepositoryException,
+    SessionException,
 )
 
 
@@ -153,10 +151,16 @@ class TestExceptionsV2:
         assert exc.status_code == 500
 
     def test_all_v2_have_to_dict(self):
-        for ExcClass in [HashingException, SessionException, RepositoryException,
-                         PolicyException, LocalizationException, AccessibilityException,
-                         EventBusException]:
-            exc = ExcClass(message="test")
+        for exc_class in [
+            HashingException,
+            SessionException,
+            RepositoryException,
+            PolicyException,
+            LocalizationException,
+            AccessibilityException,
+            EventBusException,
+        ]:
+            exc = exc_class(message="test")
             d = exc.to_dict()
             assert d["status"] == "error"
             assert d["message"] == "test"

@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from ...shared.logging_config import get_logger
 from ..domain.entities.analytics import (
     AssessmentOutcome,
     ContentUsage,
+    CourseCompletion,
     CurriculumCoverage,
-    EducationalAnalyticsDashboard,
     FilterOptions,
     LearningProgress,
-    CourseCompletion,
 )
 from ..domain.entities.content_health import ContentHealthItem
 from ..domain.entities.continuous_improvement import ActionPlanStatus
@@ -145,8 +142,7 @@ class AnalyticsValidator:
             )
         if item.a11y_status not in VALID_A11Y_STATUSES:
             errors.append(
-                f"Invalid a11y status: '{item.a11y_status}'. "
-                f"Must be one of: {VALID_A11Y_STATUSES}"
+                f"Invalid a11y status: '{item.a11y_status}'. Must be one of: {VALID_A11Y_STATUSES}"
             )
         if item.localization_status not in VALID_LOCALIZATION_STATUSES:
             errors.append(
@@ -176,9 +172,8 @@ class AnalyticsValidator:
     def validate_filter_options(filters: FilterOptions) -> list[str]:
         """Validate filter options."""
         errors: list[str] = []
-        if filters.date_from and filters.date_to:
-            if filters.date_from > filters.date_to:
-                errors.append("date_from must be before date_to")
+        if filters.date_from and filters.date_to and filters.date_from > filters.date_to:
+            errors.append("date_from must be before date_to")
         return errors
 
     @staticmethod
@@ -205,9 +200,7 @@ class AnalyticsValidator:
         return len(errors) == 0
 
     @staticmethod
-    def raise_if_invalid(
-        errors: list[str], context: str = "Validation"
-    ) -> None:
+    def raise_if_invalid(errors: list[str], context: str = "Validation") -> None:
         """Raise a ValidationError if there are any errors."""
         if errors:
             combined = "; ".join(errors)

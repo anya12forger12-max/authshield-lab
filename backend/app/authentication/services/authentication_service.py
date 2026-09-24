@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from ...shared.logging_config import get_logger
 from ...config.constants import MODULE_AUTH
+from ...shared.logging_config import get_logger
 from ..domain.entities.authentication_result import (
     AuthenticationOutcome,
     AuthenticationResult,
@@ -103,18 +103,15 @@ class AuthenticationService(IAuthenticationService):
                     session_id=session_id,
                     message="Session is valid.",
                 )
-            else:
-                return AuthenticationResult(
-                    outcome=AuthenticationOutcome.FAILURE,
-                    failure_reason=FailureReason.SESSION_EXPIRED,
-                    session_id=session_id,
-                    error_code="INVALID_SESSION",
-                    message="Session is invalid or has expired.",
-                )
-        except Exception:
-            logger.exception(
-                "session_validation_error", session_id=session_id
+            return AuthenticationResult(
+                outcome=AuthenticationOutcome.FAILURE,
+                failure_reason=FailureReason.SESSION_EXPIRED,
+                session_id=session_id,
+                error_code="INVALID_SESSION",
+                message="Session is invalid or has expired.",
             )
+        except Exception:
+            logger.exception("session_validation_error", session_id=session_id)
             return AuthenticationResult(
                 outcome=AuthenticationOutcome.FAILURE,
                 failure_reason=FailureReason.INTERNAL_ERROR,
@@ -144,18 +141,15 @@ class AuthenticationService(IAuthenticationService):
                     session_id=session_id,
                     message="Session renewed successfully.",
                 )
-            else:
-                return AuthenticationResult(
-                    outcome=AuthenticationOutcome.FAILURE,
-                    failure_reason=FailureReason.INVALID_SESSION,
-                    session_id=session_id,
-                    error_code="INVALID_SESSION",
-                    message="Session could not be renewed. It may not exist or has expired.",
-                )
-        except Exception:
-            logger.exception(
-                "session_renewal_error", session_id=session_id
+            return AuthenticationResult(
+                outcome=AuthenticationOutcome.FAILURE,
+                failure_reason=FailureReason.INVALID_SESSION,
+                session_id=session_id,
+                error_code="INVALID_SESSION",
+                message="Session could not be renewed. It may not exist or has expired.",
             )
+        except Exception:
+            logger.exception("session_renewal_error", session_id=session_id)
             return AuthenticationResult(
                 outcome=AuthenticationOutcome.FAILURE,
                 failure_reason=FailureReason.INTERNAL_ERROR,

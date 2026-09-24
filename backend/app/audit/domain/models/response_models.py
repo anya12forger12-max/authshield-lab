@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional, Any
 from pydantic import BaseModel, Field
 
 
@@ -12,19 +11,19 @@ class AuditEntryResponse(BaseModel):
     audit_id: str = ""
     event_id: str = ""
     correlation_id: str = ""
-    timestamp: Optional[str] = None
-    user_id: Optional[str] = None
-    username: Optional[str] = None
-    administrator_id: Optional[str] = None
+    timestamp: str | None = None
+    user_id: str | None = None
+    username: str | None = None
+    administrator_id: str | None = None
     module: str = ""
     event_type: str = ""
     severity: str = "info"
     description: str = ""
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
-    previous_state: Optional[dict] = None
-    new_state: Optional[dict] = None
-    metadata: Optional[dict] = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    previous_state: dict | None = None
+    new_state: dict | None = None
+    metadata: dict | None = None
     result: str = "success"
     ip_address: str = "127.0.0.1"
 

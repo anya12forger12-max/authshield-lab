@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class ValidationRule:
@@ -62,7 +62,7 @@ class ValidationResult:
         self.passed: bool = passed
         self.message: str = message
         self.evidence: list[str] = evidence if evidence is not None else []
-        self.checked_at: datetime = checked_at or datetime.now(timezone.utc)
+        self.checked_at: datetime = checked_at or datetime.now(UTC)
 
     def add_evidence(self, item: str) -> None:
         """Record an evidence item supporting this result."""
@@ -101,7 +101,7 @@ class ValidationReport:
         self.results: list[ValidationResult] = results if results is not None else []
         self.overall_status: str = overall_status
         self.score: float = score
-        self.generated_at: datetime = generated_at or datetime.now(timezone.utc)
+        self.generated_at: datetime = generated_at or datetime.now(UTC)
 
     def add_result(self, result: ValidationResult) -> None:
         """Append a validation result to this report."""

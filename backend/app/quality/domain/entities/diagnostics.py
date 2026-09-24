@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 DiagStatus = Literal["pass", "fail", "warning", "skipped"]
@@ -16,7 +16,7 @@ class DiagnosticCheck:
     description: str = ""
     status: DiagStatus = "skipped"
     details: str = ""
-    checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    checked_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -25,7 +25,7 @@ class DiagnosticBundle:
     name: str = ""
     checks: list[DiagnosticCheck] = field(default_factory=list)
     overall_status: str = ""
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     platform: str = ""
     version: str = ""
     includes_sensitive: bool = False

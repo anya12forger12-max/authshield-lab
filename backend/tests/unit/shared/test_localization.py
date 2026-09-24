@@ -46,16 +46,12 @@ class TestTranslate:
         assert result == "nonexistent.key"
 
     def test_translate_with_kwargs(self, localization):
-        result = localization.t(
-            "validation.username.length", min=4, max=32
-        )
+        result = localization.t("validation.username.length", min=4, max=32)
         assert "4" in result
         assert "32" in result
 
     def test_translate_wrong_kwargs_returns_raw_string(self, localization):
-        result = localization.t(
-            "validation.username.length", wrong="param"
-        )
+        result = localization.t("validation.username.length", wrong="param")
         assert isinstance(result, str)
         assert len(result) > 0
 

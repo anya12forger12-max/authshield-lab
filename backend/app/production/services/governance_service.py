@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from ...shared.logging_config import get_logger
 from ...shared.events.event_bus import EventBus
+from ...shared.logging_config import get_logger
 from ..domain.entities.governance import (
     ArchitectureAudit,
     AuditCheck,
@@ -16,13 +16,13 @@ from ..domain.entities.governance import (
     GovernanceReport,
     GovernanceReview,
 )
+from ..domain.events.production_events import GovernanceReviewCompletedEvent
 from ..domain.interfaces import (
     IArchitectureAuditRepository,
     IGovernancePolicyRepository,
     IGovernanceReportRepository,
     IGovernanceReviewRepository,
 )
-from ..domain.events.production_events import GovernanceReviewCompletedEvent
 
 logger = get_logger("production.governance_service")
 
@@ -50,7 +50,7 @@ class GovernanceService:
         policy_repo: IGovernancePolicyRepository,
         audit_repo: IArchitectureAuditRepository,
         report_repo: IGovernanceReportRepository,
-        event_bus: Optional[EventBus] = None,
+        event_bus: EventBus | None = None,
     ) -> None:
         self._review_repo = review_repo
         self._policy_repo = policy_repo
@@ -68,7 +68,7 @@ class GovernanceService:
         title: str,
         description: str,
         reviewer: str,
-        scheduled_at: Optional[datetime] = None,
+        scheduled_at: datetime | None = None,
     ) -> GovernanceReview:
         """Schedule a new governance review."""
         review = GovernanceReview(
@@ -78,19 +78,17 @@ class GovernanceService:
             description=description,
             status="pending",
             reviewer=reviewer,
-            scheduled_at=scheduled_at or datetime.now(timezone.utc),
+            scheduled_at=scheduled_at or datetime.now(UTC),
         )
         await self._review_repo.create(review)
         logger.info("review_scheduled", review_id=review.id, area=area.value)
         return review
 
-    async def get_review(self, review_id: str) -> Optional[GovernanceReview]:
+    async def get_review(self, review_id: str) -> GovernanceReview | None:
         """Retrieve a governance review by ID."""
         return await self._review_repo.get_by_id(review_id)
 
-    async def list_reviews(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_reviews(self, page: int = 1, per_page: int = 20) -> dict:
         """List all governance reviews with pagination."""
         return await self._review_repo.get_all(page=page, per_page=per_page)
 
@@ -102,8 +100,8 @@ class GovernanceService:
         self,
         review_id: str,
         status: str,
-        recommendations: Optional[list[str]] = None,
-    ) -> Optional[GovernanceReview]:
+        recommendations: list[str] | None = None,
+    ) -> GovernanceReview | None:
         """Mark a review as completed with a status and recommendations."""
         review = await self._review_repo.get_by_id(review_id)
         if review is None:
@@ -115,7 +113,7 @@ class GovernanceService:
 
         data: dict[str, Any] = {
             "status": status,
-            "completed_at": datetime.now(timezone.utc),
+            "completed_at": datetime.now(UTC),
         }
         if recommendations is not None:
             data["recommendations"] = recommendations
@@ -138,7 +136,7 @@ class GovernanceService:
         area: GovernanceArea,
         name: str,
         description: str,
-        requirements: Optional[list[str]] = None,
+        requirements: list[str] | None = None,
         review_frequency_days: int = 30,
     ) -> GovernancePolicy:
         """Register a new governance policy."""
@@ -154,7 +152,7 @@ class GovernanceService:
         logger.info("policy_created", policy_id=policy.id, name=name)
         return policy
 
-    async def get_policy(self, policy_id: str) -> Optional[GovernancePolicy]:
+    async def get_policy(self, policy_id: str) -> GovernancePolicy | None:
         """Retrieve a governance policy by ID."""
         return await self._policy_repo.get_by_id(policy_id)
 
@@ -166,21 +164,17 @@ class GovernanceService:
         """List policies filtered by area."""
         return await self._policy_repo.get_by_area(area)
 
-    async def update_policy(
-        self, policy_id: str, data: dict[str, Any]
-    ) -> Optional[GovernancePolicy]:
+    async def update_policy(self, policy_id: str, data: dict[str, Any]) -> GovernancePolicy | None:
         """Update a governance policy."""
         return await self._policy_repo.update(policy_id, data)
 
-    async def mark_policy_reviewed(self, policy_id: str) -> Optional[GovernancePolicy]:
+    async def mark_policy_reviewed(self, policy_id: str) -> GovernancePolicy | None:
         """Mark a policy as recently reviewed."""
-        return await self._policy_repo.update(
-            policy_id, {"last_reviewed_at": datetime.now(timezone.utc)}
-        )
+        return await self._policy_repo.update(policy_id, {"last_reviewed_at": datetime.now(UTC)})
 
     async def get_policies_needing_review(self) -> list[GovernancePolicy]:
         """Find policies whose review frequency has elapsed."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         all_policies = await self._policy_repo.get_all()
         overdue: list[GovernancePolicy] = []
         for policy in all_policies:
@@ -193,7 +187,7 @@ class GovernanceService:
         return overdue
 
     async def run_architecture_audit(
-        self, name: str, checks: Optional[list[dict[str, str]]] = None
+        self, name: str, checks: list[dict[str, str]] | None = None
     ) -> ArchitectureAudit:
         """Execute an architecture audit with the given checks."""
         audit_checks: list[AuditCheck] = []
@@ -210,7 +204,7 @@ class GovernanceService:
 
         total = len(audit_checks)
         passed = sum(1 for c in audit_checks if c.status == "pass")
-        warnings = sum(1 for c in audit_checks if c.status == "warning")
+
         score = (passed / total * 100) if total > 0 else 0.0
 
         if all(c.status == "pass" for c in audit_checks):
@@ -226,7 +220,7 @@ class GovernanceService:
             checks=audit_checks,
             overall_status=overall,
             score=score,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
         await self._audit_repo.create(audit)
         logger.info(
@@ -237,13 +231,11 @@ class GovernanceService:
         )
         return audit
 
-    async def get_audit(self, audit_id: str) -> Optional[ArchitectureAudit]:
+    async def get_audit(self, audit_id: str) -> ArchitectureAudit | None:
         """Retrieve an architecture audit by ID."""
         return await self._audit_repo.get_by_id(audit_id)
 
-    async def list_audits(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_audits(self, page: int = 1, per_page: int = 20) -> dict:
         """List all architecture audits with pagination."""
         return await self._audit_repo.get_all(page=page, per_page=per_page)
 
@@ -251,8 +243,8 @@ class GovernanceService:
         self,
         title: str,
         area: GovernanceArea,
-        findings: Optional[list[str]] = None,
-        recommendations: Optional[list[str]] = None,
+        findings: list[str] | None = None,
+        recommendations: list[str] | None = None,
     ) -> GovernanceReport:
         """Generate a governance report for an area."""
         reviews_result = await self._review_repo.get_all(page=1, per_page=1000)
@@ -274,18 +266,16 @@ class GovernanceService:
             findings=findings or [],
             recommendations=recommendations or [],
             score=score,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=datetime.now(UTC),
         )
         await self._report_repo.create(report)
         logger.info("governance_report_generated", report_id=report.id, area=area.value)
         return report
 
-    async def get_report(self, report_id: str) -> Optional[GovernanceReport]:
+    async def get_report(self, report_id: str) -> GovernanceReport | None:
         """Retrieve a governance report by ID."""
         return await self._report_repo.get_by_id(report_id)
 
-    async def list_reports(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict:
+    async def list_reports(self, page: int = 1, per_page: int = 20) -> dict:
         """List all governance reports with pagination."""
         return await self._report_repo.get_all(page=page, per_page=per_page)

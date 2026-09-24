@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -27,7 +27,7 @@ class ReleasePlan:
     code_name: str = ""
     status: ReleasePhase = ReleasePhase.PLANNING
     end_date: str = ""
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def advance(self) -> None:
         """Move the release to the next phase."""
@@ -61,19 +61,19 @@ class ReleaseValidation:
     validation_type: str = ""
     status: str = "pending"
     details: str = ""
-    validated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    validated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def mark_passed(self, details_text: str = "") -> None:
         """Record a passing result."""
         self.status = "passed"
         self.details = details_text
-        self.validated_at = datetime.now(timezone.utc)
+        self.validated_at = datetime.now(UTC)
 
     def mark_failed(self, details_text: str = "") -> None:
         """Record a failing result."""
         self.status = "failed"
         self.details = details_text
-        self.validated_at = datetime.now(timezone.utc)
+        self.validated_at = datetime.now(UTC)
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -97,7 +97,7 @@ class PackagingResult:
     package_type: str = ""
     output_path: str = ""
     checksum: str = ""
-    built_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    built_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         """Serialize to a plain dictionary."""
@@ -123,7 +123,7 @@ class RegressionResult:
     failed: int = 0
     skipped: int = 0
     coverage: float = 0.0
-    run_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    run_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def pass_rate(self) -> float:
         """Fraction of tests that passed."""

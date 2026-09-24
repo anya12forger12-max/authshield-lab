@@ -2,9 +2,17 @@
 
 from __future__ import annotations
 
-import math
-from typing import Any, Optional
-
+from ..domain.entities.certification_center import (
+    CertificationRequirement,
+    PlatformCertification,
+    PlatformCertificationReport,
+)
+from ..domain.entities.disaster_recovery import (
+    ArchiveRecovery,
+    BackupValidation,
+    RecoveryReadinessReport,
+    RestoreTest,
+)
 from ..domain.entities.operations import (
     EcosystemDashboard,
     ModuleInventory,
@@ -12,18 +20,11 @@ from ..domain.entities.operations import (
     PlatformHealth,
     ServiceStatus,
 )
-from ..domain.entities.certification_center import (
-    CertificationRequirement,
-    PlatformCertification,
-    PlatformCertificationReport,
-)
-from ..domain.entities.sustainability import (
-    APIStabilityReport,
-    DependencyLifecycle,
-    DocumentationFreshness,
-    MaintenanceRoadmap,
-    ModuleOwnership,
-    SustainabilityDashboard,
+from ..domain.entities.platform_validation import (
+    FinalAcceptanceTest,
+    PlatformValidationReport,
+    SubsystemValidation,
+    ValidationCheck,
 )
 from ..domain.entities.release_engineering import (
     PackagingResult,
@@ -32,17 +33,13 @@ from ..domain.entities.release_engineering import (
     ReleasePlan,
     ReleaseValidation,
 )
-from ..domain.entities.disaster_recovery import (
-    ArchiveRecovery,
-    BackupValidation,
-    RecoveryReadinessReport,
-    RestoreTest,
-)
-from ..domain.entities.platform_validation import (
-    FinalAcceptanceTest,
-    PlatformValidationReport,
-    SubsystemValidation,
-    ValidationCheck,
+from ..domain.entities.sustainability import (
+    APIStabilityReport,
+    DependencyLifecycle,
+    DocumentationFreshness,
+    MaintenanceRoadmap,
+    ModuleOwnership,
+    SustainabilityDashboard,
 )
 from ..domain.interfaces import (
     APIStabilityRepository,
@@ -74,7 +71,6 @@ from ..domain.interfaces import (
     ValidationCheckRepository,
 )
 
-
 # ── Operations ──────────────────────────────────────────────────────
 
 
@@ -86,7 +82,7 @@ class InMemoryServiceStatusRepository(ServiceStatusRepository):
         self._store[status.name] = status
         return status
 
-    def find_by_name(self, name: str) -> Optional[ServiceStatus]:
+    def find_by_name(self, name: str) -> ServiceStatus | None:
         return self._store.get(name)
 
     def find_all(self) -> list[ServiceStatus]:
@@ -101,7 +97,7 @@ class InMemoryPlatformHealthRepository(PlatformHealthRepository):
         self._store.append(health)
         return health
 
-    def find_latest(self) -> Optional[PlatformHealth]:
+    def find_latest(self) -> PlatformHealth | None:
         return self._store[-1] if self._store else None
 
     def find_all(self) -> list[PlatformHealth]:
@@ -116,7 +112,7 @@ class InMemoryModuleInventoryRepository(ModuleInventoryRepository):
         self._store[module.name] = module
         return module
 
-    def find_by_name(self, name: str) -> Optional[ModuleInventory]:
+    def find_by_name(self, name: str) -> ModuleInventory | None:
         return self._store.get(name)
 
     def find_all(self) -> list[ModuleInventory]:
@@ -138,7 +134,7 @@ class InMemoryPackageHealthRepository(PackageHealthRepository):
         self._store[pkg.name] = pkg
         return pkg
 
-    def find_by_name(self, name: str) -> Optional[PackageHealth]:
+    def find_by_name(self, name: str) -> PackageHealth | None:
         return self._store.get(name)
 
     def find_all(self) -> list[PackageHealth]:
@@ -153,7 +149,7 @@ class InMemoryEcosystemDashboardRepository(EcosystemDashboardRepository):
         self._store.append(dashboard)
         return dashboard
 
-    def find_latest(self) -> Optional[EcosystemDashboard]:
+    def find_latest(self) -> EcosystemDashboard | None:
         return self._store[-1] if self._store else None
 
 
@@ -168,7 +164,7 @@ class InMemoryPlatformCertificationRepository(PlatformCertificationRepository):
         self._store[cert.id] = cert
         return cert
 
-    def find_by_id(self, cert_id: str) -> Optional[PlatformCertification]:
+    def find_by_id(self, cert_id: str) -> PlatformCertification | None:
         return self._store.get(cert_id)
 
     def find_all(self) -> list[PlatformCertification]:
@@ -180,7 +176,7 @@ class InMemoryPlatformCertificationRepository(PlatformCertificationRepository):
     def find_by_status(self, status: str) -> list[PlatformCertification]:
         return [c for c in self._store.values() if c.status.value == status]
 
-    def update(self, cert_id: str, data: dict) -> Optional[PlatformCertification]:
+    def update(self, cert_id: str, data: dict) -> PlatformCertification | None:
         cert = self._store.get(cert_id)
         if cert is None:
             return None
@@ -204,13 +200,13 @@ class InMemoryCertificationRequirementRepository(CertificationRequirementReposit
         self._store[req.id] = req
         return req
 
-    def find_by_id(self, req_id: str) -> Optional[CertificationRequirement]:
+    def find_by_id(self, req_id: str) -> CertificationRequirement | None:
         return self._store.get(req_id)
 
     def find_by_certification_id(self, cert_id: str) -> list[CertificationRequirement]:
         return [r for r in self._store.values() if r.certification_id == cert_id]
 
-    def update(self, req_id: str, data: dict) -> Optional[CertificationRequirement]:
+    def update(self, req_id: str, data: dict) -> CertificationRequirement | None:
         req = self._store.get(req_id)
         if req is None:
             return None
@@ -234,7 +230,7 @@ class InMemoryCertificationReportRepository(CertificationReportRepository):
         self._store.append(report)
         return report
 
-    def find_latest(self) -> Optional[PlatformCertificationReport]:
+    def find_latest(self) -> PlatformCertificationReport | None:
         return self._store[-1] if self._store else None
 
     def find_all(self) -> list[PlatformCertificationReport]:
@@ -252,7 +248,7 @@ class InMemoryDependencyLifecycleRepository(DependencyLifecycleRepository):
         self._store[dep.name] = dep
         return dep
 
-    def find_by_name(self, name: str) -> Optional[DependencyLifecycle]:
+    def find_by_name(self, name: str) -> DependencyLifecycle | None:
         return self._store.get(name)
 
     def find_all(self) -> list[DependencyLifecycle]:
@@ -273,10 +269,10 @@ class InMemoryAPIStabilityRepository(APIStabilityRepository):
         self._store[report.version] = report
         return report
 
-    def find_by_version(self, version: str) -> Optional[APIStabilityReport]:
+    def find_by_version(self, version: str) -> APIStabilityReport | None:
         return self._store.get(version)
 
-    def find_latest(self) -> Optional[APIStabilityReport]:
+    def find_latest(self) -> APIStabilityReport | None:
         if not self._store:
             return None
         latest_key = max(self._store.keys())
@@ -291,7 +287,7 @@ class InMemoryModuleOwnershipRepository(ModuleOwnershipRepository):
         self._store[ownership.module] = ownership
         return ownership
 
-    def find_by_module(self, module: str) -> Optional[ModuleOwnership]:
+    def find_by_module(self, module: str) -> ModuleOwnership | None:
         return self._store.get(module)
 
     def find_all(self) -> list[ModuleOwnership]:
@@ -306,7 +302,7 @@ class InMemoryDocumentationFreshnessRepository(DocumentationFreshnessRepository)
         self._store[doc.component] = doc
         return doc
 
-    def find_by_component(self, component: str) -> Optional[DocumentationFreshness]:
+    def find_by_component(self, component: str) -> DocumentationFreshness | None:
         return self._store.get(component)
 
     def find_all(self) -> list[DocumentationFreshness]:
@@ -321,7 +317,7 @@ class InMemorySustainabilityDashboardRepository(SustainabilityDashboardRepositor
         self._store.append(dashboard)
         return dashboard
 
-    def find_latest(self) -> Optional[SustainabilityDashboard]:
+    def find_latest(self) -> SustainabilityDashboard | None:
         return self._store[-1] if self._store else None
 
 
@@ -333,7 +329,7 @@ class InMemoryMaintenanceRoadmapRepository(MaintenanceRoadmapRepository):
         self._store[roadmap.id] = roadmap
         return roadmap
 
-    def find_by_id(self, roadmap_id: str) -> Optional[MaintenanceRoadmap]:
+    def find_by_id(self, roadmap_id: str) -> MaintenanceRoadmap | None:
         return self._store.get(roadmap_id)
 
     def find_all(self) -> list[MaintenanceRoadmap]:
@@ -357,10 +353,10 @@ class InMemoryReleasePlanRepository(ReleasePlanRepository):
         self._store[plan.id] = plan
         return plan
 
-    def find_by_id(self, plan_id: str) -> Optional[ReleasePlan]:
+    def find_by_id(self, plan_id: str) -> ReleasePlan | None:
         return self._store.get(plan_id)
 
-    def find_by_version(self, version: str) -> Optional[ReleasePlan]:
+    def find_by_version(self, version: str) -> ReleasePlan | None:
         for plan in self._store.values():
             if plan.version == version:
                 return plan
@@ -369,7 +365,7 @@ class InMemoryReleasePlanRepository(ReleasePlanRepository):
     def find_all(self) -> list[ReleasePlan]:
         return list(self._store.values())
 
-    def update(self, plan_id: str, data: dict) -> Optional[ReleasePlan]:
+    def update(self, plan_id: str, data: dict) -> ReleasePlan | None:
         plan = self._store.get(plan_id)
         if plan is None:
             return None
@@ -393,7 +389,7 @@ class InMemoryReleaseValidationRepository(ReleaseValidationRepository):
         self._store[val.id] = val
         return val
 
-    def find_by_id(self, val_id: str) -> Optional[ReleaseValidation]:
+    def find_by_id(self, val_id: str) -> ReleaseValidation | None:
         return self._store.get(val_id)
 
     def find_by_release_id(self, release_id: str) -> list[ReleaseValidation]:
@@ -408,7 +404,7 @@ class InMemoryPackagingResultRepository(PackagingResultRepository):
         self._store[pkg.id] = pkg
         return pkg
 
-    def find_by_id(self, pkg_id: str) -> Optional[PackagingResult]:
+    def find_by_id(self, pkg_id: str) -> PackagingResult | None:
         return self._store.get(pkg_id)
 
     def find_by_release_id(self, release_id: str) -> list[PackagingResult]:
@@ -423,7 +419,7 @@ class InMemoryRegressionResultRepository(RegressionResultRepository):
         self._store[result.id] = result
         return result
 
-    def find_by_id(self, result_id: str) -> Optional[RegressionResult]:
+    def find_by_id(self, result_id: str) -> RegressionResult | None:
         return self._store.get(result_id)
 
     def find_by_release_id(self, release_id: str) -> list[RegressionResult]:
@@ -438,10 +434,10 @@ class InMemoryReleaseHistoryRepository(ReleaseHistoryRepository):
         self._store[entry.id] = entry
         return entry
 
-    def find_by_id(self, entry_id: str) -> Optional[ReleaseHistoryEntry]:
+    def find_by_id(self, entry_id: str) -> ReleaseHistoryEntry | None:
         return self._store.get(entry_id)
 
-    def find_by_version(self, version: str) -> Optional[ReleaseHistoryEntry]:
+    def find_by_version(self, version: str) -> ReleaseHistoryEntry | None:
         for entry in self._store.values():
             if entry.version == version:
                 return entry
@@ -462,7 +458,7 @@ class InMemoryBackupValidationRepository(BackupValidationRepository):
         self._store[validation.id] = validation
         return validation
 
-    def find_by_id(self, val_id: str) -> Optional[BackupValidation]:
+    def find_by_id(self, val_id: str) -> BackupValidation | None:
         return self._store.get(val_id)
 
     def find_by_backup_id(self, backup_id: str) -> list[BackupValidation]:
@@ -480,7 +476,7 @@ class InMemoryRestoreTestRepository(RestoreTestRepository):
         self._store[test.id] = test
         return test
 
-    def find_by_id(self, test_id: str) -> Optional[RestoreTest]:
+    def find_by_id(self, test_id: str) -> RestoreTest | None:
         return self._store.get(test_id)
 
     def find_by_backup_id(self, backup_id: str) -> list[RestoreTest]:
@@ -498,7 +494,7 @@ class InMemoryArchiveRecoveryRepository(ArchiveRecoveryRepository):
         self._store[recovery.id] = recovery
         return recovery
 
-    def find_by_id(self, recovery_id: str) -> Optional[ArchiveRecovery]:
+    def find_by_id(self, recovery_id: str) -> ArchiveRecovery | None:
         return self._store.get(recovery_id)
 
     def find_all(self) -> list[ArchiveRecovery]:
@@ -513,7 +509,7 @@ class InMemoryRecoveryReadinessRepository(RecoveryReadinessRepository):
         self._store.append(report)
         return report
 
-    def find_latest(self) -> Optional[RecoveryReadinessReport]:
+    def find_latest(self) -> RecoveryReadinessReport | None:
         return self._store[-1] if self._store else None
 
     def find_all(self) -> list[RecoveryReadinessReport]:
@@ -531,7 +527,7 @@ class InMemoryValidationCheckRepository(ValidationCheckRepository):
         self._store[check.id] = check
         return check
 
-    def find_by_id(self, check_id: str) -> Optional[ValidationCheck]:
+    def find_by_id(self, check_id: str) -> ValidationCheck | None:
         return self._store.get(check_id)
 
     def find_by_subsystem(self, subsystem: str) -> list[ValidationCheck]:
@@ -549,13 +545,13 @@ class InMemorySubsystemValidationRepository(SubsystemValidationRepository):
         self._store[sv.subsystem] = sv
         return sv
 
-    def find_by_id(self, sv_id: str) -> Optional[SubsystemValidation]:
+    def find_by_id(self, sv_id: str) -> SubsystemValidation | None:
         for sv in self._store.values():
             if sv.id == sv_id:
                 return sv
         return None
 
-    def find_by_subsystem(self, subsystem: str) -> Optional[SubsystemValidation]:
+    def find_by_subsystem(self, subsystem: str) -> SubsystemValidation | None:
         return self._store.get(subsystem)
 
     def find_all(self) -> list[SubsystemValidation]:
@@ -570,7 +566,7 @@ class InMemoryPlatformValidationReportRepository(PlatformValidationReportReposit
         self._store.append(report)
         return report
 
-    def find_latest(self) -> Optional[PlatformValidationReport]:
+    def find_latest(self) -> PlatformValidationReport | None:
         return self._store[-1] if self._store else None
 
     def find_all(self) -> list[PlatformValidationReport]:
@@ -585,10 +581,10 @@ class InMemoryFinalAcceptanceTestRepository(FinalAcceptanceTestRepository):
         self._store[fat.id] = fat
         return fat
 
-    def find_by_id(self, fat_id: str) -> Optional[FinalAcceptanceTest]:
+    def find_by_id(self, fat_id: str) -> FinalAcceptanceTest | None:
         return self._store.get(fat_id)
 
-    def find_by_version(self, version: str) -> Optional[FinalAcceptanceTest]:
+    def find_by_version(self, version: str) -> FinalAcceptanceTest | None:
         for fat in self._store.values():
             if fat.version == version:
                 return fat

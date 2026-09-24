@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.entities.release_governance import (
     ReleaseApproval,
@@ -36,26 +37,20 @@ class ReleaseGovernanceService:
             created_by=data.get("created_by", ""),
         )
         if data.get("initial_stage"):
-            try:
+            with contextlib.suppress(ValueError):
                 workflow.current_stage = ReleaseStage(data["initial_stage"])
-            except ValueError:
-                pass
         return self._repo.create_workflow(workflow.to_dict())
 
-    def get_workflow(self, workflow_id: str) -> Optional[dict[str, Any]]:
+    def get_workflow(self, workflow_id: str) -> dict[str, Any] | None:
         return self._repo.get_workflow_by_id(workflow_id)
 
-    def get_workflow_by_release(self, release_id: str) -> Optional[dict[str, Any]]:
+    def get_workflow_by_release(self, release_id: str) -> dict[str, Any] | None:
         return self._repo.get_workflow_by_release_id(release_id)
 
-    def list_workflows(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    def list_workflows(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         return self._repo.get_all_workflows(page=page, per_page=per_page)
 
-    def advance_workflow(
-        self, workflow_id: str, notes: str = ""
-    ) -> dict[str, Any]:
+    def advance_workflow(self, workflow_id: str, notes: str = "") -> dict[str, Any]:
         """Advance a workflow to the next stage."""
         workflow_data = self._repo.get_workflow_by_id(workflow_id)
         if not workflow_data:
@@ -73,11 +68,13 @@ class ReleaseGovernanceService:
 
         previous_stage = current.value
         history = list(workflow_data.get("stage_history", []))
-        history.append({
-            "stage": previous_stage,
-            "exited_at": datetime.now(timezone.utc).isoformat(),
-            "notes": notes,
-        })
+        history.append(
+            {
+                "stage": previous_stage,
+                "exited_at": datetime.now(UTC).isoformat(),
+                "notes": notes,
+            }
+        )
 
         next_stage = stages[current_idx + 1]
         updates = {
@@ -103,14 +100,17 @@ class ReleaseGovernanceService:
         )
         return result or workflow_data
 
-    def complete_workflow(self, workflow_id: str) -> Optional[dict[str, Any]]:
+    def complete_workflow(self, workflow_id: str) -> dict[str, Any] | None:
         """Mark a workflow as completed."""
         workflow = self._repo.get_workflow_by_id(workflow_id)
         if not workflow:
             return None
-        return self._repo.update_workflow(workflow_id, {
-            "completed_at": datetime.now(timezone.utc).isoformat(),
-        })
+        return self._repo.update_workflow(
+            workflow_id,
+            {
+                "completed_at": datetime.now(UTC).isoformat(),
+            },
+        )
 
     # ------------------------------------------------------------------
     # Approvals
@@ -129,31 +129,33 @@ class ReleaseGovernanceService:
         )
         return self._repo.create_approval(approval.to_dict())
 
-    def approve(
-        self, approval_id: str, comments: str = ""
-    ) -> Optional[dict[str, Any]]:
+    def approve(self, approval_id: str, comments: str = "") -> dict[str, Any] | None:
         """Record an approval."""
         approvals = self._repo.get_approvals_for_workflow(approval_id)
         for a in approvals:
             if a["id"] == approval_id:
-                return self._repo.update_approval(approval_id, {
-                    "approved": True,
-                    "comments": comments,
-                    "approved_at": datetime.now(timezone.utc).isoformat(),
-                })
+                return self._repo.update_approval(
+                    approval_id,
+                    {
+                        "approved": True,
+                        "comments": comments,
+                        "approved_at": datetime.now(UTC).isoformat(),
+                    },
+                )
         return None
 
-    def reject(
-        self, approval_id: str, comments: str = ""
-    ) -> Optional[dict[str, Any]]:
+    def reject(self, approval_id: str, comments: str = "") -> dict[str, Any] | None:
         """Record a rejection."""
         approvals_list = self._repo.get_approvals_for_workflow(approval_id)
         for a in approvals_list:
             if a["id"] == approval_id:
-                return self._repo.update_approval(approval_id, {
-                    "approved": False,
-                    "comments": comments,
-                })
+                return self._repo.update_approval(
+                    approval_id,
+                    {
+                        "approved": False,
+                        "comments": comments,
+                    },
+                )
         return None
 
     def get_approvals_for_workflow(self, workflow_id: str) -> list[dict[str, Any]]:
@@ -171,18 +173,19 @@ class ReleaseGovernanceService:
         )
         return self._repo.create_gate(gate.to_dict())
 
-    def check_gate(
-        self, gate_id: str, passed: bool, evidence: str = ""
-    ) -> Optional[dict[str, Any]]:
+    def check_gate(self, gate_id: str, passed: bool, evidence: str = "") -> dict[str, Any] | None:
         """Record a gate check result."""
         gates = self._repo.get_gates_for_release(gate_id)
         for g in gates:
             if g["id"] == gate_id:
-                return self._repo.update_gate(gate_id, {
-                    "passed": passed,
-                    "evidence": evidence,
-                    "checked_at": datetime.now(timezone.utc).isoformat(),
-                })
+                return self._repo.update_gate(
+                    gate_id,
+                    {
+                        "passed": passed,
+                        "evidence": evidence,
+                        "checked_at": datetime.now(UTC).isoformat(),
+                    },
+                )
         return None
 
     def get_gates_for_release(self, release_id: str) -> list[dict[str, Any]]:
@@ -208,19 +211,25 @@ class ReleaseGovernanceService:
         )
         return self._repo.create_checklist_item(item.to_dict())
 
-    def complete_checklist_item(self, item_id: str) -> Optional[dict[str, Any]]:
+    def complete_checklist_item(self, item_id: str) -> dict[str, Any] | None:
         """Mark a checklist item as completed."""
-        return self._repo.update_checklist_item(item_id, {
-            "completed": True,
-            "completed_at": datetime.now(timezone.utc).isoformat(),
-        })
+        return self._repo.update_checklist_item(
+            item_id,
+            {
+                "completed": True,
+                "completed_at": datetime.now(UTC).isoformat(),
+            },
+        )
 
-    def uncomplete_checklist_item(self, item_id: str) -> Optional[dict[str, Any]]:
+    def uncomplete_checklist_item(self, item_id: str) -> dict[str, Any] | None:
         """Mark a checklist item as not completed."""
-        return self._repo.update_checklist_item(item_id, {
-            "completed": False,
-            "completed_at": None,
-        })
+        return self._repo.update_checklist_item(
+            item_id,
+            {
+                "completed": False,
+                "completed_at": None,
+            },
+        )
 
     def get_checklist_for_release(self, release_id: str) -> list[dict[str, Any]]:
         return self._repo.get_checklist_for_release(release_id)
@@ -233,9 +242,7 @@ class ReleaseGovernanceService:
             "release_id": release_id,
             "total": len(items),
             "completed": len(completed),
-            "progress_pct": round(
-                (len(completed) / len(items) * 100.0) if items else 0.0, 2
-            ),
+            "progress_pct": round((len(completed) / len(items) * 100.0) if items else 0.0, 2),
         }
 
     def is_release_ready(self, release_id: str) -> dict[str, Any]:

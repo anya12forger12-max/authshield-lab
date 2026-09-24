@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
-from ..domain.entities.virtual_lab import LabStatus, LabTemplate, LabStep, VirtualLab
+from ..domain.entities.virtual_lab import LabStatus, LabStep, LabTemplate, VirtualLab
 from ..domain.events.content_studio_events import VirtualLabCreated
-from ..domain.interfaces.content_studio_interfaces import ILabTemplateRepository, IVirtualLabRepository
+from ..domain.interfaces.content_studio_interfaces import (
+    ILabTemplateRepository,
+    IVirtualLabRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,40 +40,44 @@ class VirtualLabService:
             estimated_minutes=data.get("estimated_minutes", 60),
             status=LabStatus(data.get("status", "draft")),
         )
-        result = self._lab_repo.create({
-            "id": lab.id,
-            "name": lab.name,
-            "description": lab.description,
-            "lab_type": lab.lab_type,
-            "learning_objectives": lab.learning_objectives,
-            "prerequisites": lab.prerequisites,
-            "steps": [],
-            "expected_outcomes": lab.expected_outcomes,
-            "reflection_questions": lab.reflection_questions,
-            "assessment_criteria": lab.assessment_criteria,
-            "a11y_instructions": lab.a11y_instructions,
-            "estimated_minutes": lab.estimated_minutes,
-            "status": lab.status.value,
-            "version": lab.version,
-        })
+        result = self._lab_repo.create(
+            {
+                "id": lab.id,
+                "name": lab.name,
+                "description": lab.description,
+                "lab_type": lab.lab_type,
+                "learning_objectives": lab.learning_objectives,
+                "prerequisites": lab.prerequisites,
+                "steps": [],
+                "expected_outcomes": lab.expected_outcomes,
+                "reflection_questions": lab.reflection_questions,
+                "assessment_criteria": lab.assessment_criteria,
+                "a11y_instructions": lab.a11y_instructions,
+                "estimated_minutes": lab.estimated_minutes,
+                "status": lab.status.value,
+                "version": lab.version,
+            }
+        )
 
         event = VirtualLabCreated(
             lab_id=lab.id,
             lab_name=lab.name,
             lab_type=lab.lab_type,
         )
-        logger.info("virtual_lab_created", extra={"lab_id": result["id"], "event_id": event.event_id})
+        logger.info(
+            "virtual_lab_created", extra={"lab_id": result["id"], "event_id": event.event_id}
+        )
         return result
 
-    def get_lab(self, lab_id: str) -> Optional[dict[str, Any]]:
+    def get_lab(self, lab_id: str) -> dict[str, Any] | None:
         return self._lab_repo.get_by_id(lab_id)
 
     def list_labs(
-        self, page: int = 1, per_page: int = 20, status: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, status: str | None = None
     ) -> dict[str, Any]:
         return self._lab_repo.get_all(page=page, per_page=per_page, status=status)
 
-    def update_lab(self, lab_id: str, data: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def update_lab(self, lab_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         existing = self._lab_repo.get_by_id(lab_id)
         if not existing:
             raise ValueError(f"Virtual lab '{lab_id}' not found.")
@@ -106,9 +113,7 @@ class VirtualLabService:
         logger.info("lab_step_added", extra={"lab_id": lab_id, "step_id": step.id})
         return step_dict
 
-    def update_step(
-        self, lab_id: str, step_id: str, data: dict[str, Any]
-    ) -> dict[str, Any]:
+    def update_step(self, lab_id: str, step_id: str, data: dict[str, Any]) -> dict[str, Any]:
         existing = self._lab_repo.get_by_id(lab_id)
         if not existing:
             raise ValueError(f"Virtual lab '{lab_id}' not found.")
@@ -116,7 +121,13 @@ class VirtualLabService:
         steps = existing.get("steps", [])
         for step in steps:
             if step["id"] == step_id:
-                for key in ("title", "instructions", "hints", "expected_result", "validation_rules"):
+                for key in (
+                    "title",
+                    "instructions",
+                    "hints",
+                    "expected_result",
+                    "validation_rules",
+                ):
                     if key in data:
                         step[key] = data[key]
                 self._lab_repo.update(lab_id, {"steps": steps})
@@ -155,12 +166,10 @@ class VirtualLabService:
         self._lab_repo.update(lab_id, {"steps": reordered})
         return True
 
-    def search_labs(
-        self, query: str, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    def search_labs(self, query: str, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         return self._lab_repo.search(query, page=page, per_page=per_page)
 
-    def update_lab_status(self, lab_id: str, status: str) -> Optional[dict[str, Any]]:
+    def update_lab_status(self, lab_id: str, status: str) -> dict[str, Any] | None:
         valid_statuses = {s.value for s in LabStatus}
         if status not in valid_statuses:
             raise ValueError(f"Invalid status '{status}'. Must be one of: {valid_statuses}")
@@ -174,18 +183,20 @@ class VirtualLabService:
             steps_template=data.get("steps_template", []),
             metadata=data.get("metadata", {}),
         )
-        result = self._template_repo.create({
-            "id": template.id,
-            "name": template.name,
-            "template_type": template.template_type,
-            "description": template.description,
-            "steps_template": template.steps_template,
-            "metadata": template.metadata,
-        })
+        result = self._template_repo.create(
+            {
+                "id": template.id,
+                "name": template.name,
+                "template_type": template.template_type,
+                "description": template.description,
+                "steps_template": template.steps_template,
+                "metadata": template.metadata,
+            }
+        )
         logger.info("lab_template_created", extra={"template_id": result["id"]})
         return result
 
-    def get_template(self, template_id: str) -> Optional[dict[str, Any]]:
+    def get_template(self, template_id: str) -> dict[str, Any] | None:
         return self._template_repo.get_by_id(template_id)
 
     def list_templates(self) -> list[dict[str, Any]]:
@@ -196,9 +207,7 @@ class VirtualLabService:
             raise ValueError(f"Template '{template_id}' not found.")
         return self._template_repo.delete(template_id)
 
-    def create_lab_from_template(
-        self, template_id: str, lab_name: str
-    ) -> dict[str, Any]:
+    def create_lab_from_template(self, template_id: str, lab_name: str) -> dict[str, Any]:
         template_data = self._template_repo.get_by_id(template_id)
         if not template_data:
             raise ValueError(f"Template '{template_id}' not found.")

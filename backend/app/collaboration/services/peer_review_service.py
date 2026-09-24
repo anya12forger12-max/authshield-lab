@@ -1,17 +1,30 @@
-"""Peer review service – create reviews, advance stages, add comments, make decisions, revision tracking."""
+"Peer review service – create reviews, advance stages, add comments, make decisions, revision tracking."
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from domain.entities.peer_review import (
+        PeerReview,
+        ReviewComment,
+        ReviewDecision,
+        ReviewHistory,
+        ReviewRevision,
+    )
     from domain.interfaces import PeerReviewRepository
 
 
 class PeerReviewService:
     _STAGE_ORDER = [
-        "draft", "internal_review", "a11y_review", "technical_review",
-        "educational_review", "approval", "publication", "archive",
+        "draft",
+        "internal_review",
+        "a11y_review",
+        "technical_review",
+        "educational_review",
+        "approval",
+        "publication",
+        "archive",
     ]
 
     def __init__(self, repo: PeerReviewRepository) -> None:
@@ -23,8 +36,9 @@ class PeerReviewService:
         content_id: str,
         content_type: str,
         submitter: str,
-    ) -> "PeerReview":
+    ) -> PeerReview:
         from domain.entities.peer_review import PeerReview
+
         review = PeerReview(
             title=title,
             content_id=content_id,
@@ -43,7 +57,7 @@ class PeerReviewService:
     def list_reviews(self) -> list:
         return self._repo.all_reviews()
 
-    def advance_stage(self, review_id: str, actor: str) -> "PeerReview":
+    def advance_stage(self, review_id: str, actor: str) -> PeerReview:
         review = self._repo.get_review(review_id)
         if not review:
             raise ValueError(f"Review {review_id} not found")
@@ -57,7 +71,9 @@ class PeerReviewService:
         if history is None:
             history = self._make_history(review_id)
             self._repo.add_history(history)
-        self._append_event(history, next_stage, "stage_advanced", actor, f"Advanced to {next_stage}")
+        self._append_event(
+            history, next_stage, "stage_advanced", actor, f"Advanced to {next_stage}"
+        )
         self._repo.update_history(history)
         return review
 
@@ -67,8 +83,9 @@ class PeerReviewService:
         author: str,
         comment: str,
         severity: str | None = None,
-    ) -> "ReviewComment":
+    ) -> ReviewComment:
         from domain.entities.peer_review import ReviewComment
+
         review = self._repo.get_review(review_id)
         if not review:
             raise ValueError(f"Review {review_id} not found")
@@ -84,7 +101,9 @@ class PeerReviewService:
         if history is None:
             history = self._make_history(review_id)
             self._repo.add_history(history)
-        self._append_event(history, review.current_stage.value, "comment_added", author, comment[:100])
+        self._append_event(
+            history, review.current_stage.value, "comment_added", author, comment[:100]
+        )
         self._repo.update_history(history)
         return c
 
@@ -94,8 +113,9 @@ class PeerReviewService:
         reviewer: str,
         decision: str,
         comments: str = "",
-    ) -> "ReviewDecision":
+    ) -> ReviewDecision:
         from domain.entities.peer_review import ReviewDecision, ReviewDecisionType
+
         review = self._repo.get_review(review_id)
         if not review:
             raise ValueError(f"Review {review_id} not found")
@@ -111,7 +131,13 @@ class PeerReviewService:
         if history is None:
             history = self._make_history(review_id)
             self._repo.add_history(history)
-        self._append_event(history, review.current_stage.value, "decision_made", reviewer, f"{decision}: {comments[:80]}")
+        self._append_event(
+            history,
+            review.current_stage.value,
+            "decision_made",
+            reviewer,
+            f"{decision}: {comments[:80]}",
+        )
         self._repo.update_history(history)
         return d
 
@@ -120,8 +146,9 @@ class PeerReviewService:
         review_id: str,
         changes: list[str] | None = None,
         author: str = "",
-    ) -> "ReviewRevision":
+    ) -> ReviewRevision:
         from domain.entities.peer_review import ReviewRevision
+
         existing = self._repo.get_revisions_for_review(review_id)
         next_number = len(existing) + 1
         revision = ReviewRevision(
@@ -155,12 +182,14 @@ class PeerReviewService:
         comments = self._repo.get_comments_for_review(review_id)
         return [c for c in comments if c.stage.value == stage]
 
-    def _make_history(self, review_id: str) -> "ReviewHistory":
+    def _make_history(self, review_id: str) -> ReviewHistory:
         from domain.entities.peer_review import ReviewHistory
+
         return ReviewHistory(review_id=review_id)
 
     def _append_event(self, history, stage: str, action: str, actor: str, details: str) -> None:
         from domain.entities.peer_review import ReviewEvent, ReviewStage
+
         event = ReviewEvent(
             stage=ReviewStage(stage),
             action=action,

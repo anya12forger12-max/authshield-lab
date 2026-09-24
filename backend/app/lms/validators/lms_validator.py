@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import datetime
+from typing import Any
 
 from ...shared.validation.validator import ValidationResult
 
@@ -73,7 +73,9 @@ def validate_grade_data(data: dict[str, Any]) -> ValidationResult:
         if not isinstance(points_possible, (int, float)):
             result.add_error("points_possible", "Points possible must be a number", "TYPE")
         elif points_possible <= 0:
-            result.add_error("points_possible", "Points possible must be greater than 0", "MIN_VALUE")
+            result.add_error(
+                "points_possible", "Points possible must be greater than 0", "MIN_VALUE"
+            )
         elif score is not None and isinstance(score, (int, float)) and score > points_possible:
             result.add_error("score", "Score cannot exceed points possible", "MAX_VALUE")
 
@@ -144,9 +146,8 @@ def validate_assessment_data(data: dict[str, Any]) -> ValidationResult:
         result.add_error("attempts_allowed", "Attempts allowed must be at least 1", "MIN_VALUE")
 
     time_limit = data.get("time_limit_minutes")
-    if time_limit is not None:
-        if not isinstance(time_limit, int) or time_limit < 1:
-            result.add_error("time_limit_minutes", "Time limit must be at least 1 minute", "MIN_VALUE")
+    if (time_limit is not None and not isinstance(time_limit, int)) or time_limit < 1:
+        result.add_error("time_limit_minutes", "Time limit must be at least 1 minute", "MIN_VALUE")
 
     return result
 
@@ -175,9 +176,12 @@ def validate_calendar_event_data(data: dict[str, Any]) -> ValidationResult:
             start_time = datetime.fromisoformat(start_time)
         if isinstance(end_time, str):
             end_time = datetime.fromisoformat(end_time)
-        if hasattr(start_time, "timestamp") and hasattr(end_time, "timestamp"):
-            if end_time <= start_time:
-                result.add_error("end_time", "End time must be after start time", "INVALID_VALUE")
+        if (
+            hasattr(start_time, "timestamp")
+            and hasattr(end_time, "timestamp")
+            and end_time <= start_time
+        ):
+            result.add_error("end_time", "End time must be after start time", "INVALID_VALUE")
 
     return result
 
@@ -228,8 +232,7 @@ def validate_classroom_capacity(
     if new_total > capacity:
         result.add_error(
             "capacity",
-            f"Adding {add_count} member(s) would exceed capacity "
-            f"({current_members}/{capacity})",
+            f"Adding {add_count} member(s) would exceed capacity ({current_members}/{capacity})",
             "CAPACITY_EXCEEDED",
         )
     return result

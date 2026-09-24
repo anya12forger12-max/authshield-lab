@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Optional
 
 
 @dataclass
@@ -18,7 +17,7 @@ class PerformanceMetric:
     category: str = ""
     value: float = 0.0
     unit: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     threshold: float = 0.0
     passed: bool = True
 
@@ -92,7 +91,7 @@ class MemorySnapshot:
     available_mb: float = 0.0
     peak_mb: float = 0.0
     gc_collections: int = 0
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def usage_ratio(self) -> float:
         """Return used / (used + available) as a fraction (0-1)."""
@@ -229,7 +228,7 @@ class OptimizationDashboard:
     rendering: RenderingMetrics = field(default_factory=RenderingMetrics)
     module_load_times: dict[str, float] = field(default_factory=dict)
     plugin_performance: dict[str, float] = field(default_factory=dict)
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def overall_health(self) -> str:
         """Return a health label based on the collected metrics."""
@@ -288,7 +287,7 @@ class BenchmarkResult:
     passed: bool = True
     baseline_value: float = 0.0
     regression_pct: float = 0.0
-    measured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    measured_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def compare_to_baseline(self) -> str:
         """Compare current value to baseline and classify."""
@@ -328,10 +327,12 @@ class BenchmarkHistory:
 
     def add_measurement(self, value: float, timestamp: datetime) -> None:
         """Record a new measurement and recalculate trend."""
-        self.measurements.append({
-            "value": value,
-            "timestamp": timestamp.isoformat(),
-        })
+        self.measurements.append(
+            {
+                "value": value,
+                "timestamp": timestamp.isoformat(),
+            }
+        )
         self._recalculate_trend()
 
     def _recalculate_trend(self) -> None:
@@ -341,7 +342,11 @@ class BenchmarkHistory:
             self.regression_detected = False
             return
         recent = [m["value"] for m in self.measurements[-5:]]
-        older = [m["value"] for m in self.measurements[:-5]] if len(self.measurements) > 5 else recent[:1]
+        older = (
+            [m["value"] for m in self.measurements[:-5]]
+            if len(self.measurements) > 5
+            else recent[:1]
+        )
         avg_recent = sum(recent) / len(recent)
         avg_older = sum(older) / len(older) if older else avg_recent
         diff_pct = ((avg_recent - avg_older) / avg_older * 100.0) if avg_older != 0 else 0.0
@@ -372,7 +377,7 @@ class CompatibilityResult:
     component: str = ""
     status: str = "skip"
     details: str = ""
-    tested_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    tested_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def to_dict(self) -> dict:
         return {
@@ -392,7 +397,7 @@ class CompatibilityReport:
     results: list[CompatibilityResult] = field(default_factory=list)
     platforms: list[str] = field(default_factory=list)
     overall_status: str = "pending"
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def evaluate(self) -> str:
         """Determine overall status from individual results."""
@@ -473,7 +478,7 @@ class ConfigProfile:
     name: str = ""
     target_audience: str = ""
     settings: dict = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     version: str = "1.0"
 
     def get_setting(self, key: str, default: object = None) -> object:
@@ -539,7 +544,7 @@ class DiagnosticTrace:
     name: str = ""
     spans: list[TraceSpan] = field(default_factory=list)
     total_duration_ms: float = 0.0
-    captured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    captured_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def add_span(self, span: TraceSpan) -> None:
         """Append a span and recalculate total duration."""
@@ -559,7 +564,7 @@ class DiagnosticTrace:
         """Filter spans belonging to a specific module."""
         return [s for s in self.spans if s.module == module]
 
-    def slowest_span(self) -> Optional[TraceSpan]:
+    def slowest_span(self) -> TraceSpan | None:
         """Return the span with the longest duration."""
         if not self.spans:
             return None

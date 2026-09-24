@@ -5,13 +5,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.interfaces import CurriculumExchangeRepository
     from domain.entities.curriculum_exchange import (
-        ExchangePackage,
-        ExchangeManifest,
-        PackageValidationReport,
         ExchangeHistory,
+        ExchangeManifest,
+        ExchangePackage,
+        PackageValidationReport,
     )
+    from domain.interfaces import CurriculumExchangeRepository
 
 
 class CurriculumExchangeService:
@@ -34,6 +34,7 @@ class CurriculumExchangeService:
         metadata: dict | None = None,
     ) -> ExchangePackage:
         from domain.entities.curriculum_exchange import ExchangePackage, PackageType
+
         pkg = ExchangePackage(
             name=name,
             description=description,
@@ -92,7 +93,8 @@ class CurriculumExchangeService:
         pkg = self._repo.get_package(package_id)
         if not pkg:
             raise ValueError(f"Package {package_id} not found")
-        from domain.entities.curriculum_exchange import ExchangeManifest, ExchangeItem
+        from domain.entities.curriculum_exchange import ExchangeItem, ExchangeManifest
+
         item = ExchangeItem(
             name=pkg.name,
             path=f"/packages/{package_id}/{pkg.name}",
@@ -130,10 +132,15 @@ class CurriculumExchangeService:
             score=100.0 if all([pkg.checksum, pkg.compatibility, pkg.license]) else 60.0,
         )
         self._repo.add_validation_report(report)
-        self._record_history(package_id, "imported", imported_by, {
-            "report_id": report.id,
-            "score": report.score,
-        })
+        self._record_history(
+            package_id,
+            "imported",
+            imported_by,
+            {
+                "report_id": report.id,
+                "score": report.score,
+            },
+        )
         return report
 
     def validate_package(self, package_id: str) -> PackageValidationReport:
@@ -147,7 +154,15 @@ class CurriculumExchangeService:
         documentation = "docs" in pkg.metadata or True
         dependencies = len(pkg.dependencies) < 50
         licensing = bool(pkg.license)
-        checks = [integrity, compatibility, a11y, localization, documentation, dependencies, licensing]
+        checks = [
+            integrity,
+            compatibility,
+            a11y,
+            localization,
+            documentation,
+            dependencies,
+            licensing,
+        ]
         score = round((sum(checks) / len(checks)) * 100, 2)
         issues = []
         if not integrity:
@@ -190,6 +205,7 @@ class CurriculumExchangeService:
         details: dict | None = None,
     ) -> None:
         from domain.entities.curriculum_exchange import ExchangeHistory
+
         entry = ExchangeHistory(
             package_id=package_id,
             action=action,

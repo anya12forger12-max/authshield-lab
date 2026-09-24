@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -19,7 +18,7 @@ class QualityScoreModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     meets_threshold: Mapped[bool] = mapped_column(Boolean, default=False)
     checked_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
 
@@ -60,7 +59,7 @@ class CoverageReportModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     by_module: Mapped[str] = mapped_column(Text, default="{}")
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
 
@@ -72,7 +71,7 @@ class ApplicationMetricModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     unit: Mapped[str] = mapped_column(String(50), default="")
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
     tags: Mapped[str] = mapped_column(Text, default="{}")
 
@@ -93,7 +92,7 @@ class AuditResultModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     na_count: Mapped[int] = mapped_column(Integer, default=0)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
 
@@ -107,7 +106,7 @@ class DiagnosticCheckModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     details: Mapped[str] = mapped_column(Text, default="")
     checked_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
 
@@ -122,7 +121,7 @@ class BenchmarkModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     passed: Mapped[bool] = mapped_column(Boolean, default=False)
     measured_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )
 
 
@@ -155,5 +154,5 @@ class ReleaseReadinessModel(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     overall_ready: Mapped[bool] = mapped_column(Boolean, default=False)
     checked_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
     )

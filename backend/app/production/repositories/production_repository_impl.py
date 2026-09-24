@@ -2,51 +2,50 @@
 
 from __future__ import annotations
 
-from typing import Optional
 import copy
 
-from ..domain.interfaces import (
-    IReleaseRepository,
-    IReleasePackageRepository,
-    IBuildInfoRepository,
-    ILtsVersionRepository,
-    IMigrationStepRepository,
-    ICompatibilityMatrixRepository,
-    IDeprecationEntryRepository,
-    IGovernanceReviewRepository,
-    IGovernancePolicyRepository,
-    IArchitectureAuditRepository,
-    IGovernanceReportRepository,
-    ICertificationRepository,
-    ICertificationRequirementRepository,
-    IProductionValidationRepository,
-    IProjectHealthRepository,
-    IArchitectureDecisionRecordRepository,
-    IMigrationHistoryRepository,
-    IReleaseHistoryRepository,
-    IKnowledgeEntryRepository,
-    ICodingStandardRepository,
-)
-from ..domain.entities.release_center import Release, ReleasePackage, BuildInfo
-from ..domain.entities.lts import LtsVersion, MigrationStep, CompatibilityMatrix, DeprecationEntry
-from ..domain.entities.governance import (
-    GovernanceReview,
-    GovernancePolicy,
-    ArchitectureAudit,
-    GovernanceReport,
-)
 from ..domain.entities.certification import (
     Certification,
     CertificationRequirement,
     ProductionValidation,
     ProjectHealth,
 )
+from ..domain.entities.governance import (
+    ArchitectureAudit,
+    GovernancePolicy,
+    GovernanceReport,
+    GovernanceReview,
+)
 from ..domain.entities.knowledge_preservation import (
     ArchitectureDecisionRecord,
+    CodingStandard,
+    KnowledgeEntry,
     MigrationHistory,
     ReleaseHistory,
-    KnowledgeEntry,
-    CodingStandard,
+)
+from ..domain.entities.lts import CompatibilityMatrix, DeprecationEntry, LtsVersion, MigrationStep
+from ..domain.entities.release_center import BuildInfo, Release, ReleasePackage
+from ..domain.interfaces import (
+    IArchitectureAuditRepository,
+    IArchitectureDecisionRecordRepository,
+    IBuildInfoRepository,
+    ICertificationRepository,
+    ICertificationRequirementRepository,
+    ICodingStandardRepository,
+    ICompatibilityMatrixRepository,
+    IDeprecationEntryRepository,
+    IGovernancePolicyRepository,
+    IGovernanceReportRepository,
+    IGovernanceReviewRepository,
+    IKnowledgeEntryRepository,
+    ILtsVersionRepository,
+    IMigrationHistoryRepository,
+    IMigrationStepRepository,
+    IProductionValidationRepository,
+    IProjectHealthRepository,
+    IReleaseHistoryRepository,
+    IReleasePackageRepository,
+    IReleaseRepository,
 )
 
 
@@ -60,7 +59,7 @@ class InMemoryReleaseRepository(IReleaseRepository):
         self._store[release.id] = copy.deepcopy(release)
         return self._store[release.id]
 
-    async def get_by_id(self, release_id: str) -> Optional[Release]:
+    async def get_by_id(self, release_id: str) -> Release | None:
         item = self._store.get(release_id)
         return copy.deepcopy(item) if item else None
 
@@ -78,13 +77,13 @@ class InMemoryReleaseRepository(IReleaseRepository):
             "pages": pages,
         }
 
-    async def get_by_version(self, version: str) -> Optional[Release]:
+    async def get_by_version(self, version: str) -> Release | None:
         for item in self._store.values():
             if item.version == version:
                 return copy.deepcopy(item)
         return None
 
-    async def update(self, release_id: str, data: dict) -> Optional[Release]:
+    async def update(self, release_id: str, data: dict) -> Release | None:
         item = self._store.get(release_id)
         if item is None:
             return None
@@ -110,16 +109,12 @@ class InMemoryReleasePackageRepository(IReleasePackageRepository):
         self._store[package.id] = copy.deepcopy(package)
         return self._store[package.id]
 
-    async def get_by_id(self, package_id: str) -> Optional[ReleasePackage]:
+    async def get_by_id(self, package_id: str) -> ReleasePackage | None:
         item = self._store.get(package_id)
         return copy.deepcopy(item) if item else None
 
     async def get_by_release_id(self, release_id: str) -> list[ReleasePackage]:
-        return [
-            copy.deepcopy(p)
-            for p in self._store.values()
-            if p.release_id == release_id
-        ]
+        return [copy.deepcopy(p) for p in self._store.values() if p.release_id == release_id]
 
     async def delete(self, package_id: str) -> bool:
         if package_id in self._store:
@@ -138,11 +133,11 @@ class InMemoryBuildInfoRepository(IBuildInfoRepository):
         self._store[build_info.id] = copy.deepcopy(build_info)
         return self._store[build_info.id]
 
-    async def get_by_id(self, build_info_id: str) -> Optional[BuildInfo]:
+    async def get_by_id(self, build_info_id: str) -> BuildInfo | None:
         item = self._store.get(build_info_id)
         return copy.deepcopy(item) if item else None
 
-    async def get_by_version(self, version: str) -> Optional[BuildInfo]:
+    async def get_by_version(self, version: str) -> BuildInfo | None:
         for item in self._store.values():
             if item.version == version:
                 return copy.deepcopy(item)
@@ -159,11 +154,11 @@ class InMemoryLtsVersionRepository(ILtsVersionRepository):
         self._store[lts.id] = copy.deepcopy(lts)
         return self._store[lts.id]
 
-    async def get_by_id(self, lts_id: str) -> Optional[LtsVersion]:
+    async def get_by_id(self, lts_id: str) -> LtsVersion | None:
         item = self._store.get(lts_id)
         return copy.deepcopy(item) if item else None
 
-    async def get_by_version(self, version: str) -> Optional[LtsVersion]:
+    async def get_by_version(self, version: str) -> LtsVersion | None:
         for item in self._store.values():
             if item.version == version:
                 return copy.deepcopy(item)
@@ -183,7 +178,7 @@ class InMemoryLtsVersionRepository(ILtsVersionRepository):
             "pages": pages,
         }
 
-    async def update(self, lts_id: str, data: dict) -> Optional[LtsVersion]:
+    async def update(self, lts_id: str, data: dict) -> LtsVersion | None:
         item = self._store.get(lts_id)
         if item is None:
             return None
@@ -209,13 +204,11 @@ class InMemoryMigrationStepRepository(IMigrationStepRepository):
         self._store[step.id] = copy.deepcopy(step)
         return self._store[step.id]
 
-    async def get_by_id(self, step_id: str) -> Optional[MigrationStep]:
+    async def get_by_id(self, step_id: str) -> MigrationStep | None:
         item = self._store.get(step_id)
         return copy.deepcopy(item) if item else None
 
-    async def get_by_version_pair(
-        self, from_version: str, to_version: str
-    ) -> list[MigrationStep]:
+    async def get_by_version_pair(self, from_version: str, to_version: str) -> list[MigrationStep]:
         steps = [
             copy.deepcopy(s)
             for s in self._store.values()
@@ -240,13 +233,13 @@ class InMemoryCompatibilityMatrixRepository(ICompatibilityMatrixRepository):
         self._store[entry.id] = copy.deepcopy(entry)
         return self._store[entry.id]
 
-    async def get_by_id(self, entry_id: str) -> Optional[CompatibilityMatrix]:
+    async def get_by_id(self, entry_id: str) -> CompatibilityMatrix | None:
         item = self._store.get(entry_id)
         return copy.deepcopy(item) if item else None
 
     async def check_compatibility(
         self, version_a: str, version_b: str
-    ) -> Optional[CompatibilityMatrix]:
+    ) -> CompatibilityMatrix | None:
         for item in self._store.values():
             if (item.version_a == version_a and item.version_b == version_b) or (
                 item.version_a == version_b and item.version_b == version_a
@@ -268,11 +261,11 @@ class InMemoryDeprecationEntryRepository(IDeprecationEntryRepository):
         self._store[entry.id] = copy.deepcopy(entry)
         return self._store[entry.id]
 
-    async def get_by_id(self, entry_id: str) -> Optional[DeprecationEntry]:
+    async def get_by_id(self, entry_id: str) -> DeprecationEntry | None:
         item = self._store.get(entry_id)
         return copy.deepcopy(item) if item else None
 
-    async def get_by_feature(self, feature: str) -> Optional[DeprecationEntry]:
+    async def get_by_feature(self, feature: str) -> DeprecationEntry | None:
         for item in self._store.values():
             if item.feature == feature:
                 return copy.deepcopy(item)
@@ -298,7 +291,7 @@ class InMemoryGovernanceReviewRepository(IGovernanceReviewRepository):
         self._store[review.id] = copy.deepcopy(review)
         return self._store[review.id]
 
-    async def get_by_id(self, review_id: str) -> Optional[GovernanceReview]:
+    async def get_by_id(self, review_id: str) -> GovernanceReview | None:
         item = self._store.get(review_id)
         return copy.deepcopy(item) if item else None
 
@@ -323,7 +316,7 @@ class InMemoryGovernanceReviewRepository(IGovernanceReviewRepository):
             if (r.area.value == area if hasattr(r.area, "value") else r.area == area)
         ]
 
-    async def update(self, review_id: str, data: dict) -> Optional[GovernanceReview]:
+    async def update(self, review_id: str, data: dict) -> GovernanceReview | None:
         item = self._store.get(review_id)
         if item is None:
             return None
@@ -349,7 +342,7 @@ class InMemoryGovernancePolicyRepository(IGovernancePolicyRepository):
         self._store[policy.id] = copy.deepcopy(policy)
         return self._store[policy.id]
 
-    async def get_by_id(self, policy_id: str) -> Optional[GovernancePolicy]:
+    async def get_by_id(self, policy_id: str) -> GovernancePolicy | None:
         item = self._store.get(policy_id)
         return copy.deepcopy(item) if item else None
 
@@ -363,7 +356,7 @@ class InMemoryGovernancePolicyRepository(IGovernancePolicyRepository):
     async def get_all(self) -> list[GovernancePolicy]:
         return [copy.deepcopy(i) for i in self._store.values()]
 
-    async def update(self, policy_id: str, data: dict) -> Optional[GovernancePolicy]:
+    async def update(self, policy_id: str, data: dict) -> GovernancePolicy | None:
         item = self._store.get(policy_id)
         if item is None:
             return None
@@ -383,7 +376,7 @@ class InMemoryArchitectureAuditRepository(IArchitectureAuditRepository):
         self._store[audit.id] = copy.deepcopy(audit)
         return self._store[audit.id]
 
-    async def get_by_id(self, audit_id: str) -> Optional[ArchitectureAudit]:
+    async def get_by_id(self, audit_id: str) -> ArchitectureAudit | None:
         item = self._store.get(audit_id)
         return copy.deepcopy(item) if item else None
 
@@ -412,7 +405,7 @@ class InMemoryGovernanceReportRepository(IGovernanceReportRepository):
         self._store[report.id] = copy.deepcopy(report)
         return self._store[report.id]
 
-    async def get_by_id(self, report_id: str) -> Optional[GovernanceReport]:
+    async def get_by_id(self, report_id: str) -> GovernanceReport | None:
         item = self._store.get(report_id)
         return copy.deepcopy(item) if item else None
 
@@ -441,7 +434,7 @@ class InMemoryCertificationRepository(ICertificationRepository):
         self._store[cert.id] = copy.deepcopy(cert)
         return self._store[cert.id]
 
-    async def get_by_id(self, cert_id: str) -> Optional[Certification]:
+    async def get_by_id(self, cert_id: str) -> Certification | None:
         item = self._store.get(cert_id)
         return copy.deepcopy(item) if item else None
 
@@ -463,10 +456,14 @@ class InMemoryCertificationRepository(ICertificationRepository):
         return [
             copy.deepcopy(c)
             for c in self._store.values()
-            if (c.cert_type.value == cert_type if hasattr(c.cert_type, "value") else c.cert_type == cert_type)
+            if (
+                c.cert_type.value == cert_type
+                if hasattr(c.cert_type, "value")
+                else c.cert_type == cert_type
+            )
         ]
 
-    async def update(self, cert_id: str, data: dict) -> Optional[Certification]:
+    async def update(self, cert_id: str, data: dict) -> Certification | None:
         item = self._store.get(cert_id)
         if item is None:
             return None
@@ -492,20 +489,14 @@ class InMemoryCertificationRequirementRepository(ICertificationRequirementReposi
         self._store[req.id] = copy.deepcopy(req)
         return self._store[req.id]
 
-    async def get_by_id(self, req_id: str) -> Optional[CertificationRequirement]:
+    async def get_by_id(self, req_id: str) -> CertificationRequirement | None:
         item = self._store.get(req_id)
         return copy.deepcopy(item) if item else None
 
-    async def get_by_certification_id(
-        self, cert_id: str
-    ) -> list[CertificationRequirement]:
-        return [
-            copy.deepcopy(r)
-            for r in self._store.values()
-            if r.certification_id == cert_id
-        ]
+    async def get_by_certification_id(self, cert_id: str) -> list[CertificationRequirement]:
+        return [copy.deepcopy(r) for r in self._store.values() if r.certification_id == cert_id]
 
-    async def update(self, req_id: str, data: dict) -> Optional[CertificationRequirement]:
+    async def update(self, req_id: str, data: dict) -> CertificationRequirement | None:
         item = self._store.get(req_id)
         if item is None:
             return None
@@ -525,16 +516,12 @@ class InMemoryProductionValidationRepository(IProductionValidationRepository):
         self._store[val.id] = copy.deepcopy(val)
         return self._store[val.id]
 
-    async def get_by_id(self, val_id: str) -> Optional[ProductionValidation]:
+    async def get_by_id(self, val_id: str) -> ProductionValidation | None:
         item = self._store.get(val_id)
         return copy.deepcopy(item) if item else None
 
     async def get_by_subsystem(self, subsystem: str) -> list[ProductionValidation]:
-        return [
-            copy.deepcopy(v)
-            for v in self._store.values()
-            if v.subsystem == subsystem
-        ]
+        return [copy.deepcopy(v) for v in self._store.values() if v.subsystem == subsystem]
 
     async def get_all(self) -> list[ProductionValidation]:
         return [copy.deepcopy(i) for i in self._store.values()]
@@ -552,7 +539,7 @@ class InMemoryProjectHealthRepository(IProjectHealthRepository):
         self._latest_id = health.id
         return self._store[health.id]
 
-    async def get_latest(self) -> Optional[ProjectHealth]:
+    async def get_latest(self) -> ProjectHealth | None:
         if self._latest_id and self._latest_id in self._store:
             return copy.deepcopy(self._store[self._latest_id])
         return None
@@ -571,7 +558,7 @@ class InMemoryArchitectureDecisionRecordRepository(IArchitectureDecisionRecordRe
         self._store[adr.id] = copy.deepcopy(adr)
         return self._store[adr.id]
 
-    async def get_by_id(self, adr_id: str) -> Optional[ArchitectureDecisionRecord]:
+    async def get_by_id(self, adr_id: str) -> ArchitectureDecisionRecord | None:
         item = self._store.get(adr_id)
         return copy.deepcopy(item) if item else None
 
@@ -589,9 +576,7 @@ class InMemoryArchitectureDecisionRecordRepository(IArchitectureDecisionRecordRe
             "pages": pages,
         }
 
-    async def update(
-        self, adr_id: str, data: dict
-    ) -> Optional[ArchitectureDecisionRecord]:
+    async def update(self, adr_id: str, data: dict) -> ArchitectureDecisionRecord | None:
         item = self._store.get(adr_id)
         if item is None:
             return None
@@ -617,7 +602,7 @@ class InMemoryMigrationHistoryRepository(IMigrationHistoryRepository):
         self._store[history.id] = copy.deepcopy(history)
         return self._store[history.id]
 
-    async def get_by_id(self, history_id: str) -> Optional[MigrationHistory]:
+    async def get_by_id(self, history_id: str) -> MigrationHistory | None:
         item = self._store.get(history_id)
         return copy.deepcopy(item) if item else None
 
@@ -635,7 +620,7 @@ class InMemoryReleaseHistoryRepository(IReleaseHistoryRepository):
         self._store[history.id] = copy.deepcopy(history)
         return self._store[history.id]
 
-    async def get_by_id(self, history_id: str) -> Optional[ReleaseHistory]:
+    async def get_by_id(self, history_id: str) -> ReleaseHistory | None:
         item = self._store.get(history_id)
         return copy.deepcopy(item) if item else None
 
@@ -653,7 +638,7 @@ class InMemoryKnowledgeEntryRepository(IKnowledgeEntryRepository):
         self._store[entry.id] = copy.deepcopy(entry)
         return self._store[entry.id]
 
-    async def get_by_id(self, entry_id: str) -> Optional[KnowledgeEntry]:
+    async def get_by_id(self, entry_id: str) -> KnowledgeEntry | None:
         item = self._store.get(entry_id)
         return copy.deepcopy(item) if item else None
 
@@ -682,7 +667,7 @@ class InMemoryKnowledgeEntryRepository(IKnowledgeEntryRepository):
             or any(q in tag.lower() for tag in e.tags)
         ]
 
-    async def update(self, entry_id: str, data: dict) -> Optional[KnowledgeEntry]:
+    async def update(self, entry_id: str, data: dict) -> KnowledgeEntry | None:
         item = self._store.get(entry_id)
         if item is None:
             return None
@@ -708,16 +693,14 @@ class InMemoryCodingStandardRepository(ICodingStandardRepository):
         self._store[standard.id] = copy.deepcopy(standard)
         return self._store[standard.id]
 
-    async def get_by_id(self, standard_id: str) -> Optional[CodingStandard]:
+    async def get_by_id(self, standard_id: str) -> CodingStandard | None:
         item = self._store.get(standard_id)
         return copy.deepcopy(item) if item else None
 
     async def get_all(self) -> list[CodingStandard]:
         return [copy.deepcopy(i) for i in self._store.values()]
 
-    async def update(
-        self, standard_id: str, data: dict
-    ) -> Optional[CodingStandard]:
+    async def update(self, standard_id: str, data: dict) -> CodingStandard | None:
         item = self._store.get(standard_id)
         if item is None:
             return None

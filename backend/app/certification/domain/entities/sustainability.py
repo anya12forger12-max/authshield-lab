@@ -1,10 +1,10 @@
-"""Sustainability domain entities: dependency lifecycle, API stability, ownership, docs freshness."""
+"Sustainability domain entities: dependency lifecycle, API stability, ownership, docs freshness."
 
 from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 
@@ -84,12 +84,12 @@ class ModuleOwnership:
 
     module: str = ""
     owner: str = ""
-    last_reviewed: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_reviewed: datetime = field(default_factory=lambda: datetime.now(UTC))
     health: float = 100.0
 
     def needs_review(self, max_days: int = 30) -> bool:
         """Return ``True`` if the last review is older than *max_days*."""
-        delta = datetime.now(timezone.utc) - self.last_reviewed
+        delta = datetime.now(UTC) - self.last_reviewed
         return delta.days > max_days
 
     def to_dict(self) -> dict:
@@ -107,13 +107,13 @@ class DocumentationFreshness:
     """Tracks how stale documentation is for a component."""
 
     component: str = ""
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
     days_stale: int = 0
     status: str = "fresh"
 
     def recalculate(self) -> None:
         """Recompute ``days_stale`` and ``status`` from ``last_updated``."""
-        delta = datetime.now(timezone.utc) - self.last_updated
+        delta = datetime.now(UTC) - self.last_updated
         self.days_stale = delta.days
         if self.days_stale <= 7:
             self.status = "fresh"
@@ -144,7 +144,7 @@ class SustainabilityDashboard:
     documentation: list[DocumentationFreshness] = field(default_factory=list)
     technical_debt_hours: float = 0.0
     maintenance_score: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def compute_maintenance_score(self) -> float:
         """Derive a 0-100 score from dependency health and doc freshness."""
@@ -213,7 +213,7 @@ class MaintenanceRoadmap:
     items: list[RoadmapItem] = field(default_factory=list)
     priority: str = "medium"
     estimated_hours: float = 0.0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def recalculate_hours(self) -> float:
         """Sum effort across all items."""

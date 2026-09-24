@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional, Any
 
 
 class ISessionManagementService(ABC):
     """Interface for advanced session management operations."""
 
     @abstractmethod
-    async def get_current_session(self, session_id: str) -> Optional[dict]:
+    async def get_current_session(self, session_id: str) -> dict | None:
         """Retrieve full details for a single session."""
         ...
 
@@ -42,14 +41,14 @@ class ISessionManagementService(ABC):
         ...
 
     @abstractmethod
-    async def get_session_stats(self, user_id: Optional[str] = None) -> dict:
+    async def get_session_stats(self, user_id: str | None = None) -> dict:
         """Return session statistics, optionally filtered by user."""
         ...
 
     @abstractmethod
     async def search_sessions(
         self,
-        filters: Optional[dict] = None,
+        filters: dict | None = None,
         page: int = 1,
         per_page: int = 20,
     ) -> dict:

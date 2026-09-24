@@ -1,8 +1,8 @@
 """Tests for AuthorizationEngine: register policy, evaluate (currently not enforced)."""
 
-import pytest
 from dataclasses import dataclass, field
-from typing import Optional
+
+import pytest
 
 
 @dataclass
@@ -21,7 +21,12 @@ class AuthorizationEngine:
     def register_policy(self, policy: AuthorizationPolicy) -> None:
         self._policies[policy.policy_id] = policy
 
-    def evaluate(self, user_roles: list[str], user_permissions: list[str], required_permissions: list[str]) -> dict:
+    def evaluate(
+        self,
+        user_roles: list[str],  # noqa: ARG002 - interface stub; callers bind by keyword
+        user_permissions: list[str],
+        required_permissions: list[str],
+    ) -> dict:
         missing = [p for p in required_permissions if p not in user_permissions]
         allowed = len(missing) == 0
         return {
@@ -30,7 +35,7 @@ class AuthorizationEngine:
             "policies_evaluated": len(self._policies),
         }
 
-    def get_policy(self, policy_id: str) -> Optional[AuthorizationPolicy]:
+    def get_policy(self, policy_id: str) -> AuthorizationPolicy | None:
         return self._policies.get(policy_id)
 
     def remove_policy(self, policy_id: str) -> bool:

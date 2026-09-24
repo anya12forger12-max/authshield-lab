@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import re
-import string
-from typing import Any
 
 from ...config.constants import (
     PASSWORD_MAX_LENGTH,
@@ -18,15 +16,47 @@ from ...config.constants import (
 from ..domain.interfaces.password_service import IPasswordPolicyService
 
 # Common weak passwords (subset for educational demonstration)
-_COMMON_PASSWORDS: frozenset[str] = frozenset({
-    "password", "password1", "password123", "123456", "12345678",
-    "qwerty", "abc123", "monkey", "master", "dragon", "login",
-    "princess", "football", "shadow", "sunshine", "trustno1",
-    "iloveyou", "batman", "access", "hello", "charlie", "donald",
-    "admin", "passw0rd", "letmein", "welcome", "summer", "winter",
-    "spring", "autumn", "master123", "changeme", "secret",
-    "123456789", "1234567890", "000000", "111111",
-})
+_COMMON_PASSWORDS: frozenset[str] = frozenset(
+    {
+        "password",
+        "password1",
+        "password123",
+        "123456",
+        "12345678",
+        "qwerty",
+        "abc123",
+        "monkey",
+        "master",
+        "dragon",
+        "login",
+        "princess",
+        "football",
+        "shadow",
+        "sunshine",
+        "trustno1",
+        "iloveyou",
+        "batman",
+        "access",
+        "hello",
+        "charlie",
+        "donald",
+        "admin",
+        "passw0rd",
+        "letmein",
+        "welcome",
+        "summer",
+        "winter",
+        "spring",
+        "autumn",
+        "master123",
+        "changeme",
+        "secret",
+        "123456789",
+        "1234567890",
+        "000000",
+        "111111",
+    }
+)
 
 # Sequential character patterns
 _SEQUENTIAL_PATTERNS: list[str] = [
@@ -75,59 +105,69 @@ class PasswordPolicyService(IPasswordPolicyService):
 
         # Minimum length
         if len(password) < PASSWORD_MIN_LENGTH:
-            errors.append({
-                "field": "password",
-                "message": f"Password must be at least {PASSWORD_MIN_LENGTH} characters long.",
-                "code": "min_length",
-            })
+            errors.append(
+                {
+                    "field": "password",
+                    "message": f"Password must be at least {PASSWORD_MIN_LENGTH} characters long.",
+                    "code": "min_length",
+                }
+            )
 
         # Maximum length
         if len(password) > PASSWORD_MAX_LENGTH:
-            errors.append({
-                "field": "password",
-                "message": f"Password must be at most {PASSWORD_MAX_LENGTH} characters long.",
-                "code": "max_length",
-            })
+            errors.append(
+                {
+                    "field": "password",
+                    "message": f"Password must be at most {PASSWORD_MAX_LENGTH} characters long.",
+                    "code": "max_length",
+                }
+            )
 
         # Uppercase requirement
         if PASSWORD_REQUIRE_UPPERCASE and not re.search(r"[A-Z]", password):
-            errors.append({
-                "field": "password",
-                "message": "Password must contain at least one uppercase letter.",
-                "code": "require_uppercase",
-            })
+            errors.append(
+                {
+                    "field": "password",
+                    "message": "Password must contain at least one uppercase letter.",
+                    "code": "require_uppercase",
+                }
+            )
 
         # Lowercase requirement
         if PASSWORD_REQUIRE_LOWERCASE and not re.search(r"[a-z]", password):
-            errors.append({
-                "field": "password",
-                "message": "Password must contain at least one lowercase letter.",
-                "code": "require_lowercase",
-            })
+            errors.append(
+                {
+                    "field": "password",
+                    "message": "Password must contain at least one lowercase letter.",
+                    "code": "require_lowercase",
+                }
+            )
 
         # Digit requirement
         if PASSWORD_REQUIRE_DIGIT and not re.search(r"\d", password):
-            errors.append({
-                "field": "password",
-                "message": "Password must contain at least one digit.",
-                "code": "require_digit",
-            })
+            errors.append(
+                {
+                    "field": "password",
+                    "message": "Password must contain at least one digit.",
+                    "code": "require_digit",
+                }
+            )
 
         # Special character requirement
         if PASSWORD_REQUIRE_SPECIAL:
             has_special = any(c in PASSWORD_SPECIAL_CHARACTERS for c in password)
             if not has_special:
-                errors.append({
-                    "field": "password",
-                    "message": "Password must contain at least one special character.",
-                    "code": "require_special",
-                })
+                errors.append(
+                    {
+                        "field": "password",
+                        "message": "Password must contain at least one special character.",
+                        "code": "require_special",
+                    }
+                )
 
         # Maximum repeated characters (3+ in a row)
         if re.search(r"(.)\1{2,}", password):
-            warnings.append(
-                "Password contains three or more repeated characters in a row."
-            )
+            warnings.append("Password contains three or more repeated characters in a row.")
 
         # Sequential characters
         lower_password = password.lower()
@@ -135,9 +175,7 @@ class PasswordPolicyService(IPasswordPolicyService):
             for i in range(len(pattern) - 2):
                 seq = pattern[i : i + 3]
                 if seq in lower_password or seq[::-1] in lower_password:
-                    warnings.append(
-                        "Password contains sequential characters."
-                    )
+                    warnings.append("Password contains sequential characters.")
                     break
             else:
                 continue
@@ -145,34 +183,39 @@ class PasswordPolicyService(IPasswordPolicyService):
 
         # Common password check
         if lower_password in _COMMON_PASSWORDS or password in _COMMON_PASSWORDS:
-            errors.append({
-                "field": "password",
-                "message": "This password is too common. Please choose a more unique password.",
-                "code": "common_password",
-            })
+            errors.append(
+                {
+                    "field": "password",
+                    "message": "This password is too common. Please choose a more unique password.",
+                    "code": "common_password",
+                }
+            )
 
         # Username similarity
         if username:
             username_lower = username.lower()
             if len(password) >= 3 and username_lower in lower_password:
-                errors.append({
-                    "field": "password",
-                    "message": "Password must not contain the username.",
-                    "code": "username_in_password",
-                })
+                errors.append(
+                    {
+                        "field": "password",
+                        "message": "Password must not contain the username.",
+                        "code": "username_in_password",
+                    }
+                )
             if password.lower() == username_lower:
-                errors.append({
-                    "field": "password",
-                    "message": "Password must not be the same as the username.",
-                    "code": "username_match",
-                })
+                errors.append(
+                    {
+                        "field": "password",
+                        "message": "Password must not be the same as the username.",
+                        "code": "username_match",
+                    }
+                )
 
         # Character diversity warning
         unique_chars = len(set(password))
         if unique_chars < 5:
             warnings.append(
-                "Password uses very few unique characters. "
-                "Consider using more variety."
+                "Password uses very few unique characters. Consider using more variety."
             )
 
         return {
@@ -198,27 +241,63 @@ class PasswordPolicyService(IPasswordPolicyService):
         feedback: list[str] = []
 
         # Length scoring (up to 30 points)
-        length = len(password)
-        if length >= 16:
-            score += 30
-        elif length >= 12:
-            score += 25
-        elif length >= 8:
-            score += 15
-        elif length >= 6:
-            score += 8
-        else:
-            score += 3
+        score += self._length_score(len(password))
 
         # Character diversity (up to 30 points)
+        diversity_points, diversity_feedback = self._diversity_score(password)
+        score += diversity_points
+        feedback.extend(diversity_feedback)
+
+        # Unique character ratio (up to 20 points)
+        unique_points, unique_feedback = self._unique_ratio_score(password)
+        score += unique_points
+        feedback.extend(unique_feedback)
+
+        # Length bonus (up to 10 points)
+        score += self._length_bonus(len(password))
+
+        # Penalties for common patterns and repeats
+        score, penalty_feedback = self._pattern_penalties(password, score)
+        feedback.extend(penalty_feedback)
+        repeat_points, repeat_feedback = self._repetition_penalty(password)
+        score += repeat_points
+        feedback.extend(repeat_feedback)
+
+        # Clamp score and map to a level
+        score = max(0, min(100, score))
+        level = self._level_for_score(score)
+
+        return {
+            "score": score,
+            "level": level,
+            "feedback": feedback,
+        }
+
+    @staticmethod
+    def _length_score(length: int) -> int:
+        """Award up to 30 points based on password length."""
+        if length >= 16:
+            return 30
+        if length >= 12:
+            return 25
+        if length >= 8:
+            return 15
+        if length >= 6:
+            return 8
+        return 3
+
+    @staticmethod
+    def _diversity_score(password: str) -> tuple[int, list[str]]:
+        """Award up to 30 points for character-class diversity."""
         has_upper = bool(re.search(r"[A-Z]", password))
         has_lower = bool(re.search(r"[a-z]", password))
         has_digit = bool(re.search(r"\d", password))
         has_special = any(c in PASSWORD_SPECIAL_CHARACTERS for c in password)
 
         diversity = sum([has_upper, has_lower, has_digit, has_special])
-        score += diversity * 7
+        points = diversity * 7
 
+        feedback: list[str] = []
         if not has_upper:
             feedback.append("Add uppercase letters.")
         if not has_lower:
@@ -227,61 +306,61 @@ class PasswordPolicyService(IPasswordPolicyService):
             feedback.append("Add numbers.")
         if not has_special:
             feedback.append("Add special characters.")
+        return points, feedback
 
-        # Unique character ratio (up to 20 points)
-        if password:
-            unique_ratio = len(set(password)) / len(password)
-            score += int(unique_ratio * 20)
+    @staticmethod
+    def _unique_ratio_score(password: str) -> tuple[int, list[str]]:
+        """Award up to 20 points based on the ratio of unique characters."""
+        if not password:
+            return 0, []
+        unique_ratio = len(set(password)) / len(password)
+        points = int(unique_ratio * 20)
+        if unique_ratio < 0.4:
+            return points, ["Use more unique characters to increase strength."]
+        return points, []
 
-            if unique_ratio < 0.4:
-                feedback.append(
-                    "Use more unique characters to increase strength."
-                )
-
-        # Length bonus (up to 10 points)
+    @staticmethod
+    def _length_bonus(length: int) -> int:
+        """Award up to 10 bonus points for longer passwords."""
         if length >= 20:
-            score += 10
-        elif length >= 16:
-            score += 7
-        elif length >= 12:
-            score += 5
-        elif length >= 8:
-            score += 2
+            return 10
+        if length >= 16:
+            return 7
+        if length >= 12:
+            return 5
+        if length >= 8:
+            return 2
+        return 0
 
-        # Penalty for common patterns
+    @staticmethod
+    def _pattern_penalties(password: str, score: int) -> tuple[int, list[str]]:
+        """Apply penalties for common patterns and repeated characters."""
         lower_password = password.lower()
         if lower_password in _COMMON_PASSWORDS:
-            score = min(score, 10)
-            feedback.append("This is a commonly used password.")
-        elif any(seq in lower_password for seq in ["password", "qwerty", "abc123"]):
-            score -= 15
-            feedback.append("Avoid common keyboard patterns and words.")
+            return min(score, 10), ["This is a commonly used password."]
+        if any(seq in lower_password for seq in ["password", "qwerty", "abc123"]):
+            return score - 15, ["Avoid common keyboard patterns and words."]
+        return score, []
 
-        # Penalty for repeated characters
+    @staticmethod
+    def _repetition_penalty(password: str) -> tuple[int, list[str]]:
+        """Penalize four or more repeated characters in a row."""
         if re.search(r"(.)\1{3,}", password):
-            score -= 10
-            feedback.append("Avoid four or more repeated characters in a row.")
+            return -10, ["Avoid four or more repeated characters in a row."]
+        return 0, []
 
-        # Clamp score
-        score = max(0, min(100, score))
-
-        # Determine level
+    @staticmethod
+    def _level_for_score(score: int) -> str:
+        """Map a score to a human-readable strength level."""
         if score >= 80:
-            level = "strong"
-        elif score >= 60:
-            level = "good"
-        elif score >= 40:
-            level = "fair"
-        elif score >= 20:
-            level = "weak"
-        else:
-            level = "very_weak"
-
-        return {
-            "score": score,
-            "level": level,
-            "feedback": feedback,
-        }
+            return "strong"
+        if score >= 60:
+            return "good"
+        if score >= 40:
+            return "fair"
+        if score >= 20:
+            return "weak"
+        return "very_weak"
 
     def get_policy_config(self) -> dict:
         """Return the current password policy configuration.

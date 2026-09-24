@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -52,7 +52,7 @@ class AuthenticationResult:
     failure_reason: FailureReason = FailureReason.NONE
     user_id: str | None = None
     username: str | None = None
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     account_status: str | None = None
     session_id: str | None = None
     correlation_id: str = field(default_factory=lambda: str(uuid.uuid4()))

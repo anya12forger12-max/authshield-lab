@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Optional
+from typing import Any
 
-from .validator import Validator, ValidationResult
-
+from .validator import ValidationResult, Validator
 
 # Valid user status values
 _VALID_USER_STATUSES = {"active", "inactive", "suspended", "locked", "pending", "deleted"}
@@ -60,16 +59,14 @@ class IdentityValidator(Validator):
         if "bio" in data:
             bio = data["bio"]
             if isinstance(bio, str) and len(bio) > 500:
-                result.add_error(
-                    "bio", "Bio must be at most 500 characters", "MAX_LENGTH"
-                )
+                result.add_error("bio", "Bio must be at most 500 characters", "MAX_LENGTH")
 
         return result
 
     def validate_profile_update(
         self,
         data: dict[str, Any],
-        allowed_fields: Optional[list[str]] = None,
+        allowed_fields: list[str] | None = None,
     ) -> ValidationResult:
         """Validate a profile update payload.
 
@@ -99,11 +96,11 @@ class IdentityValidator(Validator):
             username_result = self.validate_username(data["username"])
             result.merge(username_result)
 
-        if "display_name" in data and data["display_name"]:
+        if data.get("display_name"):
             name_result = self.validate_display_name(data["display_name"])
             result.merge(name_result)
 
-        if "email" in data and data["email"]:
+        if data.get("email"):
             email_result = self.validate_email(data["email"])
             result.merge(email_result)
 
@@ -127,13 +124,9 @@ class IdentityValidator(Validator):
         if not name or not name.strip():
             result.add_error("name", "Role name is required", "REQUIRED")
         elif len(name.strip()) < 2:
-            result.add_error(
-                "name", "Role name must be at least 2 characters", "MIN_LENGTH"
-            )
+            result.add_error("name", "Role name must be at least 2 characters", "MIN_LENGTH")
         elif len(name.strip()) > 64:
-            result.add_error(
-                "name", "Role name must be at most 64 characters", "MAX_LENGTH"
-            )
+            result.add_error("name", "Role name must be at most 64 characters", "MAX_LENGTH")
         elif not re.match(r"^[a-zA-Z0-9_\- ]+$", name.strip()):
             result.add_error(
                 "name",
@@ -151,9 +144,7 @@ class IdentityValidator(Validator):
 
         permissions = data.get("permissions", [])
         if permissions and not isinstance(permissions, list):
-            result.add_error(
-                "permissions", "Permissions must be a list", "TYPE"
-            )
+            result.add_error("permissions", "Permissions must be a list", "TYPE")
         elif permissions:
             for perm in permissions:
                 if not isinstance(perm, str) or not perm.strip():
@@ -184,15 +175,11 @@ class IdentityValidator(Validator):
                 "FORMAT",
             )
         elif len(name) > 128:
-            result.add_error(
-                "name", "Permission name must be at most 128 characters", "MAX_LENGTH"
-            )
+            result.add_error("name", "Permission name must be at most 128 characters", "MAX_LENGTH")
 
         display_name = data.get("display_name", "")
         if not display_name or not display_name.strip():
-            result.add_error(
-                "display_name", "Display name is required", "REQUIRED"
-            )
+            result.add_error("display_name", "Display name is required", "REQUIRED")
 
         category = data.get("category", "")
         if not category or not category.strip():
@@ -215,9 +202,16 @@ class IdentityValidator(Validator):
             return result
 
         allowed_keys = {
-            "language", "theme", "timezone", "email_notifications",
-            "push_notifications", "accessibility_mode", "font_size",
-            "high_contrast", "screen_reader_optimized", "reduce_motion",
+            "language",
+            "theme",
+            "timezone",
+            "email_notifications",
+            "push_notifications",
+            "accessibility_mode",
+            "font_size",
+            "high_contrast",
+            "screen_reader_optimized",
+            "reduce_motion",
         }
 
         for key, value in data.items():
@@ -228,32 +222,32 @@ class IdentityValidator(Validator):
                     "UNKNOWN_KEY",
                 )
 
-            if key == "language" and isinstance(value, str):
-                if len(value) < 2 or len(value) > 5:
-                    result.add_error(
-                        key, "Language code must be 2-5 characters", "FORMAT"
-                    )
+            if (key == "language" and isinstance(value, str) and len(value) < 2) or len(value) > 5:
+                result.add_error(key, "Language code must be 2-5 characters", "FORMAT")
 
-            if key == "timezone" and isinstance(value, str):
-                if len(value) > 64:
-                    result.add_error(
-                        key, "Timezone must be at most 64 characters", "MAX_LENGTH"
-                    )
+            if key == "timezone" and isinstance(value, str) and len(value) > 64:
+                result.add_error(key, "Timezone must be at most 64 characters", "MAX_LENGTH")
 
-            if key == "font_size" and isinstance(value, str):
-                if value not in {"small", "medium", "large", "xlarge"}:
-                    result.add_error(
-                        key,
-                        "Font size must be one of: small, medium, large, xlarge",
-                        "INVALID_VALUE",
-                    )
+            if (
+                key == "font_size"
+                and isinstance(value, str)
+                and value not in {"small", "medium", "large", "xlarge"}
+            ):
+                result.add_error(
+                    key,
+                    "Font size must be one of: small, medium, large, xlarge",
+                    "INVALID_VALUE",
+                )
 
-            if key in {"email_notifications", "push_notifications", "accessibility_mode",
-                        "high_contrast", "screen_reader_optimized", "reduce_motion"}:
-                if not isinstance(value, bool):
-                    result.add_error(
-                        key, f"{key} must be a boolean", "TYPE"
-                    )
+            if key in {
+                "email_notifications",
+                "push_notifications",
+                "accessibility_mode",
+                "high_contrast",
+                "screen_reader_optimized",
+                "reduce_motion",
+            } and not isinstance(value, bool):
+                result.add_error(key, f"{key} must be a boolean", "TYPE")
 
         return result
 
@@ -268,21 +262,22 @@ class IdentityValidator(Validator):
         result = ValidationResult()
 
         if not isinstance(data, dict):
-            result.add_error(
-                "accessibility", "Accessibility profile must be a dictionary", "TYPE"
-            )
+            result.add_error("accessibility", "Accessibility profile must be a dictionary", "TYPE")
             return result
 
         boolean_fields = [
-            "screen_reader_optimized", "high_contrast", "reduce_motion",
-            "keyboard_navigation", "alt_text_enabled", "captions_enabled",
-            "large_text", "focus_indicators",
+            "screen_reader_optimized",
+            "high_contrast",
+            "reduce_motion",
+            "keyboard_navigation",
+            "alt_text_enabled",
+            "captions_enabled",
+            "large_text",
+            "focus_indicators",
         ]
         for field_name in boolean_fields:
             if field_name in data and not isinstance(data[field_name], bool):
-                result.add_error(
-                    field_name, f"{field_name} must be a boolean", "TYPE"
-                )
+                result.add_error(field_name, f"{field_name} must be a boolean", "TYPE")
 
         if "preferred_color_scheme" in data:
             scheme = data["preferred_color_scheme"]
@@ -296,9 +291,7 @@ class IdentityValidator(Validator):
         if "text_size_multiplier" in data:
             multiplier = data["text_size_multiplier"]
             if not isinstance(multiplier, (int, float)):
-                result.add_error(
-                    "text_size_multiplier", "Must be a number", "TYPE"
-                )
+                result.add_error("text_size_multiplier", "Must be a number", "TYPE")
             elif multiplier < 0.5 or multiplier > 3.0:
                 result.add_error(
                     "text_size_multiplier",
@@ -308,9 +301,7 @@ class IdentityValidator(Validator):
 
         return result
 
-    def validate_session_ownership(
-        self, user_id: str, session_user_id: str
-    ) -> ValidationResult:
+    def validate_session_ownership(self, user_id: str, session_user_id: str) -> ValidationResult:
         """Validate that a user owns a given session.
 
         Parameters
@@ -325,9 +316,7 @@ class IdentityValidator(Validator):
         if not user_id:
             result.add_error("user_id", "User ID is required", "REQUIRED")
         if not session_user_id:
-            result.add_error(
-                "session_user_id", "Session user ID is required", "REQUIRED"
-            )
+            result.add_error("session_user_id", "Session user ID is required", "REQUIRED")
         if user_id and session_user_id and user_id != session_user_id:
             result.add_error(
                 "user_id",
@@ -357,14 +346,10 @@ class IdentityValidator(Validator):
             result.add_error("action", "Action is required", "REQUIRED")
 
         if not target_user_id:
-            result.add_error(
-                "target_user_id", "Target user ID is required", "REQUIRED"
-            )
+            result.add_error("target_user_id", "Target user ID is required", "REQUIRED")
 
         if not admin_user_id:
-            result.add_error(
-                "admin_user_id", "Admin user ID is required", "REQUIRED"
-            )
+            result.add_error("admin_user_id", "Admin user ID is required", "REQUIRED")
 
         if target_user_id and admin_user_id and target_user_id == admin_user_id:
             result.add_warning(
@@ -441,9 +426,7 @@ class IdentityValidator(Validator):
         if not isinstance(per_page, int) or per_page < 1:
             result.add_error("per_page", "Per page must be a positive integer", "INVALID")
         elif per_page > 100:
-            result.add_error(
-                "per_page", "Per page must be at most 100", "MAX_EXCEEDED"
-            )
+            result.add_error("per_page", "Per page must be at most 100", "MAX_EXCEEDED")
 
         return result
 
@@ -525,12 +508,12 @@ class IdentityValidator(Validator):
 # Module-level singleton
 # ------------------------------------------------------------------
 
-_identity_validator: Optional[IdentityValidator] = None
+_identity_validator: IdentityValidator | None = None
 
 
 def get_identity_validator() -> IdentityValidator:
     """Return the global :class:`IdentityValidator`, creating it lazily."""
-    global _identity_validator  # noqa: PLW0603
+    global _identity_validator
     if _identity_validator is None:
         _identity_validator = IdentityValidator()
     return _identity_validator

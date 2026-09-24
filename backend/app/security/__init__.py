@@ -4,7 +4,7 @@ from app.security.token_manager import TokenManager
 
 __all__ = [
     "NetworkValidator",
-    "SecurityViolationError",
     "PasswordHasher",
+    "SecurityViolationError",
     "TokenManager",
 ]

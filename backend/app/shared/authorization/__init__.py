@@ -1,11 +1,5 @@
 """Authorization framework with RBAC/ABAC/PBAC architecture."""
 
-from .permission_registry import (
-    PermissionCategory,
-    PermissionDefinition,
-    PermissionRegistry,
-    get_permission_registry,
-)
 from .authorization_engine import (
     AuthorizationDecision,
     AuthorizationEngine,
@@ -14,6 +8,12 @@ from .authorization_engine import (
     IAuthorizationPolicy,
     RBACPolicy,
     get_authorization_engine,
+)
+from .permission_registry import (
+    PermissionCategory,
+    PermissionDefinition,
+    PermissionRegistry,
+    get_permission_registry,
 )
 
 __all__ = [

@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-import copy
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.entities.content import Course, CourseStatus
 from ..domain.events.content_events import (
-    CoursePublished,
-    CourseArchived,
     ContentVersioned,
+    CourseArchived,
+    CoursePublished,
 )
 from ..domain.interfaces.content_repository import CourseRepository
 from ..validators.content_validator import ContentValidator
@@ -61,7 +60,7 @@ class PublishingService:
             "created_by": course.created_by,
             "created_at": course.created_at.isoformat(),
             "updated_at": course.updated_at.isoformat(),
-            "snapshot_created_at": datetime.now(timezone.utc).isoformat(),
+            "snapshot_created_at": datetime.now(UTC).isoformat(),
         }
 
     async def publish(self, content_id: str, content_type: str = "course") -> dict[str, Any]:
@@ -76,9 +75,7 @@ class PublishingService:
             raise ValueError(f"Course {content_id} not found.")
         validation_errors = course.validate()
         if validation_errors:
-            raise ValueError(
-                f"Cannot publish: validation errors: {'; '.join(validation_errors)}"
-            )
+            raise ValueError(f"Cannot publish: validation errors: {'; '.join(validation_errors)}")
         if not course.learning_objectives:
             raise ValueError("Cannot publish content without learning objectives.")
         previous_status = course.status
@@ -113,7 +110,7 @@ class PublishingService:
         if course.status != CourseStatus.PUBLISHED.value:
             raise ValueError(f"Course is not published (current status: {course.status}).")
         course.status = CourseStatus.DRAFT.value
-        course.updated_at = datetime.now(timezone.utc)
+        course.updated_at = datetime.now(UTC)
         await self._course_repo.save(course)
         self._append_version_history(content_id, course)
         event = CourseArchived(
@@ -185,7 +182,7 @@ class PublishingService:
                     course.required_competencies = list(snap["required_competencies"])
                     course.tags = list(snap["tags"])
                     course.version += 1
-                    course.updated_at = datetime.now(timezone.utc)
+                    course.updated_at = datetime.now(UTC)
                     await self._course_repo.save(course)
                     self._append_version_history(course.id, course)
                     return {

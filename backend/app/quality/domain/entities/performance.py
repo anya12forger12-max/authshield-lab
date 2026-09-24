@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -14,7 +14,7 @@ class Benchmark:
     unit: str = ""
     threshold: float = 0.0
     passed: bool = False
-    measured_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    measured_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -23,7 +23,7 @@ class PerformanceReport:
     name: str = ""
     benchmarks: list[Benchmark] = field(default_factory=list)
     overall_score: float = 0.0
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass

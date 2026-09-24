@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 @dataclass
@@ -16,7 +16,7 @@ class FrameworkCreated:
     name: str = ""
     version: str = ""
     created_by: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -27,7 +27,7 @@ class FrameworkUpdated:
     framework_id: str = ""
     changes: list[str] = field(default_factory=list)
     updated_by: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -40,7 +40,7 @@ class MappingCreated:
     target_id: str = ""
     coverage_level: str = ""
     created_by: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -53,7 +53,7 @@ class BulkMappingCompleted:
     unmapped: int = 0
     gaps: list[str] = field(default_factory=list)
     initiated_by: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -65,7 +65,7 @@ class ReadinessReviewAdvanced:
     old_stage: str = ""
     new_stage: str = ""
     actor: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -77,7 +77,7 @@ class EvidenceCollected:
     evidence_item_id: str = ""
     evidence_type: str = ""
     collected_by: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -90,4 +90,4 @@ class QualityDashboardGenerated:
     overall_score: float = 0.0
     health_status: str = ""
     generated_by: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))

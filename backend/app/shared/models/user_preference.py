@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import String, JSON, ForeignKey, Index
+from sqlalchemy import JSON, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ..base_model import Base, TimestampMixin, UUIDPrimaryKeyMixin
@@ -22,9 +22,7 @@ class UserPreference(TimestampMixin, UUIDPrimaryKeyMixin, Base):
 
     # --- Theme ---
     theme: Mapped[str] = mapped_column(String(32), nullable=False, default="dark")
-    accent_color: Mapped[str] = mapped_column(
-        String(16), nullable=False, default="#3b82f6"
-    )
+    accent_color: Mapped[str] = mapped_column(String(16), nullable=False, default="#3b82f6")
 
     # --- Language ---
     language: Mapped[str] = mapped_column(String(10), nullable=False, default="en")
@@ -33,9 +31,7 @@ class UserPreference(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     high_contrast: Mapped[bool] = mapped_column(nullable=False, default=False)
     reduced_motion: Mapped[bool] = mapped_column(nullable=False, default=False)
     font_size: Mapped[str] = mapped_column(String(16), nullable=False, default="medium")
-    font_family: Mapped[str] = mapped_column(
-        String(64), nullable=False, default="default"
-    )
+    font_family: Mapped[str] = mapped_column(String(64), nullable=False, default="default")
     dyslexia_font: Mapped[bool] = mapped_column(nullable=False, default=False)
     zoom_level: Mapped[int] = mapped_column(nullable=False, default=100)
     line_spacing: Mapped[int] = mapped_column(nullable=False, default=100)
@@ -44,18 +40,14 @@ class UserPreference(TimestampMixin, UUIDPrimaryKeyMixin, Base):
     keyboard_shortcut_profile: Mapped[str] = mapped_column(
         String(32), nullable=False, default="default"
     )
-    color_blind_palette: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="none"
-    )
+    color_blind_palette: Mapped[str] = mapped_column(String(32), nullable=False, default="none")
 
     # --- Notifications ---
     notifications_enabled: Mapped[bool] = mapped_column(nullable=False, default=True)
     notification_sound: Mapped[bool] = mapped_column(nullable=False, default=True)
 
     # --- Dashboard ---
-    dashboard_layout: Mapped[str] = mapped_column(
-        String(32), nullable=False, default="default"
-    )
+    dashboard_layout: Mapped[str] = mapped_column(String(32), nullable=False, default="default")
 
     # --- Developer ---
     developer_mode: Mapped[bool] = mapped_column(nullable=False, default=False)

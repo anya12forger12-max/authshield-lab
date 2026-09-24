@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.developer.domain.events.developer_events import (
     ApiEndpointRegistered,
@@ -27,11 +27,13 @@ class DeveloperEventHandler:
 
     def _record(self, event_name: str, payload: dict) -> None:
         """Persist an event to the internal log."""
-        self._event_log.append({
-            "event": event_name,
-            "payload": payload,
-            "handled_at": datetime.now(timezone.utc).isoformat(),
-        })
+        self._event_log.append(
+            {
+                "event": event_name,
+                "payload": payload,
+                "handled_at": datetime.now(UTC).isoformat(),
+            }
+        )
 
     def get_event_log(self, limit: int = 100) -> list[dict]:
         """Return the most recent events."""

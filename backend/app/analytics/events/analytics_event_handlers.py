@@ -5,16 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from ...shared.events.event_bus import DomainEvent, EventType, EventBus
-from ..domain.events.analytics_events import (
-    AnalyticsDashboardGenerated,
-    AnalyticsDomainEvent,
-    ContentHealthChecked,
-    CurriculumEvaluated,
-    ImprovementPlanCreated,
-    ProgramEvaluated,
-    QualityDashboardGenerated,
-)
+from ...shared.events.event_bus import DomainEvent, EventBus, EventType
 
 logger = logging.getLogger("analytics.event_handlers")
 

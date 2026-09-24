@@ -5,11 +5,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.interfaces import ResearchRepository
     from domain.entities.research import (
-        ResearchProject, LiteratureEntry, ResearchNote, KnowledgeMap,
-        KnowledgeConcept, KnowledgeLink, ReadingList, Bibliography,
+        Bibliography,
+        KnowledgeConcept,
+        KnowledgeLink,
+        KnowledgeMap,
+        LiteratureEntry,
+        ReadingList,
+        ResearchNote,
+        ResearchProject,
     )
+    from domain.interfaces import ResearchRepository
 
 
 class ResearchService:
@@ -24,7 +30,13 @@ class ResearchService:
     def get_project(self, project_id: str) -> ResearchProject | None:
         return self._repo.get_project(project_id)
 
-    def update_project(self, project_id: str, title: str | None = None, description: str | None = None, status: str | None = None) -> ResearchProject:
+    def update_project(
+        self,
+        project_id: str,
+        title: str | None = None,
+        description: str | None = None,
+        status: str | None = None,
+    ) -> ResearchProject:
         project = self._repo.get_project(project_id)
         if not project:
             raise ValueError(f"Project {project_id} not found")
@@ -43,10 +55,26 @@ class ResearchService:
     def list_projects(self) -> list[ResearchProject]:
         return self._repo.all_projects()
 
-    def add_literature(self, project_id: str, title: str, author: str = "", year: int = 0, source: str = "", abstract: str = "", keywords: list[str] | None = None, notes: str = "") -> LiteratureEntry:
+    def add_literature(
+        self,
+        project_id: str,
+        title: str,
+        author: str = "",
+        year: int = 0,
+        source: str = "",
+        abstract: str = "",
+        keywords: list[str] | None = None,
+        notes: str = "",
+    ) -> LiteratureEntry:
         entry = LiteratureEntry(
-            project_id=project_id, title=title, author=author, year=year,
-            source=source, abstract=abstract, keywords=keywords, notes=notes,
+            project_id=project_id,
+            title=title,
+            author=author,
+            year=year,
+            source=source,
+            abstract=abstract,
+            keywords=keywords,
+            notes=notes,
         )
         self._repo.add_literature_entry(entry)
         return entry
@@ -78,19 +106,27 @@ class ResearchService:
         self._repo.add_knowledge_map(km)
         return km
 
-    def add_concept(self, map_id: str, name: str, description: str = "", category: str = "") -> KnowledgeConcept:
+    def add_concept(
+        self, map_id: str, name: str, description: str = "", category: str = ""
+    ) -> KnowledgeConcept:
         km = self._repo.get_knowledge_map(map_id)
         if not km:
             raise ValueError(f"Knowledge map {map_id} not found")
-        concept = KnowledgeConcept(map_id=map_id, name=name, description=description, category=category)
+        concept = KnowledgeConcept(
+            map_id=map_id, name=name, description=description, category=category
+        )
         km.concepts.append(concept)
         self._repo.add_knowledge_map(km)
         return concept
 
-    def add_link(self, source_id: str, target_id: str, relationship: str = "", weight: float = 1.0) -> KnowledgeLink:
-        link = KnowledgeLink(source_id=source_id, target_id=target_id, relationship=relationship, weight=weight)
+    def add_link(
+        self, source_id: str, target_id: str, relationship: str = "", weight: float = 1.0
+    ) -> KnowledgeLink:
+        link = KnowledgeLink(
+            source_id=source_id, target_id=target_id, relationship=relationship, weight=weight
+        )
         for km in self._repo.get_knowledge_maps_for_project(""):
-            if any(c.id == source_id or c.id == target_id for c in km.concepts):
+            if any(c.id in (source_id, target_id) for c in km.concepts):
                 km.links.append(link)
                 self._repo.add_knowledge_map(km)
                 break
@@ -99,7 +135,9 @@ class ResearchService:
     def get_knowledge_maps(self, project_id: str) -> list[KnowledgeMap]:
         return self._repo.get_knowledge_maps_for_project(project_id)
 
-    def create_reading_list(self, project_id: str, name: str, entries: list[str] | None = None) -> ReadingList:
+    def create_reading_list(
+        self, project_id: str, name: str, entries: list[str] | None = None
+    ) -> ReadingList:
         rl = ReadingList(project_id=project_id, name=name, entries=entries)
         self._repo.add_reading_list(rl)
         return rl
@@ -107,7 +145,13 @@ class ResearchService:
     def get_reading_lists(self, project_id: str) -> list[ReadingList]:
         return self._repo.get_reading_lists_for_project(project_id)
 
-    def create_bibliography(self, project_id: str, name: str = "default", entries: list[str] | None = None, format: str = "apa") -> Bibliography:
+    def create_bibliography(
+        self,
+        project_id: str,
+        name: str = "default",
+        entries: list[str] | None = None,
+        format: str = "apa",
+    ) -> Bibliography:
         bib = Bibliography(project_id=project_id, name=name, entries=entries, format=format)
         self._repo.add_bibliography(bib)
         return bib

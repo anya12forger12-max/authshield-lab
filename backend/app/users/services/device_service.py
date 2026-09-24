@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+from typing import Any
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from ...config.constants import MODULE_USERS
+from ...shared.events.event_bus import DomainEvent, EventBus
 from ...shared.exceptions import NotFoundError, ValidationError
 from ...shared.logging_config import get_logger, log_audit_event
-from ...shared.events.event_bus import EventBus, DomainEvent
-from ...config.constants import MODULE_USERS
-from ..domain.interfaces.device_service import IDeviceService
 from ..domain.events.identity_events import DeviceRegisteredEvent, DeviceRemovedEvent
+from ..domain.interfaces.device_service import IDeviceService
 
 logger = get_logger(MODULE_USERS)
 
@@ -32,21 +29,21 @@ class DeviceService(IDeviceService):
         In-process event bus for publishing domain events.
     """
 
-    def __init__(self, event_bus: Optional[EventBus] = None) -> None:
+    def __init__(self, event_bus: EventBus | None = None) -> None:
         self._event_bus = event_bus
 
     async def _publish_event(self, event: DomainEvent) -> None:
         if self._event_bus is not None:
             await self._event_bus.publish(event)
 
-    async def register_device(self, user_id: str, device_data: dict[str, Any]) -> Optional[dict]:
+    async def register_device(self, user_id: str, device_data: dict[str, Any]) -> dict | None:
         """Register a new device for a user."""
         device_name = device_data.get("device_name", "")
         if not device_name:
             raise ValidationError("Device name is required.", detail={"field": "device_name"})
 
         device_id = str(uuid.uuid4())
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         device: dict[str, Any] = {
             "device_id": device_id,
@@ -80,7 +77,7 @@ class DeviceService(IDeviceService):
 
         return device
 
-    async def get_device(self, device_id: str) -> Optional[dict]:
+    async def get_device(self, device_id: str) -> dict | None:
         """Retrieve a device by ID."""
         device = _devices.get(device_id)
         if device is None:
@@ -89,12 +86,9 @@ class DeviceService(IDeviceService):
 
     async def get_user_devices(self, user_id: str) -> list[dict]:
         """Return all devices registered to a user."""
-        return [
-            dict(d) for d in _devices.values()
-            if d.get("user_id") == user_id
-        ]
+        return [dict(d) for d in _devices.values() if d.get("user_id") == user_id]
 
-    async def update_device(self, device_id: str, data: dict[str, Any]) -> Optional[dict]:
+    async def update_device(self, device_id: str, data: dict[str, Any]) -> dict | None:
         """Update device metadata."""
         device = _devices.get(device_id)
         if device is None:
@@ -105,7 +99,7 @@ class DeviceService(IDeviceService):
             if key in allowed_keys:
                 device[key] = value
 
-        device["last_seen"] = datetime.now(timezone.utc).isoformat()
+        device["last_seen"] = datetime.now(UTC).isoformat()
         return dict(device)
 
     async def remove_device(self, device_id: str) -> bool:
@@ -138,7 +132,7 @@ class DeviceService(IDeviceService):
             raise NotFoundError(f"Device {device_id} not found.")
 
         device["is_active"] = False
-        device["last_seen"] = datetime.now(timezone.utc).isoformat()
+        device["last_seen"] = datetime.now(UTC).isoformat()
 
         log_audit_event(
             "DEVICE_DEACTIVATED",

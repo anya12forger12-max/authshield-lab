@@ -6,7 +6,7 @@ import hashlib
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -53,9 +53,7 @@ class DatasetMetadata:
     """Metadata about how and when a dataset was generated."""
 
     creator: str = "system"
-    generation_date: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    generation_date: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     total_records: int = 0
     checksum: str = ""
 
@@ -89,7 +87,7 @@ class SyntheticDataset:
     seed: int = 42
     artifacts: list[DatasetArtifact] = field(default_factory=list)
     metadata: DatasetMetadata = field(default_factory=DatasetMetadata)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     version: int = 1
 
     def get_artifact_count(self) -> int:
@@ -103,9 +101,7 @@ class SyntheticDataset:
     def add_artifact(self, artifact: DatasetArtifact) -> None:
         """Add an artifact to the dataset."""
         self.artifacts.append(artifact)
-        self.metadata.total_records = sum(
-            len(a.content.get("records", [])) for a in self.artifacts
-        )
+        self.metadata.total_records = sum(len(a.content.get("records", [])) for a in self.artifacts)
 
     def update_metadata_checksum(self) -> str:
         """Recompute the metadata checksum over all artifact contents."""

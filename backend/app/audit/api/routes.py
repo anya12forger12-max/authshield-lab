@@ -2,21 +2,19 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query, HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ...shared.database import get_db_session
 from ...shared.events.event_bus import get_event_bus
 from ...shared.responses import SuccessResponse
-from ...shared.exceptions import NotFoundError
-from ..services.audit_service import AuditService
 from ..domain.models.request_models import AuditSearchRequest
 from ..domain.models.response_models import (
     AuditEntryResponse,
     AuditListResponse,
     AuditStatsResponse,
 )
+from ..services.audit_service import AuditService
 
 router = APIRouter(prefix="/audit", tags=["audit"])
 
@@ -43,9 +41,7 @@ async def list_audit_events(
         if severity:
             filters["severity"] = severity
 
-        result = await service.search_audit(
-            filters=filters, page=page, per_page=per_page
-        )
+        result = await service.search_audit(filters=filters, page=page, per_page=per_page)
         return AuditListResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -72,9 +68,7 @@ async def get_user_audit_trail(
 ):
     """Get the audit trail for a specific user."""
     try:
-        result = await service.get_audit_trail(
-            user_id=user_id, page=page, per_page=per_page
-        )
+        result = await service.get_audit_trail(user_id=user_id, page=page, per_page=per_page)
         return AuditListResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -89,9 +83,7 @@ async def get_module_audit(
 ):
     """Get audit events for a specific module."""
     try:
-        result = await service.get_module_audit(
-            module=module, page=page, per_page=per_page
-        )
+        result = await service.get_module_audit(module=module, page=page, per_page=per_page)
         return AuditListResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -132,9 +124,7 @@ async def get_audit_event(
         )
         items = result.get("items", [])
         if not items:
-            raise HTTPException(
-                status_code=404, detail=f"Audit event {event_id} not found."
-            )
+            raise HTTPException(status_code=404, detail=f"Audit event {event_id} not found.")
         return AuditEntryResponse(**items[0])
     except HTTPException:
         raise
@@ -152,9 +142,7 @@ async def search_audit_events(
         filters = request.model_dump(exclude_none=True)
         page = filters.pop("page", 1)
         per_page = filters.pop("per_page", 20)
-        result = await service.search_audit(
-            filters=filters, page=page, per_page=per_page
-        )
+        result = await service.search_audit(filters=filters, page=page, per_page=per_page)
         return AuditListResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

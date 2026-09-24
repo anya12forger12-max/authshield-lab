@@ -1,13 +1,14 @@
-"""Developer tools service: API browser, schema explorer, config inspector, log viewer, performance dashboard."""
+"Developer tools service: API browser, schema explorer, config inspector, log viewer, performance dashboard."
 
 from __future__ import annotations
 
-import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 class DeveloperToolsService:
-    """Provides developer utility tools for browsing APIs, inspecting schemas, configuration, logs, and performance."""
+    """Provides developer utility tools for browsing APIs, inspecting schemas,"""
+
+    """configuration, logs, and performance."""
 
     def __init__(self) -> None:
         self._api_registry: list[dict] = []
@@ -34,7 +35,7 @@ class DeveloperToolsService:
             "handler_name": handler_name,
             "tags": tags if tags is not None else [],
             "description": description,
-            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "registered_at": datetime.now(UTC).isoformat(),
         }
         self._api_registry.append(route)
         return route
@@ -54,8 +55,11 @@ class DeveloperToolsService:
         if search is not None:
             q = search.lower()
             results = [
-                r for r in results
-                if q in r["path"].lower() or q in r["description"].lower() or q in r["handler_name"].lower()
+                r
+                for r in results
+                if q in r["path"].lower()
+                or q in r["description"].lower()
+                or q in r["handler_name"].lower()
             ]
         return results
 
@@ -93,7 +97,7 @@ class DeveloperToolsService:
         entry = {
             "name": name,
             "schema": dict(schema),
-            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "registered_at": datetime.now(UTC).isoformat(),
         }
         self._schema_store[name] = entry
         return entry
@@ -117,7 +121,7 @@ class DeveloperToolsService:
         if entry is None:
             return None
         entry["schema"] = dict(schema)
-        entry["updated_at"] = datetime.now(timezone.utc).isoformat()
+        entry["updated_at"] = datetime.now(UTC).isoformat()
         return entry
 
     def delete_schema(self, name: str) -> bool:
@@ -165,11 +169,11 @@ class DeveloperToolsService:
             "level": level.upper(),
             "message": message,
             "source": source,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         self._log_buffer.append(entry)
         if len(self._log_buffer) > self._max_log_entries:
-            self._log_buffer = self._log_buffer[-self._max_log_entries:]
+            self._log_buffer = self._log_buffer[-self._max_log_entries :]
         return entry
 
     def get_logs(
@@ -220,7 +224,7 @@ class DeveloperToolsService:
             "value": value,
             "unit": unit,
             "tags": tags if tags is not None else {},
-            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "recorded_at": datetime.now(UTC).isoformat(),
         }
         self._metrics.append(entry)
         return entry

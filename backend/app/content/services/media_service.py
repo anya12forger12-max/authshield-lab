@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
 from ..domain.entities.content import MediaAsset
-from ..domain.events.content_events import MediaUploaded, AccessibilityReviewCompleted
+from ..domain.events.content_events import AccessibilityReviewCompleted, MediaUploaded
 from ..domain.interfaces.content_repository import MediaRepository
 from ..validators.content_validator import ContentValidator
 
@@ -72,13 +71,11 @@ class MediaService:
         self._record_event(event)
         return asset
 
-    async def get_asset(self, asset_id: str) -> Optional[MediaAsset]:
+    async def get_asset(self, asset_id: str) -> MediaAsset | None:
         """Retrieve a media asset by ID."""
         return await self._repo.find_by_id(asset_id)
 
-    async def list_assets(
-        self, offset: int = 0, limit: int = 20
-    ) -> list[MediaAsset]:
+    async def list_assets(self, offset: int = 0, limit: int = 20) -> list[MediaAsset]:
         """List all media assets with pagination."""
         return await self._repo.find_all(offset=offset, limit=limit)
 
@@ -130,7 +127,10 @@ class MediaService:
             issues_found=len(issues),
             passed=passed,
             correlation_id=asset.id,
-            message=f"Accessibility review for '{asset.title}': {'PASSED' if passed else f'{len(issues)} issues found'}.",
+            message=(
+                f"Accessibility review for '{asset.title}': "
+                f"{'PASSED' if passed else f'{len(issues)} issues found'}."
+            ),
         )
         self._record_event(event)
         return {

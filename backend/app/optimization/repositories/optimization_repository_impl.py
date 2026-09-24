@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from ..domain.interfaces.optimization_interfaces import (
     IAIAssistantRepository,
@@ -32,7 +31,7 @@ class InMemoryPerformanceMetricRepository(IPerformanceMetricRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         metric_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         metric = {
             "id": metric_id,
             "name": data.get("name", ""),
@@ -52,7 +51,7 @@ class InMemoryPerformanceMetricRepository(IPerformanceMetricRepository):
         return self._metrics.get(metric_id)
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, category: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, category: str | None = None
     ) -> dict[str, Any]:
         items = list(self._metrics.values())
         if category:
@@ -61,8 +60,14 @@ class InMemoryPerformanceMetricRepository(IPerformanceMetricRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        page_items = items[offset: offset + per_page]
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        page_items = items[offset : offset + per_page]
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, metric_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         metric = self._metrics.get(metric_id)
@@ -71,7 +76,7 @@ class InMemoryPerformanceMetricRepository(IPerformanceMetricRepository):
         for key in ("name", "category", "value", "unit", "threshold", "passed"):
             if key in data:
                 metric[key] = data[key]
-        metric["updated_at"] = datetime.now(timezone.utc).isoformat()
+        metric["updated_at"] = datetime.now(UTC).isoformat()
         return metric
 
     def delete(self, metric_id: str) -> bool:
@@ -95,7 +100,7 @@ class InMemoryBenchmarkRepository(IBenchmarkRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         bench_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         benchmark = {
             "id": bench_id,
             "name": data.get("name", ""),
@@ -116,7 +121,7 @@ class InMemoryBenchmarkRepository(IBenchmarkRepository):
         return self._benchmarks.get(benchmark_id)
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, category: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, category: str | None = None
     ) -> dict[str, Any]:
         items = list(self._benchmarks.values())
         if category:
@@ -125,8 +130,14 @@ class InMemoryBenchmarkRepository(IBenchmarkRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        page_items = items[offset: offset + per_page]
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        page_items = items[offset : offset + per_page]
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def get_by_name(self, name: str) -> list[dict[str, Any]]:
         return [b for b in self._benchmarks.values() if b.get("name") == name]
@@ -143,7 +154,7 @@ class InMemoryDashboardRepository(IDashboardRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         dash_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         dashboard = dict(data)
         dashboard["id"] = dash_id
         dashboard.setdefault("created_at", now)
@@ -159,7 +170,9 @@ class InMemoryDashboardRepository(IDashboardRepository):
         return max(self._dashboards.values(), key=lambda d: d.get("created_at", ""))
 
     def get_all(self, limit: int = 10) -> list[dict[str, Any]]:
-        items = sorted(self._dashboards.values(), key=lambda d: d.get("created_at", ""), reverse=True)
+        items = sorted(
+            self._dashboards.values(), key=lambda d: d.get("created_at", ""), reverse=True
+        )
         return items[:limit]
 
     def delete(self, dashboard_id: str) -> bool:
@@ -174,7 +187,7 @@ class InMemoryFeatureFlagRepository(IFeatureFlagRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         flag_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         flag = {
             "id": flag_id,
             "name": data.get("name", ""),
@@ -203,7 +216,7 @@ class InMemoryFeatureFlagRepository(IFeatureFlagRepository):
         self,
         page: int = 1,
         per_page: int = 20,
-        category: Optional[str] = None,
+        category: str | None = None,
         enabled_only: bool = False,
     ) -> dict[str, Any]:
         items = list(self._flags.values())
@@ -215,17 +228,31 @@ class InMemoryFeatureFlagRepository(IFeatureFlagRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        page_items = items[offset: offset + per_page]
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        page_items = items[offset : offset + per_page]
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, flag_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         flag = self._flags.get(flag_id)
         if not flag:
             return None
-        for key in ("name", "description", "enabled", "category", "default_value", "rollout_date", "removal_date"):
+        for key in (
+            "name",
+            "description",
+            "enabled",
+            "category",
+            "default_value",
+            "rollout_date",
+            "removal_date",
+        ):
             if key in data:
                 flag[key] = data[key]
-        flag["updated_at"] = datetime.now(timezone.utc).isoformat()
+        flag["updated_at"] = datetime.now(UTC).isoformat()
         return flag
 
     def delete(self, flag_id: str) -> bool:
@@ -240,7 +267,7 @@ class InMemoryConfigProfileRepository(IConfigProfileRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         profile_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         profile = {
             "id": profile_id,
             "name": data.get("name", ""),
@@ -257,7 +284,7 @@ class InMemoryConfigProfileRepository(IConfigProfileRepository):
         return self._profiles.get(profile_id)
 
     def get_all(
-        self, page: int = 1, per_page: int = 20, target_audience: Optional[str] = None
+        self, page: int = 1, per_page: int = 20, target_audience: str | None = None
     ) -> dict[str, Any]:
         items = list(self._profiles.values())
         if target_audience:
@@ -266,8 +293,14 @@ class InMemoryConfigProfileRepository(IConfigProfileRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        page_items = items[offset: offset + per_page]
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        page_items = items[offset : offset + per_page]
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update(self, profile_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         profile = self._profiles.get(profile_id)
@@ -276,7 +309,7 @@ class InMemoryConfigProfileRepository(IConfigProfileRepository):
         for key in ("name", "target_audience", "settings", "version"):
             if key in data:
                 profile[key] = data[key]
-        profile["updated_at"] = datetime.now(timezone.utc).isoformat()
+        profile["updated_at"] = datetime.now(UTC).isoformat()
         return profile
 
     def delete(self, profile_id: str) -> bool:
@@ -291,7 +324,7 @@ class InMemoryCompatibilityRepository(ICompatibilityRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         report_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         report = dict(data)
         report["id"] = report_id
         report.setdefault("generated_at", now)
@@ -308,8 +341,14 @@ class InMemoryCompatibilityRepository(ICompatibilityRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        page_items = items[offset: offset + per_page]
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        page_items = items[offset : offset + per_page]
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def delete(self, report_id: str) -> bool:
         return self._reports.pop(report_id, None) is not None
@@ -324,7 +363,7 @@ class InMemorySustainabilityRepository(ISustainabilityRepository):
 
     def create_metric(self, data: dict[str, Any]) -> dict[str, Any]:
         metric_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         metric = dict(data)
         metric["id"] = metric_id
         metric.setdefault("created_at", now)
@@ -349,7 +388,7 @@ class InMemorySustainabilityRepository(ISustainabilityRepository):
 
     def create_debt_item(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = {
             "id": item_id,
             "category": data.get("category", ""),
@@ -366,7 +405,7 @@ class InMemorySustainabilityRepository(ISustainabilityRepository):
     def get_debt_item_by_id(self, item_id: str) -> dict[str, Any] | None:
         return self._debt_items.get(item_id)
 
-    def get_all_debt_items(self, resolved: Optional[bool] = None) -> list[dict[str, Any]]:
+    def get_all_debt_items(self, resolved: bool | None = None) -> list[dict[str, Any]]:
         items = list(self._debt_items.values())
         if resolved is not None:
             items = [i for i in items if i.get("resolved", False) == resolved]
@@ -376,7 +415,14 @@ class InMemorySustainabilityRepository(ISustainabilityRepository):
         item = self._debt_items.get(item_id)
         if not item:
             return None
-        for key in ("category", "description", "severity", "estimated_hours", "resolved", "resolved_at"):
+        for key in (
+            "category",
+            "description",
+            "severity",
+            "estimated_hours",
+            "resolved",
+            "resolved_at",
+        ):
             if key in data:
                 item[key] = data[key]
         return item
@@ -396,7 +442,7 @@ class InMemoryReleaseRepository(IReleaseRepository):
 
     def create_workflow(self, data: dict[str, Any]) -> dict[str, Any]:
         wf_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         workflow = dict(data)
         workflow["id"] = wf_id
         workflow.setdefault("created_at", now)
@@ -418,8 +464,14 @@ class InMemoryReleaseRepository(IReleaseRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        page_items = items[offset: offset + per_page]
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        page_items = items[offset : offset + per_page]
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update_workflow(self, workflow_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         wf = self._workflows.get(workflow_id)
@@ -432,7 +484,7 @@ class InMemoryReleaseRepository(IReleaseRepository):
 
     def create_approval(self, data: dict[str, Any]) -> dict[str, Any]:
         approval_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         approval = dict(data)
         approval["id"] = approval_id
         approval.setdefault("created_at", now)
@@ -453,7 +505,7 @@ class InMemoryReleaseRepository(IReleaseRepository):
 
     def create_gate(self, data: dict[str, Any]) -> dict[str, Any]:
         gate_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         gate = dict(data)
         gate["id"] = gate_id
         gate.setdefault("created_at", now)
@@ -474,7 +526,7 @@ class InMemoryReleaseRepository(IReleaseRepository):
 
     def create_checklist_item(self, data: dict[str, Any]) -> dict[str, Any]:
         item_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         item = dict(data)
         item["id"] = item_id
         item.setdefault("created_at", now)
@@ -503,7 +555,7 @@ class InMemoryAIAssistantRepository(IAIAssistantRepository):
 
     def create_suggestion(self, data: dict[str, Any]) -> dict[str, Any]:
         sug_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         suggestion = dict(data)
         suggestion["id"] = sug_id
         suggestion.setdefault("created_at", now)
@@ -517,7 +569,7 @@ class InMemoryAIAssistantRepository(IAIAssistantRepository):
         self,
         page: int = 1,
         per_page: int = 20,
-        suggestion_type: Optional[str] = None,
+        suggestion_type: str | None = None,
     ) -> dict[str, Any]:
         items = list(self._suggestions.values())
         if suggestion_type:
@@ -526,8 +578,14 @@ class InMemoryAIAssistantRepository(IAIAssistantRepository):
         total = len(items)
         pages = max(1, (total + per_page - 1) // per_page)
         offset = (page - 1) * per_page
-        page_items = items[offset: offset + per_page]
-        return {"items": page_items, "total": total, "page": page, "per_page": per_page, "pages": pages}
+        page_items = items[offset : offset + per_page]
+        return {
+            "items": page_items,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "pages": pages,
+        }
 
     def update_suggestion(self, suggestion_id: str, data: dict[str, Any]) -> dict[str, Any] | None:
         sug = self._suggestions.get(suggestion_id)
@@ -543,7 +601,7 @@ class InMemoryAIAssistantRepository(IAIAssistantRepository):
 
     def create_audit(self, data: dict[str, Any]) -> dict[str, Any]:
         audit_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         audit = dict(data)
         audit["id"] = audit_id
         audit.setdefault("created_at", now)
@@ -574,7 +632,7 @@ class InMemoryDiagnosticTraceRepository(IDiagnosticTraceRepository):
 
     def create(self, data: dict[str, Any]) -> dict[str, Any]:
         trace_id = data.get("id", str(uuid.uuid4()))
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         trace = dict(data)
         trace["id"] = trace_id
         trace.setdefault("created_at", now)

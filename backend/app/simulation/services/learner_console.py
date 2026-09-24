@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any
 
-from ..domain.entities.console import LearnerSession, Submission, SessionStatus
+from ...shared.events.event_bus import DomainEvent, EventBus, EventType, get_event_bus
+from ..domain.entities.console import LearnerSession, Submission
 from ..domain.interfaces import LearnerSessionRepositoryInterface
-from ...shared.events.event_bus import EventBus, DomainEvent, EventType, get_event_bus
 
 
 class LearnerConsoleService:
@@ -67,19 +66,15 @@ class LearnerConsoleService:
         await self._event_bus.publish(event)
         return updated
 
-    async def get_session(self, session_id: str) -> Optional[LearnerSession]:
+    async def get_session(self, session_id: str) -> LearnerSession | None:
         """Retrieve a learner session by ID."""
         return await self._repo.get_by_id(session_id)
 
-    async def list_sessions(
-        self, page: int = 1, per_page: int = 20
-    ) -> dict[str, Any]:
+    async def list_sessions(self, page: int = 1, per_page: int = 20) -> dict[str, Any]:
         """List all learner sessions with pagination."""
         return await self._repo.get_all(page=page, per_page=per_page)
 
-    async def update_progress(
-        self, session_id: str, progress: float
-    ) -> LearnerSession:
+    async def update_progress(self, session_id: str, progress: float) -> LearnerSession:
         """Update the progress of a learner session."""
         session = await self._repo.get_by_id(session_id)
         if session is None:
@@ -93,9 +88,7 @@ class LearnerConsoleService:
             raise ValueError("Failed to update progress")
         return updated
 
-    async def add_evidence(
-        self, session_id: str, evidence_item: str
-    ) -> LearnerSession:
+    async def add_evidence(self, session_id: str, evidence_item: str) -> LearnerSession:
         """Add an evidence item to a learner session."""
         session = await self._repo.get_by_id(session_id)
         if session is None:
@@ -109,9 +102,7 @@ class LearnerConsoleService:
             raise ValueError("Failed to add evidence")
         return updated
 
-    async def add_reflection(
-        self, session_id: str, reflection: str
-    ) -> LearnerSession:
+    async def add_reflection(self, session_id: str, reflection: str) -> LearnerSession:
         """Add a reflection journal entry."""
         session = await self._repo.get_by_id(session_id)
         if session is None:
@@ -125,9 +116,7 @@ class LearnerConsoleService:
             raise ValueError("Failed to add reflection")
         return updated
 
-    async def update_notes(
-        self, session_id: str, notes: str
-    ) -> LearnerSession:
+    async def update_notes(self, session_id: str, notes: str) -> LearnerSession:
         """Update learner notes."""
         session = await self._repo.get_by_id(session_id)
         if session is None:
@@ -141,9 +130,7 @@ class LearnerConsoleService:
             raise ValueError("Failed to update notes")
         return updated
 
-    async def submit(
-        self, session_id: str, content: str
-    ) -> Submission:
+    async def submit(self, session_id: str, content: str) -> Submission:
         """Submit work for a learner session."""
         session = await self._repo.get_by_id(session_id)
         if session is None:

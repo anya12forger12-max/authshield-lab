@@ -1,4 +1,4 @@
-"""Tests for content studio entities and services — CourseDesign, ContentBlock, LessonDesign, VirtualLab, MultimediaAsset, ContentTemplate, PublishRequest, A11yCheck, EditorialReview."""
+"Tests for content studio entities and services — CourseDesign, ContentBlock, LessonDesign, VirtualLab, MultimediaAsset, ContentTemplate, PublishRequest, A11yCheck, EditorialReview."
 
 from __future__ import annotations
 
@@ -6,6 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from app.content_studio.domain.entities.a11y_validator import (
+    A11yCheck,
+    A11yValidationReport,
+)
 from app.content_studio.domain.entities.course_designer import (
     BlockType,
     ContentBlock,
@@ -13,17 +17,31 @@ from app.content_studio.domain.entities.course_designer import (
     CourseStatus,
     InteractiveActivity,
     LessonDesign,
-    ModuleDesign,
     Program,
-    ProgramStatus,
     UnitDesign,
 )
-from app.content_studio.domain.entities.virtual_lab import LabStep, VirtualLab, LabStatus, LabTemplate
-from app.content_studio.domain.entities.multimedia import AssetCollection, AssetType, MultimediaAsset, AssetValidationResult
-from app.content_studio.domain.entities.template_studio import ContentTemplate, TemplateType, TemplateInstance, TemplateVersion
-from app.content_studio.domain.entities.publishing import ContentVersion, PublishHistory, PublishRequest, PublishStatus
-from app.content_studio.domain.entities.a11y_validator import A11yCheck, A11yRemediation, A11yValidationReport
-from app.content_studio.domain.entities.review import EditorialReview, ReviewComment, ReviewDecision, ReviewDecisionType, ReviewStage
+from app.content_studio.domain.entities.multimedia import (
+    AssetType,
+    AssetValidationResult,
+    MultimediaAsset,
+)
+from app.content_studio.domain.entities.publishing import (
+    PublishRequest,
+    PublishStatus,
+)
+from app.content_studio.domain.entities.review import (
+    EditorialReview,
+    ReviewStage,
+)
+from app.content_studio.domain.entities.template_studio import (
+    ContentTemplate,
+    TemplateType,
+)
+from app.content_studio.domain.entities.virtual_lab import (
+    LabStep,
+    LabTemplate,
+    VirtualLab,
+)
 
 
 class TestContentBlock:
@@ -194,7 +212,6 @@ class TestPublishRequest:
 
     def test_mark_published(self):
         p = PublishRequest()
-        mark = MagicMock()
         p.sign("sig")
         p.mark_validated()
         assert p.is_ready_to_publish() is True
@@ -267,6 +284,7 @@ class TestEditorialReview:
 class TestCourseDesignerService:
     def test_create_program(self):
         from app.content_studio.services.course_designer_service import CourseDesignerService
+
         repo = MagicMock()
         repo.create = MagicMock(return_value={"id": "p1"})
         service = CourseDesignerService(repo, MagicMock())
@@ -275,6 +293,7 @@ class TestCourseDesignerService:
 
     def test_get_program(self):
         from app.content_studio.services.course_designer_service import CourseDesignerService
+
         repo = MagicMock()
         repo.get_by_id = MagicMock(return_value={"id": "p1", "name": "Test"})
         service = CourseDesignerService(repo, MagicMock())
@@ -283,6 +302,7 @@ class TestCourseDesignerService:
 
     def test_delete_program_not_found(self):
         from app.content_studio.services.course_designer_service import CourseDesignerService
+
         repo = MagicMock()
         repo.get_by_id = MagicMock(return_value=None)
         service = CourseDesignerService(repo, MagicMock())
@@ -293,6 +313,7 @@ class TestCourseDesignerService:
 class TestPublishingCenterService:
     def test_request_publish(self):
         from app.content_studio.services.publishing_center_service import PublishingCenterService
+
         pub_repo = MagicMock()
         pub_repo.create = MagicMock(return_value={"id": "r1"})
         hist_repo = MagicMock()
@@ -304,6 +325,7 @@ class TestPublishingCenterService:
 
     def test_get_publish_request(self):
         from app.content_studio.services.publishing_center_service import PublishingCenterService
+
         pub_repo = MagicMock()
         pub_repo.get_by_id = MagicMock(return_value={"id": "r1", "status": "pending"})
         service = PublishingCenterService(pub_repo, MagicMock(), MagicMock())
@@ -314,6 +336,7 @@ class TestPublishingCenterService:
 class TestTemplateStudioService:
     def test_create_template(self):
         from app.content_studio.services.template_studio_service import TemplateStudioService
+
         repo = MagicMock()
         repo.create = MagicMock(return_value={"id": "t1"})
         repo.get_by_id = MagicMock(return_value=None)
@@ -323,6 +346,7 @@ class TestTemplateStudioService:
 
     def test_get_template(self):
         from app.content_studio.services.template_studio_service import TemplateStudioService
+
         repo = MagicMock()
         repo.get_by_id = MagicMock(return_value={"id": "t1"})
         service = TemplateStudioService(repo)

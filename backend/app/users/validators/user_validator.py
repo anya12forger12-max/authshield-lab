@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from ...shared.validation.validator import Validator, ValidationResult
+from ...shared.validation.validator import ValidationResult, Validator
 from ..domain.entities.identity_lifecycle import (
     UserLifecycleState,
     can_transition,
 )
-
 
 _user_validator = Validator()
 
@@ -73,6 +72,7 @@ def validate_status_transition(current: str, target: str) -> ValidationResult:
 
     if not can_transition(current_state, target_state):
         from ..domain.entities.identity_lifecycle import VALID_LIFECYCLE_TRANSITIONS
+
         allowed = VALID_LIFECYCLE_TRANSITIONS.get(current_state, set())
         allowed_names = sorted(s.value for s in allowed) or ["(none)"]
         result.add_error(
@@ -85,7 +85,7 @@ def validate_status_transition(current: str, target: str) -> ValidationResult:
     return result
 
 
-def validate_role_assignment(user_role: str, role_name: str) -> ValidationResult:
+def validate_role_assignment(user_role: str, role_name: str) -> ValidationResult:  # noqa: ARG001
     """Validate a role assignment operation."""
     result = ValidationResult()
 
@@ -119,19 +119,21 @@ def validate_preferences(data: dict) -> ValidationResult:
             )
 
     language = data.get("language")
-    if language is not None:
-        if not language or len(str(language)) > 10:
-            result.add_error(
-                "language",
-                "Language code must be between 1 and 10 characters.",
-                "invalid_length",
-            )
+    if (language is not None and not language) or len(str(language)) > 10:
+        result.add_error(
+            "language",
+            "Language code must be between 1 and 10 characters.",
+            "invalid_length",
+        )
 
     accessibility = data.get("accessibility")
     if accessibility is not None and isinstance(accessibility, dict):
         valid_keys = {
-            "high_contrast", "large_text", "screen_reader",
-            "reduced_motion", "keyboard_navigation",
+            "high_contrast",
+            "large_text",
+            "screen_reader",
+            "reduced_motion",
+            "keyboard_navigation",
         }
         for key in accessibility:
             if key not in valid_keys:

@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -74,8 +74,8 @@ class Scenario:
     status: ScenarioStatus = ScenarioStatus.DRAFT
     created_by: str = ""
     scenario_metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     # ------------------------------------------------------------------
     # Lifecycle transitions
@@ -96,7 +96,7 @@ class Scenario:
                 f"Allowed transitions: {[s.value for s in allowed]}"
             )
         self.status = ScenarioStatus.PUBLISHED
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def archive(self) -> None:
         """Transition scenario to archived status.
@@ -113,7 +113,7 @@ class Scenario:
                 f"Allowed transitions: {[s.value for s in allowed]}"
             )
         self.status = ScenarioStatus.ARCHIVED
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def clone(self) -> Scenario:
         """Create a deep copy of this scenario with a new ID and draft status.
@@ -125,14 +125,14 @@ class Scenario:
         cloned.id = str(uuid.uuid4())
         cloned.status = ScenarioStatus.DRAFT
         cloned.version = 1
-        cloned.created_at = datetime.now(timezone.utc)
-        cloned.updated_at = datetime.now(timezone.utc)
+        cloned.created_at = datetime.now(UTC)
+        cloned.updated_at = datetime.now(UTC)
         return cloned
 
     def update_version(self) -> None:
         """Increment the version number and update the timestamp."""
         self.version += 1
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def validate(self) -> list[str]:
         """Validate the scenario and return a list of error messages.
@@ -170,7 +170,9 @@ class Scenario:
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
         diff = self.difficulty.value if hasattr(self.difficulty, "value") else self.difficulty
-        stype = self.scenario_type.value if hasattr(self.scenario_type, "value") else self.scenario_type
+        stype = (
+            self.scenario_type.value if hasattr(self.scenario_type, "value") else self.scenario_type
+        )
         stat = self.status.value if hasattr(self.status, "value") else self.status
         return {
             "id": self.id,
