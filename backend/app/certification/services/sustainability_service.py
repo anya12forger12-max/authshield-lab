@@ -106,7 +106,7 @@ class SustainabilityService:
             breaking_changes=breaking_changes,
         )
         report.recalculate_score()
-        return self._api_repo.save(report)  # type: ignore[return-value]
+        return self._api_repo.save(report)
 
     async def get_latest_api_stability(self) -> APIStabilityReport | None:
         """Return the most recent API stability report."""

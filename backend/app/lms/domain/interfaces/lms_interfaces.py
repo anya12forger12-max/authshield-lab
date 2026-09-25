@@ -135,6 +135,9 @@ class ICompetencyRepository(ABC):
     def get_progress(self, learner_id: str, competency_id: str | None = None) -> list[Any]: ...
 
     @abstractmethod
+    def create_progress(self, data: dict[str, Any]) -> Any: ...
+
+    @abstractmethod
     def update_progress(self, progress_id: str, data: dict[str, Any]) -> Any | None: ...
 
 

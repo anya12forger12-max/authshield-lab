@@ -203,6 +203,9 @@ class IReleaseRepository(ABC):
     def create_approval(self, data: dict[str, Any]) -> Any: ...
 
     @abstractmethod
+    def update_approval(self, approval_id: str, data: dict[str, Any]) -> Any | None: ...
+
+    @abstractmethod
     def get_approvals_for_workflow(self, workflow_id: str) -> list[Any]: ...
 
     @abstractmethod
@@ -271,6 +274,9 @@ class IDiagnosticTraceRepository(ABC):
 
     @abstractmethod
     def get_all(self, limit: int = 50) -> list[Any]: ...
+
+    @abstractmethod
+    def update(self, trace_id: str, data: dict[str, Any]) -> Any | None: ...
 
     @abstractmethod
     def delete(self, trace_id: str) -> bool: ...

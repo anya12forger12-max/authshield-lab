@@ -91,7 +91,7 @@ class CompetencyService:
                 f"Learner already has competency in '{progress.get('status')}' status."
             )
 
-        return self._repo.update_progress("", {}) or self._repo.create_competency_progress(
+        return self._repo.create_progress(
             {
                 "learner_id": learner_id,
                 "competency_id": competency_id,

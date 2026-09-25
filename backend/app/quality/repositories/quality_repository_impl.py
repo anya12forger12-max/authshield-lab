@@ -235,6 +235,9 @@ class InMemoryA11yScorecardRepository(A11yScorecardRepository):
     def find_by_category(self, category: str) -> list[A11yScorecard]:
         return [s for s in self._data.values() if s.category == category]
 
+    def find_all(self) -> list[A11yScorecard]:
+        return list(self._data.values())
+
 
 class InMemoryKeyboardShortcutRepository(KeyboardShortcutRepository):
     def __init__(self) -> None:
@@ -264,6 +267,9 @@ class InMemoryBenchmarkRepository(BenchmarkRepository):
 
     def find_by_name(self, name: str) -> list[Benchmark]:
         return [b for b in self._data.values() if b.name == name]
+
+    def find_all(self) -> list[Benchmark]:
+        return list(self._data.values())
 
 
 class InMemoryPerformanceReportRepository(PerformanceReportRepository):

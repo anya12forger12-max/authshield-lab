@@ -150,6 +150,9 @@ class A11yScorecardRepository(ABC):
     @abstractmethod
     def find_by_category(self, category: str) -> list[A11yScorecard]: ...
 
+    @abstractmethod
+    def find_all(self) -> list[A11yScorecard]: ...
+
 
 class KeyboardShortcutRepository(ABC):
     @abstractmethod
@@ -168,6 +171,9 @@ class BenchmarkRepository(ABC):
 
     @abstractmethod
     def find_by_name(self, name: str) -> list[Benchmark]: ...
+
+    @abstractmethod
+    def find_all(self) -> list[Benchmark]: ...
 
 
 class PerformanceReportRepository(ABC):

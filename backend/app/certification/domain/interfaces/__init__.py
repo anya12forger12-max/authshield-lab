@@ -37,6 +37,7 @@ from ..entities.release_engineering import (
     ReleaseValidation,
 )
 from ..entities.sustainability import (
+    APIStabilityReport,
     DependencyLifecycle,
     DocumentationFreshness,
     MaintenanceRoadmap,
@@ -175,13 +176,13 @@ class DependencyLifecycleRepository(ABC):
 
 class APIStabilityRepository(ABC):
     @abstractmethod
-    def save(self, report: object) -> object: ...
+    def save(self, report: APIStabilityReport) -> APIStabilityReport: ...
 
     @abstractmethod
-    def find_by_version(self, version: str) -> object | None: ...
+    def find_by_version(self, version: str) -> APIStabilityReport | None: ...
 
     @abstractmethod
-    def find_latest(self) -> object | None: ...
+    def find_latest(self) -> APIStabilityReport | None: ...
 
 
 class ModuleOwnershipRepository(ABC):
