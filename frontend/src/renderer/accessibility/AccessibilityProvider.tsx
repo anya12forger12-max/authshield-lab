@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useCallback, useRef, useState } from 'react';
+import type React from 'react';
+import { createContext, useContext, useEffect, useCallback, useRef, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import type { AccessibilityPreferences } from '../types';
 
