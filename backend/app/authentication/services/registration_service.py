@@ -78,6 +78,17 @@ class RegistrationService(IRegistrationService):
         # Publish registration requested event
         await self._event_publisher.publish_registration_requested(request.username, correlation_id)
 
+        # Explicit Privacy Policy consent is mandatory
+        if not request.privacy_policy_accepted:
+            return self._build_failure(
+                FailureReason.VALIDATION_FAILED,
+                "You must explicitly accept the Privacy Policy to proceed.",
+                username=request.username,
+                correlation_id=correlation_id,
+                start_time=start_time,
+                error_code="PRIVACY_POLICY_NOT_ACCEPTED",
+            )
+
         # Validate passwords match
         if request.password != request.confirm_password:
             return self._build_failure(

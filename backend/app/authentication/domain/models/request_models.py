@@ -19,6 +19,9 @@ class RegistrationRequest(BaseModel):
     )
     display_name: str = Field(..., min_length=1, max_length=64, description="Display name")
     email: str | None = Field(None, max_length=254, description="Optional email")
+    privacy_policy_accepted: bool = Field(
+        ..., description="Explicit Privacy Policy consent (required)"
+    )
 
     @field_validator("username")
     @classmethod

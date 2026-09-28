@@ -20,6 +20,7 @@ class TestRegistrationRequest:
             password="SecurePass123!",
             confirm_password="SecurePass123!",
             display_name="Alice Smith",
+            privacy_policy_accepted=True,
         )
         assert req.username == "alice"
         assert req.email is None
@@ -30,6 +31,7 @@ class TestRegistrationRequest:
             password="SecurePass123!",
             confirm_password="SecurePass123!",
             display_name="Alice",
+            privacy_policy_accepted=True,
             email="alice@example.com",
         )
         assert req.email == "alice@example.com"
@@ -41,6 +43,7 @@ class TestRegistrationRequest:
                 password="SecurePass123!",
                 confirm_password="SecurePass123!",
                 display_name="Alice",
+            privacy_policy_accepted=True,
             )
 
     def test_username_too_short(self):
@@ -50,6 +53,7 @@ class TestRegistrationRequest:
                 password="SecurePass123!",
                 confirm_password="SecurePass123!",
                 display_name="Alice",
+            privacy_policy_accepted=True,
             )
 
     def test_username_too_long(self):
@@ -59,6 +63,7 @@ class TestRegistrationRequest:
                 password="SecurePass123!",
                 confirm_password="SecurePass123!",
                 display_name="Alice",
+            privacy_policy_accepted=True,
             )
 
     def test_password_too_short(self):
@@ -68,6 +73,7 @@ class TestRegistrationRequest:
                 password="short",
                 confirm_password="short",
                 display_name="Alice",
+            privacy_policy_accepted=True,
             )
 
     def test_empty_display_name(self):
@@ -85,6 +91,7 @@ class TestRegistrationRequest:
             password="SecurePass123!",
             confirm_password="SecurePass123!",
             display_name="  Alice  ",
+            privacy_policy_accepted=True,
         )
         assert req.username == "alice"
         assert req.display_name == "Alice"
@@ -95,6 +102,7 @@ class TestRegistrationRequest:
             password="SecurePass123!",
             confirm_password="SecurePass123!",
             display_name="Alice",
+            privacy_policy_accepted=True,
         )
         assert req.username == "alice-smith_01"
 

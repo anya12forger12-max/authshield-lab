@@ -4,6 +4,7 @@ import { AppProvider } from './contexts/AppContext';
 import { ScreenReaderAnnouncer } from './accessibility/ScreenReaderAnnouncer';
 import { AppLayout } from './components/layout/AppLayout';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { LoginPage } from './pages/LoginPage';
 
 function PlaceholderPage({ title }: { title: string }) {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <AppProvider>
           <AppLayout>
             <Routes>
+              <Route path="/login" element={<LoginPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/authentication" element={<PlaceholderPage title="Authentication" />} />
               <Route path="/authentication/*" element={<PlaceholderPage title="Authentication" />} />
@@ -37,7 +39,7 @@ export default function App() {
               <Route path="/learning" element={<PlaceholderPage title="Learning Center" />} />
               <Route path="/settings" element={<PlaceholderPage title="Settings" />} />
               <Route path="/help" element={<PlaceholderPage title="Help" />} />
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
           </AppLayout>
         </AppProvider>

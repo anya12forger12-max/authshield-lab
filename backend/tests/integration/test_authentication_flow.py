@@ -23,6 +23,7 @@ class TestRegistrationFlow:
             password="SecurePass123!",
             confirm_password="SecurePass123!",
             display_name="New User",
+            privacy_policy_accepted=True,
             email="new@example.com",
         )
         assert req.username == "newuser"
@@ -40,6 +41,7 @@ class TestRegistrationFlow:
             password="SecurePass123!",
             confirm_password="DifferentPass!",
             display_name="New User",
+            privacy_policy_accepted=True,
         )
         assert req.password != req.confirm_password
 
