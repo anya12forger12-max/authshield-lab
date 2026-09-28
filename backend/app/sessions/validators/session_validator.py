@@ -44,10 +44,8 @@ def validate_session_data(data: dict[str, Any]) -> ValidationResult:
                     break
 
     idle_timeout = data.get("idle_timeout_minutes")
-    if (
-        (idle_timeout is not None and not isinstance(idle_timeout, (int, float)))
-        or idle_timeout < 1
-        or idle_timeout > 1440
+    if idle_timeout is not None and (
+        not isinstance(idle_timeout, (int, float)) or idle_timeout < 1 or idle_timeout > 1440
     ):
         result.add_error(
             "idle_timeout_minutes",
@@ -56,10 +54,8 @@ def validate_session_data(data: dict[str, Any]) -> ValidationResult:
         )
 
     security_level = data.get("security_level")
-    if (
-        (security_level is not None and not isinstance(security_level, int))
-        or security_level < 1
-        or security_level > 5
+    if security_level is not None and (
+        not isinstance(security_level, int) or security_level < 1 or security_level > 5
     ):
         result.add_error(
             "security_level",
@@ -86,11 +82,11 @@ def validate_session_filters(filters: dict[str, Any]) -> ValidationResult:
             )
 
     page = filters.get("page", 1)
-    if page is not None and (not isinstance(page, int) or page < 1):
+    if not isinstance(page, int) or isinstance(page, bool) or page < 1:
         result.add_error("page", "Page must be a positive integer.", "invalid_value")
 
     per_page = filters.get("per_page", 20)
-    if (per_page is not None and not isinstance(per_page, int)) or per_page < 1 or per_page > 100:
+    if not isinstance(per_page, int) or isinstance(per_page, bool) or not 1 <= per_page <= 100:
         result.add_error(
             "per_page",
             "Per page must be between 1 and 100.",

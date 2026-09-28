@@ -146,7 +146,9 @@ def validate_assessment_data(data: dict[str, Any]) -> ValidationResult:
         result.add_error("attempts_allowed", "Attempts allowed must be at least 1", "MIN_VALUE")
 
     time_limit = data.get("time_limit_minutes")
-    if (time_limit is not None and not isinstance(time_limit, int)) or time_limit < 1:
+    if time_limit is not None and (
+        not isinstance(time_limit, int) or isinstance(time_limit, bool) or time_limit < 1
+    ):
         result.add_error("time_limit_minutes", "Time limit must be at least 1 minute", "MIN_VALUE")
 
     return result

@@ -48,16 +48,18 @@ def validate_policy_data(data: dict[str, Any]) -> ValidationResult:
             )
 
     priority = data.get("priority")
-    if (priority is not None and not isinstance(priority, int)) or priority < 1 or priority > 1000:
+    if priority is not None and (
+        not isinstance(priority, int) or isinstance(priority, bool) or not 1 <= priority <= 1000
+    ):
         result.add_error(
             "priority", "Priority must be an integer between 1 and 1000", "INVALID_VALUE"
         )
 
     risk_weight = data.get("risk_weight")
-    if (
-        (risk_weight is not None and not isinstance(risk_weight, (int, float)))
-        or risk_weight < 0.0
-        or risk_weight > 10.0
+    if risk_weight is not None and (
+        not isinstance(risk_weight, (int, float))
+        or isinstance(risk_weight, bool)
+        or not 0.0 <= risk_weight <= 10.0
     ):
         result.add_error("risk_weight", "Risk weight must be between 0.0 and 10.0", "INVALID_VALUE")
 
@@ -165,7 +167,9 @@ def validate_rule_data(data: dict[str, Any]) -> ValidationResult:
         result.add_error("description", "Description must be at most 512 characters", "MAX_LENGTH")
 
     priority = data.get("priority")
-    if (priority is not None and not isinstance(priority, int)) or priority < 1 or priority > 1000:
+    if priority is not None and (
+        not isinstance(priority, int) or isinstance(priority, bool) or not 1 <= priority <= 1000
+    ):
         result.add_error(
             "priority", "Priority must be an integer between 1 and 1000", "INVALID_VALUE"
         )
