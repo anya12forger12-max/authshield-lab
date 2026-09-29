@@ -111,17 +111,18 @@ class PublishingCenterService:
             )
 
         updated = self._publish_repo.update(request_id, {"status": PublishStatus.VALIDATING.value})
+        result = updated or existing
         self._history_repo.create(
             {
                 "content_id": existing["content_id"],
                 "version": existing.get("version", 1),
                 "action": "validation_started",
                 "performed_by": "system",
-                "performed_at": updated.get("updated_at", ""),
+                "performed_at": result.get("updated_at", ""),
                 "details": {"request_id": request_id},
             }
         )
-        return updated or existing
+        return result
 
     def set_validation_results(self, request_id: str, results: dict[str, Any]) -> dict[str, Any]:
         existing = self._publish_repo.get_by_id(request_id)
@@ -183,13 +184,14 @@ class PublishingCenterService:
 
         content_id = existing["content_id"]
         version = existing.get("version", 1)
+        result = updated or existing
         self._history_repo.create(
             {
                 "content_id": content_id,
                 "version": version,
                 "action": "published",
                 "performed_by": existing.get("requested_by", ""),
-                "performed_at": updated.get("updated_at", ""),
+                "performed_at": result.get("updated_at", ""),
                 "details": {
                     "request_id": request_id,
                     "digital_signature": digital_signature,
@@ -225,7 +227,7 @@ class PublishingCenterService:
         logger.info(
             "content_published", extra={"request_id": request_id, "event_id": event.event_id}
         )
-        return updated or existing
+        return result
 
     def reject_publish(self, request_id: str, reason: str = "") -> dict[str, Any]:
         existing = self._publish_repo.get_by_id(request_id)
@@ -233,17 +235,18 @@ class PublishingCenterService:
             raise ValueError(f"Publish request '{request_id}' not found.")
 
         updated = self._publish_repo.update(request_id, {"status": PublishStatus.REJECTED.value})
+        result = updated or existing
         self._history_repo.create(
             {
                 "content_id": existing["content_id"],
                 "version": existing.get("version", 1),
                 "action": "publish_rejected",
                 "performed_by": "system",
-                "performed_at": updated.get("updated_at", ""),
+                "performed_at": result.get("updated_at", ""),
                 "details": {"request_id": request_id, "reason": reason},
             }
         )
-        return updated or existing
+        return result
 
     def rollback_publish(self, request_id: str, reason: str = "") -> dict[str, Any]:
         existing = self._publish_repo.get_by_id(request_id)
@@ -253,17 +256,18 @@ class PublishingCenterService:
             raise ValueError("Can only rollback a published request.")
 
         updated = self._publish_repo.update(request_id, {"status": PublishStatus.ROLLED_BACK.value})
+        result = updated or existing
         self._history_repo.create(
             {
                 "content_id": existing["content_id"],
                 "version": existing.get("version", 1),
                 "action": "publish_rolled_back",
                 "performed_by": "system",
-                "performed_at": updated.get("updated_at", ""),
+                "performed_at": result.get("updated_at", ""),
                 "details": {"request_id": request_id, "reason": reason},
             }
         )
-        return updated or existing
+        return result
 
     def get_publish_history(self, content_id: str) -> list[dict[str, Any]]:
         return self._history_repo.get_by_content(content_id)
