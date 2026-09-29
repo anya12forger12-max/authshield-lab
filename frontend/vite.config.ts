@@ -13,6 +13,15 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     host: true,
+    // The FastAPI backend listens on 8000 (scripts/dev/setup.sh). Without this
+    // proxy the renderer's relative /api/* requests hit the Vite dev server and
+    // 404, which is what made every sign-in fail even with a correct URL.
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: 'dist',

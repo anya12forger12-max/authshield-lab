@@ -1,11 +1,14 @@
 import type React from 'react';
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../../store/appStore';
 import { Breadcrumbs } from './Breadcrumbs';
 import { cn } from '../../utils/cn';
 import type { UserRole } from '../../types';
+import { clearSession, getSessionId, logout } from '../../services/authApi';
 
 export function Header() {
+  const navigate = useNavigate();
   const {
     searchOpen,
     setSearchOpen,
@@ -19,6 +22,7 @@ export function Header() {
     currentMode,
     setCurrentMode,
     user,
+    setUser,
   } = useAppStore();
 
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -60,6 +64,27 @@ export function Header() {
     },
     [setSearchOpen, setSearchQuery]
   );
+
+  const closeUserMenu = (path: string) => {
+    setUserMenuOpen(false);
+    navigate(path);
+  };
+
+  const handleSignOut = async () => {
+    setUserMenuOpen(false);
+    const sessionId = getSessionId();
+    try {
+      if (sessionId && user?.id) {
+        await logout(sessionId, user.id);
+      }
+    } catch {
+      // Signing out locally must succeed even if the server call fails.
+    } finally {
+      clearSession();
+      setUser(null);
+      navigate('/login', { replace: true });
+    }
+  };
 
   const modes: { value: UserRole; label: string }[] = [
     { value: 'demo', label: 'Demo' },
@@ -225,14 +250,22 @@ export function Header() {
                 <p className="text-sm font-medium text-[var(--color-text-primary)]">{user?.displayName}</p>
                 <p className="text-xs text-[var(--color-text-muted)]">{user?.email}</p>
               </div>
-              <button className="w-full text-left px-3 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface-sunken)] transition-colors">
+              <button
+                onClick={() => closeUserMenu('/settings')}
+                className="w-full text-left px-3 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface-sunken)] transition-colors"
+              >
                 Profile
               </button>
               <button className="w-full text-left px-3 py-2 text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface-sunken)] transition-colors">
                 Preferences
               </button>
               <div className="border-t border-[var(--color-border-subtle)] mt-1 pt-1">
-                <button className="w-full text-left px-3 py-2 text-sm text-[var(--color-danger)] hover:bg-[var(--color-danger-subtle)] transition-colors">
+                <button
+                  onClick={() => {
+                    void handleSignOut();
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-[var(--color-danger)] hover:bg-[var(--color-danger-subtle)] transition-colors"
+                >
                   Sign out
                 </button>
               </div>

@@ -1,9 +1,17 @@
 import type React from 'react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
+import { ApiError, login } from '../services/authApi';
+import { toAppUser, useAppStore } from '../store/appStore';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const setUser = useAppStore(state => state.setUser);
+  const justRegistered = Boolean(
+    (location.state as { registered?: boolean } | null)?.registered,
+  );
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
@@ -19,21 +27,15 @@ export function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.detail?.message || 'Invalid username or password.');
-        return;
-      }
-      localStorage.setItem('authshield_token', data.data?.session_id || '');
-      localStorage.setItem('authshield_user', JSON.stringify(data.data?.user || {}));
+      const { user } = await login(username, password);
+      setUser(toAppUser(user));
       navigate('/dashboard');
-    } catch {
-      setError('Network error. Please try again.');
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : 'Something went wrong. Please try again.',
+      );
     } finally {
       setLoading(false);
     }
@@ -47,29 +49,48 @@ export function LoginPage() {
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Sign in to your account</p>
         </div>
 
+        {justRegistered && (
+          <p
+            role="status"
+            className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-sm text-[var(--color-text-secondary)]"
+          >
+            Account created. Please sign in.
+          </p>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--color-text-primary)]">
+            <label
+              htmlFor="login-username"
+              className="mb-1 block text-sm font-medium text-[var(--color-text-primary)]"
+            >
               Username
             </label>
             <input
+              id="login-username"
               type="text"
               value={username}
               onChange={e => setUsername(e.target.value)}
               required
+              autoComplete="username"
               className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
               autoFocus
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-[var(--color-text-primary)]">
+            <label
+              htmlFor="login-password"
+              className="mb-1 block text-sm font-medium text-[var(--color-text-primary)]"
+            >
               Password
             </label>
             <input
+              id="login-password"
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
               className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-[var(--color-text-primary)] outline-none focus:border-[var(--color-accent)]"
             />
           </div>
@@ -85,7 +106,9 @@ export function LoginPage() {
           </label>
 
           {error && (
-            <p className="text-sm text-[var(--color-danger)]">{error}</p>
+            <p role="alert" className="text-sm text-[var(--color-danger)]">
+              {error}
+            </p>
           )}
 
           <button
@@ -96,6 +119,13 @@ export function LoginPage() {
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-[var(--color-text-secondary)]">
+          Don&apos;t have an account?{' '}
+          <Link to="/register" className="text-[var(--color-accent)] hover:underline">
+            Create one
+          </Link>
+        </p>
       </div>
     </div>
   );

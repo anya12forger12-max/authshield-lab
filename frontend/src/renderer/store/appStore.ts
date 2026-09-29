@@ -1,5 +1,15 @@
 import { create } from 'zustand';
 import type { Theme, UserRole, Notification, AccessibilityPreferences, BreadcrumbItem } from '../types';
+import { readStoredUser, type AuthUser } from '../services/authApi';
+
+export interface AppUser {
+  id: string;
+  username: string;
+  displayName: string;
+  email: string;
+  avatar?: string;
+  role: UserRole;
+}
 
 export interface AppState {
   theme: Theme;
@@ -11,14 +21,7 @@ export interface AppState {
   searchQuery: string;
   searchOpen: boolean;
   breadcrumbs: BreadcrumbItem[];
-  user: {
-    id: string;
-    username: string;
-    displayName: string;
-    email: string;
-    avatar?: string;
-    role: UserRole;
-  } | null;
+  user: AppUser | null;
   accessibility: AccessibilityPreferences;
 }
 
@@ -37,9 +40,49 @@ export interface AppActions {
   setSearchQuery: (query: string) => void;
   setSearchOpen: (open: boolean) => void;
   setBreadcrumbs: (breadcrumbs: BreadcrumbItem[]) => void;
-  updateUser: (updates: Partial<AppState['user']>) => void;
+  updateUser: (updates: Partial<AppUser>) => void;
+  setUser: (user: AppUser | null) => void;
   updateAccessibility: (updates: Partial<AccessibilityPreferences>) => void;
   reset: () => void;
+}
+
+const USER_ROLES: readonly UserRole[] = [
+  'demo',
+  'student',
+  'instructor',
+  'administrator',
+  'developer',
+];
+
+function isUserRole(value: string): value is UserRole {
+  return (USER_ROLES as readonly string[]).includes(value);
+}
+
+/**
+ * Map the API's user payload onto the store shape.
+ *
+ * `role` arrives as an untyped string, so it is validated rather than cast —
+ * an unknown role must not silently become a bogus `UserRole`.
+ */
+export function toAppUser(user: AuthUser): AppUser {
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName,
+    email: user.email,
+    role: isUserRole(user.role) ? user.role : 'student',
+  };
+}
+
+/**
+ * The signed-in user, restored from the session this tab already holds.
+ *
+ * This used to be a hardcoded administrator, so every fresh launch rendered as
+ * a signed-in admin regardless of who (if anyone) had actually authenticated.
+ */
+function initialUser(): AppUser | null {
+  const stored = readStoredUser();
+  return stored ? toAppUser(stored) : null;
 }
 
 const defaultAccessibility: AccessibilityPreferences = {
@@ -62,13 +105,7 @@ const initialState: AppState = {
   searchQuery: '',
   searchOpen: false,
   breadcrumbs: [{ label: 'Dashboard', path: '/dashboard' }],
-  user: {
-    id: 'user-1',
-    username: 'admin',
-    displayName: 'Admin User',
-    email: 'admin@authshieldlab.dev',
-    role: 'administrator',
-  },
+  user: initialUser(),
   accessibility: defaultAccessibility,
 };
 
@@ -162,6 +199,10 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set((state) => ({
       user: state.user ? { ...state.user, ...updates } : null,
     }));
+  },
+
+  setUser: (user) => {
+    set({ user });
   },
 
   updateAccessibility: (updates) => {
