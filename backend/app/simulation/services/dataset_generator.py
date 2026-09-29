@@ -5,7 +5,7 @@ from __future__ import annotations
 import random
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import Any, TypeVar
 
 from ..domain.entities.dataset import (
     DatasetArtifact,
@@ -13,6 +13,8 @@ from ..domain.entities.dataset import (
     DatasetMetadata,
     SyntheticDataset,
 )
+
+_T = TypeVar("_T")
 
 
 class DeterministicGenerator:
@@ -52,8 +54,17 @@ class DeterministicGenerator:
             version=4,
         ).hex[:16]
 
-    def _random_choice(self, items: list[str]) -> str:
-        """Pick a random item from a list."""
+    def _random_choice(self, items: list[_T]) -> _T:
+        """Pick a random item from a list.
+
+        Generic over the item type: most call sites pass a flat list of
+        strings, but a few pass a list of lists (e.g. the assistive-technology
+        and compliance-framework columns), and this helper is sometimes handed
+        the result of another call to itself. Declaring the return as ``str``
+        was a lie for those sites -- the value flows into a JSON-serialized
+        artifact, so it is correct at runtime, but the annotation misdescribed
+        it and mypy flagged every one of those list items.
+        """
         return self._rng.choice(items)
 
     def _random_bool(self, probability: float = 0.5) -> bool:
