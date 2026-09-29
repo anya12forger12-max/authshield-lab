@@ -132,8 +132,9 @@ jobs:
       - name: Generate SHA256 checksums
         run: |
           cd dist
-          if ls ./* >/dev/null 2>&1; then
-            sha256sum ./* > SHA256SUMS.txt
+          if find . -type f ! -name 'SHA256SUMS.txt' | grep -q .; then
+            find . -type f ! -name 'SHA256SUMS.txt' -print0 \
+              | sort -z | xargs -0 -r sha256sum > SHA256SUMS.txt
             echo "Checksums generated:"
             cat SHA256SUMS.txt
           else
