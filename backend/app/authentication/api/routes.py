@@ -31,13 +31,18 @@ logger = get_logger(MODULE_AUTH)
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # ---------------------------------------------------------------------------
-# Dependency injection placeholder — these will be wired up at app startup.
-# Services are set via the ``configure_dependencies`` function.
+# Service resolution.
+#
+# ``configure_dependencies`` allows an explicit override (used by tests and any
+# future database-backed wiring). When it has not been called the services are
+# built lazily on first request so the routes stay functional instead of
+# answering 503.
 # ---------------------------------------------------------------------------
 
 _authentication_service: Any = None
 _registration_service: Any = None
 _password_policy_service: Any = None
+_user_repository: Any = None
 
 
 def configure_dependencies(
@@ -60,33 +65,83 @@ def _get_correlation_id(x_request_id: str | None = Header(None)) -> str:
     return x_request_id or str(uuid.uuid4())
 
 
+def _get_user_repository() -> Any:
+    """Return the process-wide user repository shared by register and login.
+
+    Registration and authentication MUST resolve the same store, otherwise an
+    account created through ``POST /auth/register`` is invisible to
+    ``POST /auth/login``.
+    """
+    global _user_repository
+    if _user_repository is None:
+        from ..repositories.authentication_repository_impl import InMemoryUserRepository
+
+        _user_repository = InMemoryUserRepository()
+    return _user_repository
+
+
+def _build_registration_service() -> Any:
+    """Construct a RegistrationService over the shared in-memory user repository."""
+    from ..events.event_publisher import AuthenticationEventPublisher
+    from ..services.password_policy_service import PasswordPolicyService
+    from ..services.password_verification_service import PasswordVerificationService
+    from ..services.registration_service import RegistrationService
+
+    return RegistrationService(
+        _get_user_repository(),
+        PasswordVerificationService(),
+        PasswordPolicyService(),
+        AuthenticationEventPublisher(),
+    )
+
+
+def _build_authentication_service() -> Any:
+    """Construct an AuthenticationService over the shared in-memory user repository."""
+    from ..events.event_publisher import AuthenticationEventPublisher
+    from ..repositories.authentication_repository_impl import InMemorySessionRepository
+    from ..services.authentication_service import AuthenticationService
+    from ..services.login_service import LoginService
+    from ..services.logout_service import LogoutService
+    from ..services.password_verification_service import PasswordVerificationService
+    from ..services.session_service import SessionService
+
+    session_service = SessionService(InMemorySessionRepository(), AuthenticationEventPublisher())
+
+    return AuthenticationService(
+        LoginService(
+            _get_user_repository(),
+            PasswordVerificationService(),
+            session_service,
+            AuthenticationEventPublisher(),
+        ),
+        LogoutService(session_service, AuthenticationEventPublisher()),
+        session_service,
+    )
+
+
 def _get_auth_service() -> Any:
-    """Return the configured authentication service (raises if not configured)."""
+    """Return the configured authentication service, building one on first use."""
+    global _authentication_service
     if _authentication_service is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Authentication service not configured.",
-        )
+        _authentication_service = _build_authentication_service()
     return _authentication_service
 
 
 def _get_registration_service() -> Any:
-    """Return the configured registration service."""
+    """Return the configured registration service, building one on first use."""
+    global _registration_service
     if _registration_service is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Registration service not configured.",
-        )
+        _registration_service = _build_registration_service()
     return _registration_service
 
 
 def _get_password_policy_service() -> Any:
-    """Return the configured password policy service."""
+    """Return the configured password policy service, building one on first use."""
+    global _password_policy_service
     if _password_policy_service is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Password policy service not configured.",
-        )
+        from ..services.password_policy_service import PasswordPolicyService
+
+        _password_policy_service = PasswordPolicyService()
     return _password_policy_service
 
 

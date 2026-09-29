@@ -7,6 +7,7 @@ from typing import Any
 
 from ...config.constants import MODULE_AUTH
 from ...shared.logging_config import get_logger, log_audit_event, log_security_event
+from ..domain.entities.account_status import AccountStatus
 from ..domain.entities.authentication_result import (
     AuthenticationOutcome,
     AuthenticationResult,
@@ -19,6 +20,10 @@ from ..domain.interfaces.repository_interfaces import IUserRepository
 from ..domain.models.request_models import RegistrationRequest
 
 logger = get_logger(MODULE_AUTH)
+
+#: Must stay in sync with ``PasswordHasher``'s default and with the
+#: ``User.hash_algorithm`` column default.
+DEFAULT_HASH_ALGORITHM = "argon2id"
 
 
 class RegistrationService(IRegistrationService):
@@ -163,12 +168,20 @@ class RegistrationService(IRegistrationService):
 
         # Create user
         try:
+            # Keys must match the columns declared on
+            # app.shared.models.user.User: password_hash (NOT NULL) and
+            # account_status. The previous hashed_password / status names did
+            # not exist on the model, so every insert raised
+            # TypeError and surfaced as HTTP 500.
             user_data: dict[str, Any] = {
                 "username": request.username,
-                "hashed_password": hashed_password,
+                "password_hash": hashed_password,
+                "hash_algorithm": DEFAULT_HASH_ALGORITHM,
                 "display_name": request.display_name,
                 "email": request.email,
-                "status": "active",
+                "account_status": AccountStatus.ACTIVE.value,
+                "role": "student",
+                "failed_login_count": 0,
             }
             user = await self._user_repo.create(user_data)
         except Exception:

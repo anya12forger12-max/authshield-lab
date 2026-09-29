@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import time
+from datetime import UTC, datetime
+from typing import Any
 
 from ...config.constants import MODULE_AUTH
 from ...shared.logging_config import get_logger, log_audit_event, log_security_event
@@ -19,6 +21,24 @@ from ..domain.interfaces.session_service import ISessionService
 from ..domain.models.request_models import LoginRequest
 
 logger = get_logger(MODULE_AUTH)
+
+
+def _user_field(user: object, name: str, default: Any = None) -> Any:
+    """Read ``name`` from a user record regardless of its container type.
+
+    A user may be a SQLAlchemy ``User`` instance (attribute access) or a plain
+    dict (the in-memory repositories). The previous
+    ``getattr(user, name, None) or user.get(name, default)`` idiom evaluated
+    ``.get()`` on any object that lacked the attribute, so every ORM-backed
+    login raised ``AttributeError: 'User' object has no attribute 'get'`` before
+    the password was even checked.
+    """
+    value = user.get(name, default) if isinstance(user, dict) else getattr(user, name, default)
+    return default if value is None else value
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
 
 
 class LoginService:
@@ -104,9 +124,9 @@ class LoginService:
                 error_code="INVALID_CREDENTIALS",
             )
 
-        user_id = str(getattr(user, "id", None) or user.get("id", ""))
-        user_status = getattr(user, "status", None) or user.get("status", "active")
-        hashed_password = getattr(user, "hashed_password", None) or user.get("hashed_password", "")
+        user_id = str(_user_field(user, "id", ""))
+        user_status = _user_field(user, "account_status", AccountStatus.ACTIVE.value)
+        hashed_password = _user_field(user, "password_hash", "")
 
         # Check account status
         status_check = self._check_account_status(
@@ -187,7 +207,7 @@ class LoginService:
             logger=logger,
         )
 
-        display_name = getattr(user, "display_name", None) or user.get("display_name", username)
+        display_name = _user_field(user, "display_name", username)
 
         result = AuthenticationResult(
             outcome=AuthenticationOutcome.SUCCESS,
@@ -292,16 +312,14 @@ class LoginService:
         start_time: float,
     ) -> None:
         """Handle a failed password attempt, potentially locking the account."""
-        failed_attempts = getattr(user, "failed_login_attempts", None)
-        if failed_attempts is None and isinstance(user, dict):
-            failed_attempts = user.get("failed_login_attempts", 0)
+        failed_attempts = int(_user_field(user, "failed_login_count", 0) or 0)
 
-        new_count = (failed_attempts or 0) + 1
+        new_count = failed_attempts + 1
 
-        update_data: dict = {"failed_login_attempts": new_count}
+        update_data: dict = {"failed_login_count": new_count, "last_failed_login": _utc_now()}
 
         if new_count >= self._max_failed_attempts:
-            update_data["status"] = AccountStatus.LOCKED.value
+            update_data["account_status"] = AccountStatus.LOCKED.value
             await self._user_repo.update(user_id, update_data)
 
             log_security_event(
@@ -350,12 +368,10 @@ class LoginService:
 
     async def _reset_failed_attempts(self, user: object, user_id: str) -> None:
         """Reset the failed login attempts counter after a successful login."""
-        failed_attempts = getattr(user, "failed_login_attempts", None)
-        if failed_attempts is None and isinstance(user, dict):
-            failed_attempts = user.get("failed_login_attempts", 0)
+        failed_attempts = int(_user_field(user, "failed_login_count", 0) or 0)
 
-        if failed_attempts and failed_attempts > 0:
-            await self._user_repo.update(user_id, {"failed_login_attempts": 0})
+        if failed_attempts > 0:
+            await self._user_repo.update(user_id, {"failed_login_count": 0})
 
     @staticmethod
     def _build_failure(
