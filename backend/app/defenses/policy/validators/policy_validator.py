@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ...shared.validation.validator import ValidationResult
+from ....shared.validation.validator import ValidationResult
 from ..domain.entities.policy_entity import (
     VALID_STATUS_TRANSITIONS,
     PolicyCategory,
