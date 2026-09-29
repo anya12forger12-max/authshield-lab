@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import logging
 import time
 import uuid
 from datetime import UTC, datetime
 from typing import Any
 
 from ....shared.events.event_bus import DomainEvent, EventBus, EventSeverity, EventType
+from ....shared.logging_config import get_logger
 from ....shared.monitoring.performance import PerformanceMonitor
 from ..domain.entities.policy_entity import (
     PolicyCategory,
@@ -21,7 +21,7 @@ from ..domain.events.policy_events import PolicyDecisionEvent
 from ..domain.interfaces.policy_engine_interface import IPolicyEngine
 from ..registry.policy_registry import PolicyRegistry
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class PolicyEngine(IPolicyEngine):

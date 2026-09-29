@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import logging
 import uuid
 from datetime import UTC, datetime
 from typing import Any
 
+from ....shared.logging_config import get_logger
 from ..domain.entities.policy_entity import (
     VALID_STATUS_TRANSITIONS,
     PolicyCategory,
@@ -15,7 +15,7 @@ from ..domain.entities.policy_entity import (
     SecurityPolicy,
 )
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class PolicyRepository:

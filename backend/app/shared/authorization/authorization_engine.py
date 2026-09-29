@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from ...shared.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class AuthorizationDecision(str, Enum):

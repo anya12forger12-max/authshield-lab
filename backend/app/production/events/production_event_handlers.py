@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 from ...shared.events.event_bus import DomainEvent, EventBus, EventType
+from ...shared.logging_config import get_logger
 
-logger = logging.getLogger("production.event_handlers")
+logger = get_logger("production.event_handlers")
 
 
 async def handle_release_created(event: DomainEvent) -> None:
