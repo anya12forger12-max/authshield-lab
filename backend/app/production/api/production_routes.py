@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-router = APIRouter(prefix="/api/v1/production", tags=["production"])
+router = APIRouter(prefix="/production", tags=["production"])
 
 
 # ======================================================================

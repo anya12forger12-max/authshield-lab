@@ -19,7 +19,7 @@ from services.peer_review_service import PeerReviewService
 from services.research_service import ResearchService
 from validators.collaboration_validator import CollaborationValidator
 
-router = APIRouter(prefix="/api/v1/collaboration", tags=["collaboration"])
+router = APIRouter(prefix="/collaboration", tags=["collaboration"])
 
 _academic_repo = InMemoryAcademicHubRepository()
 _exchange_repo = InMemoryCurriculumExchangeRepository()

@@ -27,7 +27,7 @@ from ..services.results_service import ResultsService
 from ..services.scenario_service import ScenarioService
 from ..services.timeline_service import TimelineService
 
-router = APIRouter(prefix="/api/v1/simulation", tags=["simulation"])
+router = APIRouter(prefix="/simulation", tags=["simulation"])
 
 # ------------------------------------------------------------------
 # Singleton repository instances

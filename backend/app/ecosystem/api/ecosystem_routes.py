@@ -24,7 +24,7 @@ from services.marketplace_service import MarketplaceService
 from services.research_service import ResearchService
 from validators.ecosystem_validator import EcosystemValidator
 
-router = APIRouter(prefix="/api/v1/ecosystem", tags=["ecosystem"])
+router = APIRouter(prefix="/ecosystem", tags=["ecosystem"])
 
 _market_repo = InMemoryMarketplaceRepository()
 _library_repo = InMemoryLibraryRepository()
