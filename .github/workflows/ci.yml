@@ -86,6 +86,14 @@ jobs:
         run: mypy --strict backend/
         continue-on-error: true
 
+      # Hard gate, but ONLY on the defect-shaped slice of mypy. The full
+      # --strict run above stays soft because of the (deliberate) annotation
+      # debt; these codes are the ones that have each been a real runtime
+      # crash here, and they are cheap to fix when written. Ratchets against
+      # backend/mypy-defect-baseline.txt -- fails only if a count increases.
+      - name: Gate defect-shaped type errors (ratchet)
+        run: bash scripts/utilities/check-defect-types.sh backend/
+
       - name: TypeScript type checking
         run: |
           cd frontend
