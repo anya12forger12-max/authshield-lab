@@ -4,9 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..domain.entities.marketplace import (
+    InstallationRecord,
+    InstallStatus,
+    LocalPackage,
+    PackageSearch,
+)
+
 if TYPE_CHECKING:
-    from domain.entities.marketplace import InstallationRecord, LocalPackage, PackageSearch
-    from domain.interfaces import MarketplaceRepository
+    from ..domain.interfaces import MarketplaceRepository
 
 
 class MarketplaceService:
@@ -23,7 +29,7 @@ class MarketplaceService:
             package_id=package_id,
             installed_by=installed_by,
             version=pkg.version,
-            status="installed",
+            status=InstallStatus.installed,
             config=config or {},
         )
         self._repo.add_installation(record)
@@ -37,7 +43,7 @@ class MarketplaceService:
         if not pkg:
             raise ValueError(f"Package {package_id} not found")
         for rec in self._repo.find_installations_by_package(package_id):
-            rec.status = "uninstalled"
+            rec.status = InstallStatus.uninstalled
         pkg.installed = False
         pkg.installed_at = None
         self._repo.update_package(pkg)

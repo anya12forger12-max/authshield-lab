@@ -29,7 +29,10 @@ BASELINE="${2:-backend/mypy-defect-baseline.txt}"
 
 # Defect-shaped codes: each of these has, at least once, been a real runtime bug
 # in this codebase rather than an annotation preference.
-DEFECT_CODES='attr-defined|arg-type|assignment|call-arg|comparison-overlap|index|list-item|operator|override|return-value|union-attr'
+# `name-defined` is here because of the collaboration/ecosystem class of bugs:
+  # interface ABCs imported only under `if TYPE_CHECKING:` but used as *runtime*
+  # base classes, so the module raised NameError on import. It is currently 0.
+  DEFECT_CODES='attr-defined|arg-type|assignment|call-arg|comparison-overlap|index|list-item|name-defined|operator|override|return-value|union-attr'
 
 if ! command -v mypy >/dev/null 2>&1; then
     echo "check-defect-types: mypy not on PATH" >&2

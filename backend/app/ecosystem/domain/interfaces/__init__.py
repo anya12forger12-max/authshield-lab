@@ -6,22 +6,22 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.content_distribution import (
+    from ...domain.entities.content_distribution import (
         DistributionManifest,
         DistributionPackage,
         ImportRecord,
         SyncOperation,
     )
-    from domain.entities.institution import (
+    from ...domain.entities.institution import (
         AcademicProgram,
         Department,
         InstructorAssignment,
         Organization,
         ResourceAllocation,
     )
-    from domain.entities.library import Annotation, Bookmark, Citation, LibraryItem
-    from domain.entities.marketplace import InstallationRecord, LocalPackage, PackageSearch
-    from domain.entities.research import (
+    from ...domain.entities.library import Annotation, Bookmark, Citation, LibraryItem
+    from ...domain.entities.marketplace import InstallationRecord, LocalPackage, PackageSearch
+    from ...domain.entities.research import (
         Bibliography,
         KnowledgeMap,
         LiteratureEntry,

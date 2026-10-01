@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.research import (
+    from ..domain.entities.research import (
         Bibliography,
         KnowledgeConcept,
         KnowledgeLink,
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
         ResearchNote,
         ResearchProject,
     )
-    from domain.interfaces import ResearchRepository
+    from ..domain.interfaces import ResearchRepository
 
 
 class ResearchService:
@@ -45,7 +45,9 @@ class ResearchService:
         if description is not None:
             project.description = description
         if status is not None:
-            project.status = status
+            from ..domain.entities.research import ResearchStatus
+
+            project.status = ResearchStatus(status)
         self._repo.update_project(project)
         return project
 
@@ -83,7 +85,9 @@ class ResearchService:
         entry = self._repo.get_literature_entry(entry_id)
         if not entry:
             raise ValueError(f"Entry {entry_id} not found")
-        entry.read_status = status
+        from ..domain.entities.research import ReadStatus
+
+        entry.read_status = ReadStatus(status)
         self._repo.update_literature_entry(entry)
         return entry
 

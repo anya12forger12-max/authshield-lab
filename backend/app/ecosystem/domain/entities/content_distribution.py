@@ -97,4 +97,4 @@ class SyncOperation:
         self.items_processed = items_processed
         self.items_conflict = items_conflict
         self.started_at = datetime.now(UTC)
-        self.completed_at = None
+        self.completed_at: datetime | None = None

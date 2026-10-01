@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.academic_hub import (
+    from ...domain.entities.academic_hub import (
         ImportedResource,
         InstitutionalProject,
         PublicationQueueItem,
@@ -14,26 +14,26 @@ if TYPE_CHECKING:
         SharedCurriculumPackage,
         VersionHistory,
     )
-    from domain.entities.curriculum_exchange import (
+    from ...domain.entities.curriculum_exchange import (
         ExchangeHistory,
         ExchangeManifest,
         ExchangePackage,
         PackageValidationReport,
     )
-    from domain.entities.knowledge_base import (
+    from ...domain.entities.knowledge_base import (
         ArticleCitation,
         ArticleVersion,
         KnowledgeArticle,
         KnowledgeCategory,
     )
-    from domain.entities.peer_review import (
+    from ...domain.entities.peer_review import (
         PeerReview,
         ReviewComment,
         ReviewDecision,
         ReviewHistory,
         ReviewRevision,
     )
-    from domain.entities.research_workspace import (
+    from ...domain.entities.research_workspace import (
         Bibliography,
         Citation,
         KnowledgeMap,
@@ -209,6 +209,9 @@ class ResearchWorkspaceRepository(ABC):
 
     @abstractmethod
     def get_knowledge_map(self, map_id: str) -> KnowledgeMap | None: ...
+
+    @abstractmethod
+    def update_knowledge_map(self, km: KnowledgeMap) -> None: ...
 
     @abstractmethod
     def get_knowledge_maps_for_project(self, project_id: str) -> list[KnowledgeMap]: ...

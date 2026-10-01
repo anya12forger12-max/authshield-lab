@@ -4,20 +4,21 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
-from repositories.collaboration_repository_impl import (
+
+from ..repositories.collaboration_repository_impl import (
     InMemoryAcademicHubRepository,
     InMemoryCurriculumExchangeRepository,
     InMemoryKnowledgeBaseRepository,
     InMemoryPeerReviewRepository,
     InMemoryResearchWorkspaceRepository,
 )
-from services.academic_hub_service import AcademicHubService
-from services.curriculum_exchange_service import CurriculumExchangeService
-from services.knowledge_base_service import KnowledgeBaseService
-from services.package_validation_service import PackageValidationService
-from services.peer_review_service import PeerReviewService
-from services.research_service import ResearchService
-from validators.collaboration_validator import CollaborationValidator
+from ..services.academic_hub_service import AcademicHubService
+from ..services.curriculum_exchange_service import CurriculumExchangeService
+from ..services.knowledge_base_service import KnowledgeBaseService
+from ..services.package_validation_service import PackageValidationService
+from ..services.peer_review_service import PeerReviewService
+from ..services.research_service import ResearchService
+from ..validators.collaboration_validator import CollaborationValidator
 
 router = APIRouter(prefix="/collaboration", tags=["collaboration"])
 

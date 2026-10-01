@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.curriculum_exchange import ExchangePackage, PackageValidationReport
-    from domain.interfaces import CurriculumExchangeRepository
+    from ..domain.entities.curriculum_exchange import ExchangePackage, PackageValidationReport
+    from ..domain.interfaces import CurriculumExchangeRepository
 
 
 class PackageValidationService:

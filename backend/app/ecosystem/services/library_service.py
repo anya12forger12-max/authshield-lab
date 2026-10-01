@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.library import Annotation, Bookmark, Citation, LibraryItem
-    from domain.interfaces import LibraryRepository
+    from ..domain.entities.library import Annotation, Bookmark, Citation, LibraryItem
+    from ..domain.interfaces import LibraryRepository
 
 
 class LibraryService:

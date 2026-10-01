@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
-from domain.events.ecosystem_events import (
+from ..domain.events.ecosystem_events import (
     DistributionExported,
     DistributionImported,
     LibraryItemAdded,
@@ -115,7 +116,7 @@ def dispatch(
     | DistributionImported
     | OrganizationCreated,
 ) -> None:
-    handlers = {
+    handlers: dict[type, Callable[[Any], None]] = {
         PackageInstalled: handle_package_installed,
         PackageRemoved: handle_package_removed,
         LibraryItemAdded: handle_library_item_added,

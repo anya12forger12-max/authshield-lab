@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
-from domain.events.collaboration_events import (
+from ..domain.events.collaboration_events import (
     KnowledgeArticlePublished,
     PackageExchanged,
     PublicationQueued,
@@ -109,7 +110,7 @@ def handle_publication_queued(event: PublicationQueued) -> None:
     )
 
 
-_HANDLERS = {
+_HANDLERS: dict[type, Callable[[Any], None]] = {
     PackageExchanged: handle_package_exchanged,
     ReviewSubmitted: handle_review_submitted,
     ReviewApproved: handle_review_approved,

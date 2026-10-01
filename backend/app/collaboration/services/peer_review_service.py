@@ -5,14 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.peer_review import (
+    from ..domain.entities.peer_review import (
         PeerReview,
         ReviewComment,
         ReviewDecision,
         ReviewHistory,
         ReviewRevision,
     )
-    from domain.interfaces import PeerReviewRepository
+    from ..domain.interfaces import PeerReviewRepository
 
 
 class PeerReviewService:
@@ -37,7 +37,7 @@ class PeerReviewService:
         content_type: str,
         submitter: str,
     ) -> PeerReview:
-        from domain.entities.peer_review import PeerReview
+        from ..domain.entities.peer_review import PeerReview
 
         review = PeerReview(
             title=title,
@@ -65,7 +65,9 @@ class PeerReviewService:
         if current_idx >= len(self._STAGE_ORDER) - 1:
             raise ValueError("Review is already at the final stage")
         next_stage = self._STAGE_ORDER[current_idx + 1]
-        review.current_stage = next_stage
+        from ..domain.entities.peer_review import ReviewStage
+
+        review.current_stage = ReviewStage(next_stage)
         self._repo.update_review(review)
         history = self._repo.get_history_for_review(review_id)
         if history is None:
@@ -84,7 +86,7 @@ class PeerReviewService:
         comment: str,
         severity: str | None = None,
     ) -> ReviewComment:
-        from domain.entities.peer_review import ReviewComment
+        from ..domain.entities.peer_review import ReviewComment
 
         review = self._repo.get_review(review_id)
         if not review:
@@ -114,7 +116,7 @@ class PeerReviewService:
         decision: str,
         comments: str = "",
     ) -> ReviewDecision:
-        from domain.entities.peer_review import ReviewDecision, ReviewDecisionType
+        from ..domain.entities.peer_review import ReviewDecision, ReviewDecisionType
 
         review = self._repo.get_review(review_id)
         if not review:
@@ -147,7 +149,7 @@ class PeerReviewService:
         changes: list[str] | None = None,
         author: str = "",
     ) -> ReviewRevision:
-        from domain.entities.peer_review import ReviewRevision
+        from ..domain.entities.peer_review import ReviewRevision
 
         existing = self._repo.get_revisions_for_review(review_id)
         next_number = len(existing) + 1
@@ -183,12 +185,12 @@ class PeerReviewService:
         return [c for c in comments if c.stage.value == stage]
 
     def _make_history(self, review_id: str) -> ReviewHistory:
-        from domain.entities.peer_review import ReviewHistory
+        from ..domain.entities.peer_review import ReviewHistory
 
         return ReviewHistory(review_id=review_id)
 
     def _append_event(self, history, stage: str, action: str, actor: str, details: str) -> None:
-        from domain.entities.peer_review import ReviewEvent, ReviewStage
+        from ..domain.entities.peer_review import ReviewEvent, ReviewStage
 
         event = ReviewEvent(
             stage=ReviewStage(stage),

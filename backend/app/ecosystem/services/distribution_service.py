@@ -6,14 +6,14 @@ import hashlib
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.content_distribution import (
+    from ..domain.entities.content_distribution import (
         DistributionItem,
         DistributionManifest,
         DistributionPackage,
         ImportRecord,
         SyncOperation,
     )
-    from domain.interfaces import DistributionRepository
+    from ..domain.interfaces import DistributionRepository
 
 
 class DistributionService:

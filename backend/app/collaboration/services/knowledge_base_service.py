@@ -5,9 +5,15 @@ from __future__ import annotations
 from datetime import UTC
 from typing import TYPE_CHECKING
 
+from ..domain.entities.knowledge_base import ArticleStatus
+
 if TYPE_CHECKING:
-    from domain.entities.knowledge_base import ArticleCitation, KnowledgeArticle, KnowledgeCategory
-    from domain.interfaces import KnowledgeBaseRepository
+    from ..domain.entities.knowledge_base import (
+        ArticleCitation,
+        KnowledgeArticle,
+        KnowledgeCategory,
+    )
+    from ..domain.interfaces import KnowledgeBaseRepository
 
 
 class KnowledgeBaseService:
@@ -22,7 +28,7 @@ class KnowledgeBaseService:
         author: str,
         tags: list[str] | None = None,
     ) -> KnowledgeArticle:
-        from domain.entities.knowledge_base import KnowledgeArticle
+        from ..domain.entities.knowledge_base import KnowledgeArticle
 
         article = KnowledgeArticle(
             title=title,
@@ -82,7 +88,7 @@ class KnowledgeBaseService:
         article = self._repo.get_article(article_id)
         if not article:
             raise ValueError(f"Article {article_id} not found")
-        article.status = "published"
+        article.status = ArticleStatus.published
         from datetime import datetime
 
         article.updated_at = datetime.now(UTC)
@@ -93,7 +99,7 @@ class KnowledgeBaseService:
         article = self._repo.get_article(article_id)
         if not article:
             raise ValueError(f"Article {article_id} not found")
-        article.status = "archived"
+        article.status = ArticleStatus.archived
         from datetime import datetime
 
         article.updated_at = datetime.now(UTC)
@@ -119,7 +125,7 @@ class KnowledgeBaseService:
         description: str,
         parent_id: str | None = None,
     ) -> KnowledgeCategory:
-        from domain.entities.knowledge_base import KnowledgeCategory
+        from ..domain.entities.knowledge_base import KnowledgeCategory
 
         cat = KnowledgeCategory(
             name=name,
@@ -163,7 +169,7 @@ class KnowledgeBaseService:
         target_id: str,
         citation_type: str,
     ) -> ArticleCitation:
-        from domain.entities.knowledge_base import ArticleCitation
+        from ..domain.entities.knowledge_base import ArticleCitation
 
         citation = ArticleCitation(
             source_id=source_id,
@@ -177,7 +183,7 @@ class KnowledgeBaseService:
         return self._repo.get_citations_for_article(article_id)
 
     def _record_version(self, article_id: str, version: int, content: str, author: str) -> None:
-        from domain.entities.knowledge_base import ArticleVersion
+        from ..domain.entities.knowledge_base import ArticleVersion
 
         v = ArticleVersion(
             article_id=article_id,

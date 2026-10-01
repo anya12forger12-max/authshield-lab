@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.academic_hub import (
+    from ..domain.entities.academic_hub import (
         AcademicHubDashboard,
         ImportedResource,
         InstitutionalProject,
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
         SharedCurriculumPackage,
         VersionHistory,
     )
-    from domain.interfaces import AcademicHubRepository
+    from ..domain.interfaces import AcademicHubRepository
 
 
 class AcademicHubService:
@@ -30,7 +30,7 @@ class AcademicHubService:
         lead: str,
         members: list[str] | None = None,
     ) -> InstitutionalProject:
-        from domain.entities.academic_hub import InstitutionalProject
+        from ..domain.entities.academic_hub import InstitutionalProject
 
         project = InstitutionalProject(
             name=name,
@@ -62,7 +62,9 @@ class AcademicHubService:
         if description is not None:
             project.description = description
         if status is not None:
-            project.status = status
+            from ..domain.entities.academic_hub import ProjectStatus
+
+            project.status = ProjectStatus(status)
         if members is not None:
             project.members = members
         project.updated_at = datetime.now(UTC)
@@ -95,7 +97,7 @@ class AcademicHubService:
         accessibility_report: dict | None = None,
         localization_report: dict | None = None,
     ) -> SharedCurriculumPackage:
-        from domain.entities.academic_hub import SharedCurriculumPackage
+        from ..domain.entities.academic_hub import SharedCurriculumPackage
 
         pkg = SharedCurriculumPackage(
             title=title,
@@ -124,7 +126,7 @@ class AcademicHubService:
         status: str = "pending",
         validation_results: dict | None = None,
     ) -> ImportedResource:
-        from domain.entities.academic_hub import ImportedResource
+        from ..domain.entities.academic_hub import ImportedResource
 
         resource = ImportedResource(
             package_id=package_id,
@@ -149,7 +151,7 @@ class AcademicHubService:
         assignees: list[str] | None = None,
         due_date: str = "",
     ) -> ReviewRequest:
-        from domain.entities.academic_hub import ReviewRequest
+        from ..domain.entities.academic_hub import ReviewRequest
 
         request = ReviewRequest(
             title=title,
@@ -165,7 +167,9 @@ class AcademicHubService:
         request = self._repo.get_review_request(request_id)
         if not request:
             raise ValueError(f"Review request {request_id} not found")
-        request.status = status
+        from ..domain.entities.academic_hub import ReviewStatus
+
+        request.status = ReviewStatus(status)
         self._repo.update_review_request(request)
         return request
 
@@ -180,7 +184,7 @@ class AcademicHubService:
         version: str,
         submitted_by: str,
     ) -> PublicationQueueItem:
-        from domain.entities.academic_hub import PublicationQueueItem
+        from ..domain.entities.academic_hub import PublicationQueueItem
 
         item = PublicationQueueItem(
             content_id=content_id,
@@ -207,7 +211,7 @@ class AcademicHubService:
         return self._repo.get_version_history_for_entity(entity_id)
 
     def get_dashboard(self) -> AcademicHubDashboard:
-        from domain.entities.academic_hub import AcademicHubDashboard
+        from ..domain.entities.academic_hub import AcademicHubDashboard
 
         projects = self._repo.all_projects()
         packages = self._repo.all_shared_packages()
@@ -237,7 +241,7 @@ class AcademicHubService:
         changes: list[str],
         author: str,
     ) -> None:
-        from domain.entities.academic_hub import VersionHistory
+        from ..domain.entities.academic_hub import VersionHistory
 
         entry = VersionHistory(
             entity_id=entity_id,

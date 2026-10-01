@@ -3,26 +3,27 @@
 
 from __future__ import annotations
 
-from domain.entities.library import LibraryItem, LibraryItemType
-from domain.entities.marketplace import (
+from fastapi import APIRouter, HTTPException
+
+from ..domain.entities.library import LibraryItem, LibraryItemType
+from ..domain.entities.marketplace import (
     LocalPackage,
     PackageCategory,
     PackageSearch,
 )
-from fastapi import APIRouter, HTTPException
-from repositories.ecosystem_repository_impl import (
+from ..repositories.ecosystem_repository_impl import (
     InMemoryDistributionRepository,
     InMemoryInstitutionRepository,
     InMemoryLibraryRepository,
     InMemoryMarketplaceRepository,
     InMemoryResearchRepository,
 )
-from services.distribution_service import DistributionService
-from services.institution_service import InstitutionService
-from services.library_service import LibraryService
-from services.marketplace_service import MarketplaceService
-from services.research_service import ResearchService
-from validators.ecosystem_validator import EcosystemValidator
+from ..services.distribution_service import DistributionService
+from ..services.institution_service import InstitutionService
+from ..services.library_service import LibraryService
+from ..services.marketplace_service import MarketplaceService
+from ..services.research_service import ResearchService
+from ..validators.ecosystem_validator import EcosystemValidator
 
 router = APIRouter(prefix="/ecosystem", tags=["ecosystem"])
 
@@ -530,7 +531,7 @@ def list_sync():
 
 @router.get("/validate/package/{package_id}")
 def validate_package(package_id: str):
-    from services.governance_validation_service import GovernanceValidationService
+    from ..services.governance_validation_service import GovernanceValidationService
 
     pkg = _market_repo.get_package(package_id)
     if not pkg:

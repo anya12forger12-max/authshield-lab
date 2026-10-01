@@ -5,14 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from domain.entities.institution import (
+    from ..domain.entities.institution import (
         AcademicProgram,
         Department,
         InstructorAssignment,
         Organization,
         ResourceAllocation,
     )
-    from domain.interfaces import InstitutionRepository
+    from ..domain.interfaces import InstitutionRepository
 
 
 class InstitutionService:
@@ -42,7 +42,9 @@ class InstitutionService:
         if name is not None:
             org.name = name
         if org_type is not None:
-            org.org_type = org_type
+            from ..domain.entities.institution import OrgType
+
+            org.org_type = OrgType(org_type)
         if settings is not None:
             org.settings = settings
         self._repo.update_organization(org)
@@ -121,7 +123,9 @@ class InstitutionService:
         if description is not None:
             prog.description = description
         if status is not None:
-            prog.status = status
+            from ..domain.entities.institution import ProgramStatus
+
+            prog.status = ProgramStatus(status)
         self._repo.update_program(prog)
         return prog
 
