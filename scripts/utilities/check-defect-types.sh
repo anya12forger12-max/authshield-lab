@@ -94,8 +94,14 @@ if [ -n "$regressions" ]; then
 fi
 
 if [ "$total_actual" -lt "$total_expected" ]; then
-    echo "check-defect-types: PASS ($total_actual < baseline $total_expected) — refreshing baseline."
-    printf '%s\n' "$actual" > "$BASELINE"
+    # A decrease is an improvement, not a reason to rewrite the file: the count
+    # is not identical across environments (mypy under Python 3.12 reports a
+    # few fewer `arg-type`/`attr-defined` findings than 3.11 does), so the
+    # committed baseline is kept at the highest count any environment produces
+    # and every environment compares against that. Rewriting it here would make
+    # the checked-in value depend on which interpreter ran, and CI cannot commit
+    # the change anyway.
+    echo "check-defect-types: PASS ($total_actual < baseline $total_expected) — baseline left at the recorded maximum."
     exit 0
 fi
 
