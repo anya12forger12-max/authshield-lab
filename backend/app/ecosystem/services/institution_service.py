@@ -9,7 +9,6 @@ from ..domain.entities.institution import (
     Department,
     InstructorAssignment,
     Organization,
-    OrgType,
     ResourceAllocation,
 )
 
@@ -24,7 +23,7 @@ class InstitutionService:
     def create_organization(
         self, name: str, org_type: str, settings: dict | None = None
     ) -> Organization:
-        org = Organization(name=name, org_type=OrgType(org_type), settings=settings)
+        org = Organization(name=name, org_type=org_type, settings=settings)
         self._repo.add_organization(org)
         return org
 
@@ -44,9 +43,7 @@ class InstitutionService:
         if name is not None:
             org.name = name
         if org_type is not None:
-            from ..domain.entities.institution import OrgType
-
-            org.org_type = OrgType(org_type)
+            org.org_type = org_type
         if settings is not None:
             org.settings = settings
         self._repo.update_organization(org)

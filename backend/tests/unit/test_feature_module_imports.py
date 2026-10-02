@@ -174,7 +174,18 @@ def test_marketplace_installation_record_holds_real_enum() -> None:
     assert record.status.value == "installed"
 
 
-def test_organisation_type_is_coerced_to_the_enum() -> None:
+def test_organisation_type_stays_free_form_and_never_raises() -> None:
+    """`Organization.org_type` is declared `OrgType` but assigned a raw `str`.
+
+    Nothing ever reads ``org_type.value`` -- the only ``.value`` read in the
+    ecosystem repository is ``LibraryItem.item_type.value`` -- so the value is
+    genuinely free-form and the API accepts any string. Coercing it with
+    ``OrgType(org_type)`` would turn an unvalidated value into an unhandled
+    ``ValueError`` (HTTP 500) for any caller passing e.g. ``"school"``.
+
+    This test pins the *safe* behaviour so the type mismatch cannot later be
+    "fixed" by adding an unguarded coercion.
+    """
     from app.ecosystem.domain.entities.institution import OrgType
     from app.ecosystem.repositories.ecosystem_repository_impl import (
         InMemoryInstitutionRepository,
@@ -182,8 +193,14 @@ def test_organisation_type_is_coerced_to_the_enum() -> None:
     from app.ecosystem.services.institution_service import InstitutionService
 
     repo = InMemoryInstitutionRepository()
-    org = InstitutionService(repo).create_organization(name="Acme", org_type="university")
-    assert org.org_type is OrgType.university
+
+    known = InstitutionService(repo).create_organization("Acme", "university")
+    assert known.org_type == "university"
+    assert OrgType(known.org_type) is OrgType.university
+
+    # A value outside the enum must still be accepted rather than raising.
+    free_form = InstitutionService(repo).create_organization("Other", "school")
+    assert free_form.org_type == "school"
 
 
 def test_collaboration_and_ecosystem_areas_are_registered() -> None:

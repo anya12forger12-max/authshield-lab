@@ -5,18 +5,17 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from ..domain.entities.research_workspace import (
-    Bibliography,
-    Citation,
-    KnowledgeMap,
-    LiteratureCollection,
-    LiteratureEntry,
-    ReadingList,
-    ResearchNote,
-    ResearchProject,
-)
-
 if TYPE_CHECKING:
+    from ..domain.entities.research_workspace import (
+        Bibliography,
+        Citation,
+        KnowledgeMap,
+        LiteratureCollection,
+        LiteratureEntry,
+        ReadingList,
+        ResearchNote,
+        ResearchProject,
+    )
     from ..domain.interfaces import ResearchWorkspaceRepository
 
 

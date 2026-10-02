@@ -5,14 +5,14 @@ from __future__ import annotations
 from datetime import UTC
 from typing import TYPE_CHECKING
 
-from ..domain.entities.knowledge_base import (
-    ArticleCitation,
-    ArticleStatus,
-    KnowledgeArticle,
-    KnowledgeCategory,
-)
+from ..domain.entities.knowledge_base import ArticleStatus
 
 if TYPE_CHECKING:
+    from ..domain.entities.knowledge_base import (
+        ArticleCitation,
+        KnowledgeArticle,
+        KnowledgeCategory,
+    )
     from ..domain.interfaces import KnowledgeBaseRepository
 
 
