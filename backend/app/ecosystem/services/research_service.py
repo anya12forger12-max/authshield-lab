@@ -4,17 +4,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..domain.entities.research import (
+    Bibliography,
+    KnowledgeConcept,
+    KnowledgeLink,
+    KnowledgeMap,
+    LiteratureEntry,
+    ReadingList,
+    ResearchNote,
+    ResearchProject,
+)
+
 if TYPE_CHECKING:
-    from ..domain.entities.research import (
-        Bibliography,
-        KnowledgeConcept,
-        KnowledgeLink,
-        KnowledgeMap,
-        LiteratureEntry,
-        ReadingList,
-        ResearchNote,
-        ResearchProject,
-    )
     from ..domain.interfaces import ResearchRepository
 
 

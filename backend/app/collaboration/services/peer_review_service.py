@@ -4,14 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..domain.entities.peer_review import (
+    PeerReview,
+    ReviewComment,
+    ReviewDecision,
+    ReviewHistory,
+    ReviewRevision,
+)
+
 if TYPE_CHECKING:
-    from ..domain.entities.peer_review import (
-        PeerReview,
-        ReviewComment,
-        ReviewDecision,
-        ReviewHistory,
-        ReviewRevision,
-    )
     from ..domain.interfaces import PeerReviewRepository
 
 

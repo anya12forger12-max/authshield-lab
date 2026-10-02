@@ -5,16 +5,17 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from ..domain.entities.academic_hub import (
+    AcademicHubDashboard,
+    ImportedResource,
+    InstitutionalProject,
+    PublicationQueueItem,
+    ReviewRequest,
+    SharedCurriculumPackage,
+    VersionHistory,
+)
+
 if TYPE_CHECKING:
-    from ..domain.entities.academic_hub import (
-        AcademicHubDashboard,
-        ImportedResource,
-        InstitutionalProject,
-        PublicationQueueItem,
-        ReviewRequest,
-        SharedCurriculumPackage,
-        VersionHistory,
-    )
     from ..domain.interfaces import AcademicHubRepository
 
 

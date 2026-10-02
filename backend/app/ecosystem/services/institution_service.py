@@ -4,14 +4,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..domain.entities.institution import (
+    AcademicProgram,
+    Department,
+    InstructorAssignment,
+    Organization,
+    OrgType,
+    ResourceAllocation,
+)
+
 if TYPE_CHECKING:
-    from ..domain.entities.institution import (
-        AcademicProgram,
-        Department,
-        InstructorAssignment,
-        Organization,
-        ResourceAllocation,
-    )
     from ..domain.interfaces import InstitutionRepository
 
 
@@ -22,7 +24,7 @@ class InstitutionService:
     def create_organization(
         self, name: str, org_type: str, settings: dict | None = None
     ) -> Organization:
-        org = Organization(name=name, org_type=org_type, settings=settings)
+        org = Organization(name=name, org_type=OrgType(org_type), settings=settings)
         self._repo.add_organization(org)
         return org
 
