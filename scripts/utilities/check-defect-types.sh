@@ -32,7 +32,14 @@ BASELINE="${2:-backend/mypy-defect-baseline.txt}"
 # `name-defined` is here because of the collaboration/ecosystem class of bugs:
   # interface ABCs imported only under `if TYPE_CHECKING:` but used as *runtime*
   # base classes, so the module raised NameError on import. It is currently 0.
-  DEFECT_CODES='attr-defined|arg-type|assignment|call-arg|comparison-overlap|index|list-item|name-defined|operator|override|return-value|union-attr'
+  # `misc` was the last unwatched code and it was not benign: the single
+  # finding pointed at `TemplateStudioService.get_templates_by_type`, whose
+  # annotation ("list[dict]") disagreed with a comprehension over a *paginated*
+  # repository envelope. Following that disagreement found real silent data
+  # loss -- the method filtered a single default page (20 of N) and returned []
+  # for any template_type stored past it. A "misc" code is therefore not
+  # automatically noise; it is currently 0 and worth keeping at 0.
+  DEFECT_CODES='attr-defined|arg-type|assignment|call-arg|comparison-overlap|index|list-item|misc|name-defined|operator|override|return-value|union-attr'
 
 if ! command -v mypy >/dev/null 2>&1; then
     echo "check-defect-types: mypy not on PATH" >&2
