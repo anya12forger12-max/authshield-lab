@@ -21,7 +21,7 @@ aiofiles==23.2.1
 # httpx.Client, so 0.28.x makes every TestClient call raise
 # TypeError: Client.__init__() got an unexpected keyword argument 'app'.
 # 0.27.2 is the last release that still accepts it.
-httpx==0.27.2
+httpx==0.28.1
 pytest==9.1.1
 pytest-asyncio==1.4.0
 pytest-cov==7.1.0
