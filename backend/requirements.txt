@@ -15,7 +15,7 @@ plotly==7.1.0
 pandas==3.0.6
 reportlab==5.0.1
 weasyprint==70.0
-aiofiles==23.2.1
+aiofiles==25.1.0
 # 0.28.0 removed the `app=` shortcut from httpx.Client. Starlette's TestClient
 # (which fastapi 0.109.2 requires as >=0.36.3,<0.37.0) passes app= through to
 # httpx.Client, so 0.28.x makes every TestClient call raise
