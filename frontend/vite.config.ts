@@ -28,15 +28,19 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          radix: [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-tabs',
-          ],
-          charts: ['echarts', 'echarts-for-react'],
+        // Rolldown (Vite 8) only supports the function form of manualChunks.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (
+            id.includes('/node_modules/react/') ||
+            id.includes('/node_modules/react-dom/') ||
+            id.includes('/node_modules/react-router')
+          ) {
+            return 'vendor';
+          }
+          if (id.includes('/node_modules/@radix-ui/')) return 'radix';
+          if (id.includes('/node_modules/echarts')) return 'charts';
+          return undefined;
         },
       },
     },

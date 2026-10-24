@@ -40,10 +40,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const sessionId = getSessionId();
-    if (!sessionId) {
-      setStatus('anonymous');
-      return;
-    }
+    if (!sessionId) return;
 
     let cancelled = false;
     validateSession(sessionId).then((valid) => {
