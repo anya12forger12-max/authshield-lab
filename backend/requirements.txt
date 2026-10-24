@@ -15,7 +15,7 @@ plotly==7.1.0
 pandas==3.0.6
 reportlab==5.0.1
 weasyprint==70.0
-aiofiles==23.2.1
+aiofiles==25.1.0
 # 0.28 removed the `app=` shortcut from httpx.Client. Older Starlette
 # TestClient versions passed app= through and raised
 # TypeError: Client.__init__() got an unexpected keyword argument 'app'.
