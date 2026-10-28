@@ -1,6 +1,6 @@
 fastapi==0.161.1
 uvicorn[standard]==0.54.0
-sqlalchemy==2.0.27
+sqlalchemy==2.1.6
 # SQLAlchemy 2.1 no longer bundles greenlet as a base dependency (it moved to
 # the sqlalchemy[asyncio] extra). sqlalchemy.ext.asyncio imports fail at
 # module scope without it, so pin it explicitly for the asyncio repositories.
