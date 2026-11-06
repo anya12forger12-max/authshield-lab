@@ -97,11 +97,11 @@ AuthShield Lab provides a comprehensive environment for security professionals, 
 git clone https://github.com/anya12forger12-max/authshield-lab.git
 cd authshield-lab
 
-# Install dependencies
-npm install
+# One-command install (backend + frontend)
+./install.sh
 
 # Set up environment variables
-cp .env.example .env
+cp backend/.env.example backend/.env
 ```
 
 ### Running Locally
