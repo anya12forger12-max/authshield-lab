@@ -1,0 +1,27 @@
+# AuthShield Lab - Code Owners
+# These owners will be automatically requested for review
+# when a pull request modifies matching files.
+
+# Global default owner
+* @anya12forger12-max
+
+# Backend
+/backend/ @anya12forger12-max
+
+# Applications
+/apps/ @anya12forger12-max
+
+# Accessibility
+/accessibility/ @anya12forger12-max
+
+# Security
+/security/ @anya12forger12-max
+
+# Documentation
+/docs/ @anya12forger12-max
+
+# GitHub configuration
+/.github/ @anya12forger12-max
+
+# CI/CD
+/ci/ @anya12forger12-max

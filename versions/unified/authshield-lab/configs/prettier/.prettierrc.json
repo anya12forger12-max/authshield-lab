@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json.schemastore.org/prettierrc",
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "useTabs": false,
+  "trailingComma": "es5",
+  "printWidth": 100,
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "quoteProps": "as-needed",
+  "jsxSingleQuote": false,
+  "htmlWhitespaceSensitivity": "css",
+  "proseWrap": "preserve",
+  "embeddedLanguageFormatting": "auto",
+  "singleAttributePerLine": false,
+  "overrides": [
+    {
+      "files": ["*.py"],
+      "options": {
+        "parser": null
+      }
+    },
+    {
+      "files": ["*.md", "*.mdx"],
+      "options": {
+        "printWidth": 80,
+        "proseWrap": "always"
+      }
+    },
+    {
+      "files": ["*.json", "*.jsonc", "*.json5"],
+      "options": {
+        "printWidth": 80,
+        "singleQuote": false
+      }
+    },
+    {
+      "files": ["*.yml", "*.yaml"],
+      "options": {
+        "singleQuote": false
+      }
+    },
+    {
+      "files": ["*.html", "*.htm"],
+      "options": {
+        "singleQuote": false
+      }
+    },
+    {
+      "files": ["*.css", "*.scss"],
+      "options": {
+        "singleQuote": false
+      }
+    },
+    {
+      "files": ["Dockerfile*"],
+      "options": {
+        "tabWidth": 4
+      }
+    }
+  ]
+}

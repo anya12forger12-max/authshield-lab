@@ -1,0 +1,54 @@
+version: 2
+
+updates:
+  # Python (backend) dependencies
+  - package-ecosystem: pip
+    directory: "/backend"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: UTC
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "deps"
+      include: scope
+    open-pull-requests-limit: 10
+    reviewers:
+      - anya12forger12-max
+
+  # Node.js (frontend) dependencies
+  - package-ecosystem: npm
+    directory: "/frontend"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: UTC
+    labels:
+      - dependencies
+    commit-message:
+      prefix: "deps"
+      include: scope
+    open-pull-requests-limit: 10
+    reviewers:
+      - anya12forger12-max
+
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: UTC
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: "ci"
+      include: scope
+    open-pull-requests-limit: 5
+    reviewers:
+      - anya12forger12-max

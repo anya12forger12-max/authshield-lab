@@ -1,0 +1,258 @@
+# ==================== Python ====================
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# Type checking
+.mypy_cache/
+.pytype/
+.cython_debug/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytestdebug.log
+
+# Translations
+*.mo
+*.pot
+
+# Environments
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE specific to Python
+*.pyc
+*.pyo
+*.pyd
+
+# ==================== Node.js ====================
+
+# Dependencies
+node_modules/
+bower_components/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+.next/
+out/
+.nuxt/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Package managers
+.npm
+.yarn/
+.yarn-integrity
+.yarn/install-state.gz
+
+# ==================== IDE ====================
+
+# VS Code (selective - keep shared settings)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/*.code-snippets
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+tags
+tags.lock
+Session.vim
+.vim/
+
+# Emacs
+\#*\#
+.#*
+*.elc
+*~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ==================== OS ====================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+*.url
+
+# Linux
+*~
+.directory
+
+# ==================== Database ====================
+
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# ==================== Build & Release ====================
+
+dist/
+build/
+release/
+out/
+*.tar.gz
+*.zip
+*.deb
+*.rpm
+*.msi
+*.dmg
+*.app
+*.AppImage
+*.snap
+*.flatpak
+
+# ==================== Coverage ====================
+
+htmlcov/
+.coverage
+.coverage.*
+coverage/
+coverage.xml
+*.cover
+.coverage.*
+lcov.info
+
+# ==================== Security (secrets) ====================
+
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.secret
+*.secrets
+**/secrets/
+
+# ==================== Documentation ====================
+
+site/
+docs/_build/
+*.log
+
+# ==================== Docker ====================
+
+docker-compose.override.yml
+
+# ==================== Misc ====================
+
+*.bak
+*.tmp
+*.temp
+*.orig
+.cache/
+tmp/
+temp/
+*.pid
+*.seed
+.vercel/
+.netlify/

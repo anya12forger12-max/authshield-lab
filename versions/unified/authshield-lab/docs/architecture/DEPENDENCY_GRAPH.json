@@ -1,0 +1,646 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "last_updated": "2026-07-19",
+    "description": "Machine-readable dependency graph for AuthShield Lab modules",
+    "generated_by": "tools/analyzers/build-graph.py"
+  },
+  "modules": {
+    "config": {
+      "layer": "core",
+      "maturity": "mature",
+      "wave": "1.0",
+      "description": "Configuration loading, validation, and access",
+      "owns_tables": [],
+      "public_api": [
+        "get_config",
+        "get_setting",
+        "validate_config",
+        "reload_config"
+      ]
+    },
+    "shared": {
+      "layer": "core",
+      "maturity": "mature",
+      "wave": "1.0",
+      "description": "Shared types, utilities, and base entities",
+      "owns_tables": [],
+      "public_api": [
+        "BaseEntity",
+        "TimestampedEntity",
+        "paginate",
+        "format_date",
+        "hash_id",
+        "Result",
+        "Either"
+      ]
+    },
+    "security": {
+      "layer": "core",
+      "maturity": "mature",
+      "wave": "1.0",
+      "description": "Rate limiting, brute-force protection, CSRF, input sanitization",
+      "owns_tables": [],
+      "public_api": [
+        "check_rate_limit",
+        "validate_csrf_token",
+        "sanitize_input",
+        "check_permission"
+      ]
+    },
+    "users": {
+      "layer": "core",
+      "maturity": "mature",
+      "wave": "1.0",
+      "description": "User CRUD, profile management, role assignment",
+      "owns_tables": ["users", "roles", "permissions"],
+      "public_api": [
+        "create_user",
+        "get_user",
+        "update_user",
+        "delete_user",
+        "list_users",
+        "assign_role"
+      ]
+    },
+    "auth": {
+      "layer": "core",
+      "maturity": "mature",
+      "wave": "1.0",
+      "description": "Authentication engine (login, logout, registration, MFA)",
+      "owns_tables": ["auth_credentials", "mfa_secrets", "password_history"],
+      "public_api": [
+        "authenticate",
+        "login",
+        "logout",
+        "register",
+        "verify_password",
+        "validate_password_policy"
+      ]
+    },
+    "sessions": {
+      "layer": "core",
+      "maturity": "mature",
+      "wave": "1.0",
+      "description": "Session lifecycle management",
+      "owns_tables": ["sessions", "session_tokens"],
+      "public_api": [
+        "create_session",
+        "validate_session",
+        "refresh_session",
+        "destroy_session",
+        "destroy_all_sessions"
+      ]
+    },
+    "audit": {
+      "layer": "core",
+      "maturity": "mature",
+      "wave": "1.0",
+      "description": "Immutable audit trail for security-relevant actions",
+      "owns_tables": ["audit_logs", "audit_events"],
+      "public_api": [
+        "log",
+        "query",
+        "export",
+        "get_retention_policy"
+      ]
+    },
+    "rules": {
+      "layer": "domain",
+      "maturity": "stable",
+      "wave": "1.0",
+      "description": "Individual security rules (rate-limit, block, allow, inspect)",
+      "owns_tables": ["rules", "rule_conditions"],
+      "public_api": [
+        "create_rule",
+        "evaluate",
+        "list_rules",
+        "toggle_rule"
+      ]
+    },
+    "policies": {
+      "layer": "domain",
+      "maturity": "stable",
+      "wave": "1.0",
+      "description": "Security policy engine (authentication, access, rate-limiting)",
+      "owns_tables": ["policies", "policy_rules"],
+      "public_api": [
+        "create_policy",
+        "evaluate",
+        "list_policies",
+        "update_policy",
+        "delete_policy"
+      ]
+    },
+    "attacks": {
+      "layer": "domain",
+      "maturity": "stable",
+      "wave": "1.0",
+      "description": "Pre-built attack scenarios and attack chain definitions",
+      "owns_tables": [],
+      "public_api": [
+        "get_attacks",
+        "get_attack",
+        "create_attack",
+        "execute"
+      ]
+    },
+    "defense": {
+      "layer": "domain",
+      "maturity": "stable",
+      "wave": "1.0",
+      "description": "Defense orchestration (policy + rule-driven countermeasures)",
+      "owns_tables": ["defense_actions", "blocked_sources"],
+      "public_api": [
+        "analyze",
+        "block",
+        "unblock",
+        "get_active_defenses"
+      ]
+    },
+    "standards": {
+      "layer": "domain",
+      "maturity": "experimental",
+      "wave": "5.0",
+      "description": "Industry standards mapping (NIST, OWASP, ISO 27001)",
+      "owns_tables": [],
+      "public_api": [
+        "get_frameworks",
+        "map_content",
+        "collect_evidence",
+        "compare"
+      ]
+    },
+    "content": {
+      "layer": "application",
+      "maturity": "stable",
+      "wave": "3.0",
+      "description": "Educational content management with versioning",
+      "owns_tables": ["content", "content_versions", "content_metadata"],
+      "public_api": [
+        "create_content",
+        "get_content",
+        "list_content",
+        "publish",
+        "archive"
+      ]
+    },
+    "lms": {
+      "layer": "application",
+      "maturity": "stable",
+      "wave": "3.0",
+      "description": "Learning management system (paths, progress, grading)",
+      "owns_tables": ["learning_paths", "enrollments", "progress", "grades"],
+      "public_api": [
+        "create_learning_path",
+        "enroll",
+        "track_progress",
+        "grade",
+        "get_analytics"
+      ]
+    },
+    "simulation": {
+      "layer": "application",
+      "maturity": "stable",
+      "wave": "3.0",
+      "description": "Attack/defense simulation scenarios and CTF challenges",
+      "owns_tables": ["scenarios", "simulation_sessions", "simulation_results"],
+      "public_api": [
+        "create_scenario",
+        "start",
+        "execute_action",
+        "complete"
+      ]
+    },
+    "developer": {
+      "layer": "application",
+      "maturity": "stable",
+      "wave": "3.0",
+      "description": "Developer tools (API explorer, extensions, automation)",
+      "owns_tables": ["api_keys", "extensions", "workflows"],
+      "public_api": [
+        "register_api_key",
+        "validate_api_key",
+        "list_extensions",
+        "install_extension",
+        "automate"
+      ]
+    },
+    "quality": {
+      "layer": "application",
+      "maturity": "stable",
+      "wave": "3.0",
+      "description": "Quality assurance and automated QA checks",
+      "owns_tables": ["quality_reports", "check_results"],
+      "public_api": [
+        "validate_content",
+        "validate_scenario",
+        "run_automated_checks",
+        "get_quality_metrics"
+      ]
+    },
+    "production": {
+      "layer": "application",
+      "maturity": "stable",
+      "wave": "3.0",
+      "description": "Production readiness (feature flags, health, governance)",
+      "owns_tables": ["feature_flags", "releases", "health_checks"],
+      "public_api": [
+        "validate_release",
+        "toggle_feature",
+        "get_health",
+        "get_governance_status"
+      ]
+    },
+    "reports": {
+      "layer": "application",
+      "maturity": "stable",
+      "wave": "3.0",
+      "description": "Report generation, export, and scheduling",
+      "owns_tables": ["reports", "report_schedules"],
+      "public_api": [
+        "generate",
+        "schedule",
+        "export",
+        "list_reports"
+      ]
+    },
+    "certification": {
+      "layer": "application",
+      "maturity": "experimental",
+      "wave": "5.0",
+      "description": "Certification exams, badges, and platform validation",
+      "owns_tables": ["certifications", "badges", "exams"],
+      "public_api": [
+        "create_certification",
+        "issue_badge",
+        "validate_platform",
+        "get_operations"
+      ]
+    },
+    "ecosystem": {
+      "layer": "infrastructure",
+      "maturity": "stable",
+      "wave": "4.0",
+      "description": "Plugin marketplace and lifecycle management",
+      "owns_tables": ["plugins", "submissions", "reviews"],
+      "public_api": [
+        "list_plugins",
+        "install",
+        "uninstall",
+        "submit"
+      ]
+    },
+    "optimization": {
+      "layer": "infrastructure",
+      "maturity": "experimental",
+      "wave": "4.0",
+      "description": "Performance optimization (caching, pooling, lazy loading)",
+      "owns_tables": [],
+      "public_api": [
+        "get_cache_stats",
+        "invalidate",
+        "get_query_stats"
+      ]
+    },
+    "analytics": {
+      "layer": "infrastructure",
+      "maturity": "experimental",
+      "wave": "5.0",
+      "description": "Analytics, metrics, and custom report generation",
+      "owns_tables": [],
+      "public_api": [
+        "get_learning_analytics",
+        "get_platform_metrics",
+        "generate_report",
+        "get_dashboard"
+      ]
+    },
+    "collaboration": {
+      "layer": "presentation",
+      "maturity": "experimental",
+      "wave": "5.0",
+      "description": "Real-time collaboration and team exercises",
+      "owns_tables": [],
+      "public_api": [
+        "create_workspace",
+        "join_workspace",
+        "submit_review",
+        "start_team_exercise"
+      ]
+    },
+    "content_studio": {
+      "layer": "presentation",
+      "maturity": "experimental",
+      "wave": "5.0",
+      "description": "WYSIWYG content editor and media management",
+      "owns_tables": [],
+      "public_api": [
+        "create_draft",
+        "save_draft",
+        "preview",
+        "publish_draft"
+      ]
+    },
+    "learning": {
+      "layer": "application",
+      "maturity": "experimental",
+      "wave": "6.0",
+      "description": "Adaptive learning, AI tutoring, spaced repetition (V6.0 target)",
+      "owns_tables": [],
+      "public_api": [
+        "create_adaptive_path",
+        "get_recommendations",
+        "track_spaced_repetition",
+        "get_learning_insights"
+      ]
+    }
+  },
+  "dependencies": {
+    "config": {
+      "depends_on": [],
+      "depended_by": [
+        "shared",
+        "security",
+        "users",
+        "auth",
+        "sessions",
+        "audit",
+        "rules",
+        "policies",
+        "attacks",
+        "defense",
+        "content",
+        "lms",
+        "simulation",
+        "developer",
+        "quality",
+        "production",
+        "reports",
+        "ecosystem",
+        "optimization",
+        "standards",
+        "certification"
+      ]
+    },
+    "shared": {
+      "depends_on": ["config"],
+      "depended_by": [
+        "users",
+        "auth",
+        "sessions",
+        "audit",
+        "rules",
+        "policies",
+        "defense",
+        "content",
+        "lms",
+        "simulation",
+        "developer",
+        "quality",
+        "production",
+        "reports",
+        "ecosystem",
+        "standards",
+        "certification"
+      ]
+    },
+    "security": {
+      "depends_on": ["config", "shared"],
+      "depended_by": [
+        "auth",
+        "sessions",
+        "ecosystem",
+        "developer"
+      ]
+    },
+    "users": {
+      "depends_on": ["config", "shared", "audit"],
+      "depended_by": [
+        "auth",
+        "sessions",
+        "lms",
+        "simulation",
+        "developer",
+        "ecosystem",
+        "content",
+        "certification",
+        "collaboration",
+        "content_studio",
+        "learning"
+      ]
+    },
+    "auth": {
+      "depends_on": ["config", "shared", "security", "users", "sessions", "audit"],
+      "depended_by": [
+        "lms",
+        "simulation",
+        "developer",
+        "collaboration",
+        "learning"
+      ]
+    },
+    "sessions": {
+      "depends_on": ["config", "shared", "security", "audit"],
+      "depended_by": [
+        "auth",
+        "simulation"
+      ]
+    },
+    "audit": {
+      "depends_on": ["config", "shared", "users"],
+      "depended_by": [
+        "auth",
+        "sessions",
+        "users",
+        "rules",
+        "policies",
+        "defense",
+        "attacks",
+        "content",
+        "lms",
+        "simulation",
+        "developer",
+        "quality",
+        "production",
+        "ecosystem",
+        "standards",
+        "certification",
+        "reports",
+        "collaboration",
+        "content_studio",
+        "optimization",
+        "analytics"
+      ]
+    },
+    "rules": {
+      "depends_on": ["config", "shared", "audit"],
+      "depended_by": ["policies"]
+    },
+    "policies": {
+      "depends_on": ["config", "shared", "rules", "audit"],
+      "depended_by": ["defense", "auth"]
+    },
+    "attacks": {
+      "depends_on": ["config", "shared", "audit"],
+      "depended_by": ["simulation"]
+    },
+    "defense": {
+      "depends_on": ["config", "shared", "policies", "rules", "attacks", "users", "audit"],
+      "depended_by": ["auth", "simulation"]
+    },
+    "standards": {
+      "depends_on": ["config", "shared", "content", "audit"],
+      "depended_by": ["certification"]
+    },
+    "content": {
+      "depends_on": ["config", "shared", "users", "audit"],
+      "depended_by": [
+        "lms",
+        "quality",
+        "standards",
+        "content_studio",
+        "learning"
+      ]
+    },
+    "lms": {
+      "depends_on": ["config", "shared", "auth", "users", "content", "audit", "analytics"],
+      "depended_by": [
+        "learning",
+        "certification"
+      ]
+    },
+    "simulation": {
+      "depends_on": ["config", "shared", "auth", "users", "defense", "attacks", "sessions", "audit"],
+      "depended_by": [
+        "quality",
+        "collaboration",
+        "learning"
+      ]
+    },
+    "developer": {
+      "depends_on": ["config", "shared", "auth", "users", "audit", "ecosystem", "security"],
+      "depended_by": []
+    },
+    "quality": {
+      "depends_on": ["config", "shared", "content", "simulation", "audit"],
+      "depended_by": [
+        "production",
+        "certification",
+        "content_studio"
+      ]
+    },
+    "production": {
+      "depends_on": ["config", "shared", "quality", "audit", "certification"],
+      "depended_by": [
+        "analytics",
+        "optimization"
+      ]
+    },
+    "reports": {
+      "depends_on": ["config", "shared", "users", "audit"],
+      "depended_by": ["analytics"]
+    },
+    "certification": {
+      "depends_on": ["config", "shared", "standards", "lms", "quality", "production", "users", "audit"],
+      "depended_by": ["learning"]
+    },
+    "ecosystem": {
+      "depends_on": ["config", "shared", "users", "audit", "security"],
+      "depended_by": ["developer"]
+    },
+    "optimization": {
+      "depends_on": ["config", "shared", "production", "audit"],
+      "depended_by": ["analytics", "learning"]
+    },
+    "analytics": {
+      "depends_on": ["config", "shared", "lms", "users", "production", "optimization", "reports", "audit"],
+      "depended_by": ["learning"]
+    },
+    "collaboration": {
+      "depends_on": ["config", "shared", "auth", "users", "simulation", "audit"],
+      "depended_by": ["learning"]
+    },
+    "content_studio": {
+      "depends_on": ["config", "shared", "content", "quality", "users", "audit"],
+      "depended_by": []
+    },
+    "learning": {
+      "depends_on": [
+        "config", "shared", "auth", "users", "lms", "content",
+        "simulation", "analytics", "optimization", "collaboration",
+        "certification", "audit"
+      ],
+      "depended_by": []
+    }
+  },
+  "layers": {
+    "core": {
+      "level": 0,
+      "modules": ["config", "shared", "security", "users", "auth", "sessions", "audit"],
+      "description": "Foundation modules with no outbound dependencies beyond the core layer"
+    },
+    "domain": {
+      "level": 1,
+      "modules": ["rules", "policies", "attacks", "defense", "standards"],
+      "description": "Domain logic modules that implement business rules and policies"
+    },
+    "application": {
+      "level": 2,
+      "modules": ["content", "lms", "simulation", "developer", "quality", "production", "reports", "certification", "learning"],
+      "description": "Application modules that implement user-facing features"
+    },
+    "infrastructure": {
+      "level": 3,
+      "modules": ["ecosystem", "optimization", "analytics"],
+      "description": "Infrastructure modules that provide cross-cutting technical capabilities"
+    },
+    "presentation": {
+      "level": 4,
+      "modules": ["collaboration", "content_studio"],
+      "description": "Presentation modules focused on UI and user interaction"
+    }
+  },
+  "forbidden_dependencies": [
+    {"from": "core", "to": "application", "reason": "Core modules must not depend on application modules"},
+    {"from": "core", "to": "infrastructure", "reason": "Core modules must not depend on infrastructure modules"},
+    {"from": "core", "to": "presentation", "reason": "Core modules must not depend on presentation modules"},
+    {"from": "domain", "to": "application", "reason": "Domain modules must not depend on application modules"},
+    {"from": "domain", "to": "infrastructure", "reason": "Domain modules must not depend on infrastructure modules"},
+    {"from": "domain", "to": "presentation", "reason": "Domain modules must not depend on presentation modules"},
+    {"from": "application", "to": "presentation", "reason": "Application modules must not depend on presentation modules"},
+    {"from": "infrastructure", "to": "presentation", "reason": "Infrastructure modules must not depend on presentation modules"}
+  ],
+  "circular_dependencies": [],
+  "event_flow": {
+    "auth.login.success": ["audit", "analytics", "defense"],
+    "auth.login.failed": ["audit", "defense"],
+    "auth.logout": ["audit"],
+    "auth.register": ["audit", "analytics"],
+    "users.created": ["audit"],
+    "users.updated": ["audit", "optimization"],
+    "users.deleted": ["audit"],
+    "sessions.created": ["audit"],
+    "sessions.expired": ["audit"],
+    "sessions.revoked": ["audit"],
+    "policies.evaluated": ["audit"],
+    "policies.violated": ["audit", "defense"],
+    "defense.blocked": ["audit"],
+    "defense.unblocked": ["audit"],
+    "defense.alert": ["audit"],
+    "simulation.started": ["audit"],
+    "simulation.completed": ["audit", "analytics", "lms", "quality"],
+    "simulation.failed": ["audit"],
+    "content.published": ["audit", "optimization"],
+    "content.archived": ["audit"],
+    "lms.enrolled": ["audit", "analytics"],
+    "lms.completed": ["audit", "analytics", "certification"],
+    "lms.graded": ["audit", "analytics"],
+    "developer.api_key.created": ["audit"],
+    "developer.api_key.revoked": ["audit"],
+    "production.release.validated": ["audit", "analytics"],
+    "production.feature.toggled": ["audit"],
+    "certification.issued": ["audit", "analytics"],
+    "certification.revoked": ["audit"]
+  }
+}

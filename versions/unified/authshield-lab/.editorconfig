@@ -1,0 +1,43 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.{js,jsx,ts,tsx,json,jsonc,yaml,yml,css,scss,html}]
+indent_style = space
+indent_size = 2
+
+[*.{toml,ini,cfg}]
+indent_style = space
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+
+[Dockerfile]
+indent_style = space
+indent_size = 4
+
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{bat,cmd,ps1}]
+end_of_line = crlf
+
+[*.sln]
+indent_style = tab
+
+[*.{csproj,props,targets}]
+indent_style = space
+indent_size = 2
+
+[*.lock]
+indent_style = space
+indent_size = 2

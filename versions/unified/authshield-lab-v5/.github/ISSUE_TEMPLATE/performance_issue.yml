@@ -1,0 +1,71 @@
+name: Performance Issue
+description: Report a performance problem in AuthShield Lab
+title: "[Perf]: "
+labels: ["performance"]
+body:
+  - type: input
+    id: component
+    attributes:
+      label: Component
+      description: Which component is experiencing performance issues?
+      placeholder: e.g. Dashboard, Search, Authentication
+    validations:
+      required: true
+
+  - type: dropdown
+    id: metric
+    attributes:
+      label: Metric Affected
+      description: Which performance metric is impacted?
+      options:
+        - Startup Time
+        - Rendering Speed
+        - Search Performance
+        - Memory Usage
+        - CPU Usage
+    validations:
+      required: true
+
+  - type: input
+    id: current
+    attributes:
+      label: Current Value
+      description: What is the current observed value?
+      placeholder: e.g. 5.2 seconds, 850MB RAM
+    validations:
+      required: true
+
+  - type: input
+    id: expected
+    attributes:
+      label: Expected Value
+      description: What value would you consider acceptable?
+      placeholder: e.g. <2 seconds, <512MB RAM
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: Provide details about your environment.
+      placeholder: |
+        OS: Ubuntu 22.04
+        CPU: Intel i7-12700H
+        RAM: 16GB
+        Node version: 20.x
+        Python version: 3.12
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Provide steps to reproduce the performance issue.
+      placeholder: |
+        1. Start the application
+        2. Navigate to '...'
+        3. Observe...
+    validations:
+      required: true
