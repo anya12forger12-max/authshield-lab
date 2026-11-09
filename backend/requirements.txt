@@ -6,7 +6,7 @@ sqlalchemy==2.1.6
 # module scope without it, so pin it explicitly for the asyncio repositories.
 greenlet==3.5.6
 aiosqlite==0.22.1
-pydantic==2.14.1
+pydantic==2.14.3
 pydantic-settings==2.16.1
 python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
